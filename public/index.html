@@ -786,13 +786,6 @@ function buildEG(){
   });
 }
 
-document.getElementById('ttabs').addEventListener('click', function(e){ var t=e.target.closest('.ttab'); if(t) setType(t.dataset.t); });
-function setType(t){ selType=t; document.querySelectorAll('.ttab').forEach(function(x){ x.classList.toggle('sel', x.dataset.t===t); }); document.getElementById('g-txt').style.display=t==='text'?'':'none'; document.getElementById('g-img').style.display=t==='image'?'':'none'; document.getElementById('g-vid').style.display=t==='video'?'':'none'; }
-
-document.getElementById('f-img').addEventListener('change', function(e){
-  var f=e.target.files[0]; if(!f) return;
-  var r=new FileReader(); r.onload=function(ev){ imgData=ev.target.result; var i=document.getElementById('prev-img'); i.src=imgData; i.style.display='block'; }; r.readAsDataURL(f);
-});
 
 document.getElementById('bsub').addEventListener('click', function(){
   if(!pending){ notif('Selecciona un punto en el mapa primero.','err'); return; }
