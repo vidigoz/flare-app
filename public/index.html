@@ -43,10 +43,15 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;displa
 #sync.error .sync-dot{background:var(--danger)}
 
 /* FAB */
-#fab{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--neon);color:#000;border:none;border-radius:30px;padding:14px 28px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:8px;transition:all .2s}
-#fab:hover{transform:translateX(-50%) scale(1.05)}
+#fab-wrap{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:10px}
+#fab{background:var(--neon);color:#000;border:none;border-radius:30px;padding:14px 28px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap}
+#fab:hover{transform:scale(1.05)}
 #fab.placing{background:var(--neon2);animation:fabg 1s infinite}
 @keyframes fabg{0%,100%{box-shadow:var(--glow2),0 8px 32px rgba(0,0,0,.6)}50%{box-shadow:0 0 50px rgba(245,0,160,.6),0 8px 32px rgba(0,0,0,.6)}}
+#fab-menu{display:flex;flex-direction:column;gap:8px;align-items:center;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .2s cubic-bezier(.16,1,.3,1)}
+#fab-menu.on{opacity:1;pointer-events:all;transform:translateY(0)}
+#fab-menu button{background:var(--surface);border:1.5px solid var(--border);border-radius:22px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:11px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:all .18s;white-space:nowrap;backdrop-filter:blur(8px)}
+#fab-menu button:hover{border-color:var(--neon);color:var(--neon);background:rgba(0,245,160,.08);transform:scale(1.03)}
 
 /* CROSSHAIR */
 #xhair{display:none;position:fixed;inset:0;z-index:500;pointer-events:none;align-items:center;justify-content:center}
@@ -272,7 +277,13 @@ a.rich-link[href^="tel:"]:hover{background:rgba(245,0,160,.15)}
   </div>
 </header>
 
-<button id="fab">＋ Crear Flare</button>
+<div id="fab-wrap">
+  <div id="fab-menu">
+    <button id="fab-gps">📍 Mi ubicación</button>
+    <button id="fab-map">🗺️ Elegir en mapa</button>
+  </div>
+  <button id="fab">＋ Crear Flare</button>
+</div>
 <div id="xhair"><div class="xh"></div></div>
 
 <div class="legend" id="legend">
@@ -353,11 +364,7 @@ a.rich-link[href^="tel:"]:hover{background:rgba(245,0,160,.15)}
     <div class="mbody">
       <div class="fg">
         <label>Ubicación</label>
-        <div class="loc-opts">
-          <button class="loc-btn" id="loc-gps">📍 Usar mi ubicación actual</button>
-          <button class="loc-btn" id="loc-map">🗺️ Elegir en el mapa</button>
-        </div>
-        <div class="coords-pill" id="coords-pill" style="display:none"><span>✅</span><span id="ctxt">—</span></div>
+        <div class="coords-pill" id="coords-pill"><span>📍</span><span id="ctxt">—</span></div>
       </div>
       <div class="fg">
         <label>Categoría</label>
@@ -761,26 +768,63 @@ function flyToPin(id){
   setTimeout(function(){ pin.marker.openPopup(); }, 900);
 }
 
-/* ── placing ── */
+/* ── FAB menu ── */
+var fabMenuOpen = false;
 var fab = document.getElementById('fab');
-fab.addEventListener('click', function(){ placing ? stopPlace() : startPlace(); });
-function startPlace(){ placing=true; fab.textContent='✕  Cancelar'; fab.classList.add('placing'); document.getElementById('hint').style.display='flex'; document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); }
-function stopPlace(){ placing=false; fab.textContent='＋ Crear Flare'; fab.classList.remove('placing'); document.getElementById('hint').style.display='none'; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
+var fabMenu = document.getElementById('fab-menu');
+
+fab.addEventListener('click', function(e){
+  e.stopPropagation();
+  if(placing){ stopPlace(); return; }
+  fabMenuOpen = !fabMenuOpen;
+  fabMenu.classList.toggle('on', fabMenuOpen);
+  fab.textContent = fabMenuOpen ? '✕  Cancelar' : '＋ Crear Flare';
+});
+
+document.addEventListener('click', function(){
+  if(fabMenuOpen){ fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare'; }
+});
+
+/* 📍 Mi ubicación */
+document.getElementById('fab-gps').addEventListener('click', function(e){
+  e.stopPropagation();
+  fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare';
+  fab.textContent='⏳ Obteniendo...'; fab.disabled=true;
+  if(!navigator.geolocation){ notif('Tu browser no soporta geolocalización','err'); fab.textContent='＋ Crear Flare'; fab.disabled=false; return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      fab.textContent='＋ Crear Flare'; fab.disabled=false;
+      map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, {duration:1});
+      setPending(pos.coords.latitude, pos.coords.longitude);
+      openModal();
+    },
+    function(){
+      fab.textContent='＋ Crear Flare'; fab.disabled=false;
+      notif('No se pudo obtener tu ubicación','err');
+    },
+    {enableHighAccuracy:true, timeout:8000}
+  );
+});
+
+/* 🗺️ Elegir en mapa */
+document.getElementById('fab-map').addEventListener('click', function(e){
+  e.stopPropagation();
+  fabMenuOpen=false; fabMenu.classList.remove('on');
+  fab.textContent='✕  Cancelar';
+  startPlace();
+});
+
+function startPlace(){ placing=true; fab.classList.add('placing'); document.getElementById('hint').style.display='flex'; document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); }
+function stopPlace(){ placing=false; fab.classList.remove('placing'); fab.textContent='＋ Crear Flare'; fab.disabled=false; document.getElementById('hint').style.display='none'; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
 
 /* ── modal ── */
-function setPending(lat, lng) {
+function setPending(lat, lng){
   pending = {lat:lat, lng:lng};
   document.getElementById('ctxt').textContent = lat.toFixed(5)+', '+lng.toFixed(5);
-  document.getElementById('coords-pill').style.display = 'flex';
 }
-
 function openModal(){
   buildCG(); buildEG();
-  pending = null;
-  document.getElementById('coords-pill').style.display = 'none';
-  document.getElementById('ctxt').textContent = '—';
-  document.getElementById('loc-gps').classList.remove('active');
-  document.getElementById('loc-map').classList.remove('active');
+  document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
 }
 function closeModal(){
@@ -788,45 +832,10 @@ function closeModal(){
   pending=null;
   document.getElementById('f-ttl').value='';
   document.getElementById('f-txt').value='';
-  document.getElementById('coords-pill').style.display='none';
   stopPlace();
 }
 document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
-
-/* GPS button */
-document.getElementById('loc-gps').addEventListener('click', function(){
-  var btn = this;
-  btn.disabled = true;
-  btn.textContent = '⏳ Obteniendo ubicación...';
-  if(!navigator.geolocation){ notif('Tu browser no soporta geolocalización','err'); btn.disabled=false; btn.textContent='📍 Usar mi ubicación actual'; return; }
-  navigator.geolocation.getCurrentPosition(
-    function(pos){
-      btn.disabled = false;
-      btn.textContent = '📍 Usar mi ubicación actual';
-      btn.classList.add('active');
-      document.getElementById('loc-map').classList.remove('active');
-      setPending(pos.coords.latitude, pos.coords.longitude);
-      /* center map on user */
-      map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, {duration:1});
-    },
-    function(err){
-      btn.disabled = false;
-      btn.textContent = '📍 Usar mi ubicación actual';
-      notif('No se pudo obtener tu ubicación. Elige en el mapa.','err');
-    },
-    {enableHighAccuracy:true, timeout:8000}
-  );
-});
-
-/* Map-tap button */
-document.getElementById('loc-map').addEventListener('click', function(){
-  this.classList.add('active');
-  document.getElementById('loc-gps').classList.remove('active');
-  closeModal();
-  startPlace();
-  notif('📍 Toca el mapa para elegir la ubicación');
-});
 document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
