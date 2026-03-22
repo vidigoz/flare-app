@@ -1,7 +1,7 @@
 // netlify/functions/like.js
 // PATCH /api/like?id=xxx  → suma +1 like y +5 min al flare
 
-import { neon } from "@netlify/neon";
+import { neon } from "@neondatabase/serverless";
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
