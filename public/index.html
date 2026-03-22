@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flare — El mapa que respira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --bg:#080b12; --surface:#0f1420; --surface2:#161c2e; --border:#1e2a45;
+  --neon:#00f5a0; --neon2:#f500a0; --amber:#ffb300; --danger:#ff4060;
+  --text:#e8eaf0; --dim:#7a8499;
+  --glow:0 0 20px rgba(0,245,160,.3); --glow2:0 0 20px rgba(245,0,160,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+
+/* MAP */
+#map{width:100%;height:100vh}
+.leaflet-tile-pane{filter:hue-rotate(200deg) brightness(.45) saturate(1.3)}
+
+/* HEADER */
+header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(8,11,18,.97) 0%,transparent 100%)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-pin{width:30px;height:30px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
+.logo-pin::after{content:'';position:absolute;width:10px;height:10px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.logo-text{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.logo-text span{color:var(--neon)}
+.hdr-r{display:flex;gap:10px;align-items:center}
+.spill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:12px;color:var(--dim)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+#hint{display:none;border-color:rgba(245,0,160,.4);color:var(--neon2)}
+
+/* SYNC indicator */
+#sync{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);transition:all .3s}
+#sync.loading{border-color:rgba(0,245,160,.4);color:var(--neon)}
+#sync.error{border-color:rgba(255,64,96,.4);color:var(--danger)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);transition:background .3s}
+#sync.loading .sync-dot{background:var(--neon);animation:blink 1s infinite}
+#sync.error .sync-dot{background:var(--danger)}
+
+/* FAB */
+#fab{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--neon);color:#000;border:none;border-radius:30px;padding:14px 28px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:8px;transition:all .2s}
+#fab:hover{transform:translateX(-50%) scale(1.05)}
+#fab.placing{background:var(--neon2);animation:fabg 1s infinite}
+@keyframes fabg{0%,100%{box-shadow:var(--glow2),0 8px 32px rgba(0,0,0,.6)}50%{box-shadow:0 0 50px rgba(245,0,160,.6),0 8px 32px rgba(0,0,0,.6)}}
+
+/* CROSSHAIR */
+#xhair{display:none;position:fixed;inset:0;z-index:500;pointer-events:none;align-items:center;justify-content:center}
+#xhair.on{display:flex}
+.xh{width:44px;height:44px;position:relative}
+.xh::before,.xh::after{content:'';position:absolute;background:var(--neon2);border-radius:2px;box-shadow:0 0 8px var(--neon2)}
+.xh::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+.xh::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
+
+/* LEGEND */
+.legend{position:fixed;bottom:96px;left:20px;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .25s}
+.leg-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;gap:12px}
+.leg-hdr:hover{background:var(--surface2)}
+.leg-t{font-weight:700;color:var(--text);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.leg-toggle{font-size:11px;color:var(--dim);transition:transform .25s;flex-shrink:0}
+.legend.collapsed .leg-toggle{transform:rotate(180deg)}
+.leg-body{padding:4px 8px 8px;line-height:1.9}
+.legend.collapsed .leg-body{display:none}
+.leg-r{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;cursor:pointer;transition:background .15s;user-select:none;margin-bottom:1px}
+.leg-r:hover{background:var(--surface2)}
+.leg-r.active{background:var(--surface2);outline:1px solid var(--border)}
+.leg-r.filter-all{border-top:1px solid var(--border);margin-top:4px;padding-top:7px}
+.ld{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.leg-r-lbl{flex:1}
+.leg-r-check{font-size:10px;opacity:0;transition:opacity .15s}
+.leg-r.active .leg-r-check{opacity:1}
+
+/* GEOCODER */
+.pgeo{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.pgeo-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'Space Mono',monospace;margin-bottom:7px}
+.pgeo-wrap{position:relative}
+.pgeo-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:9px 12px 9px 34px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+.pgeo-inp:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
+.pgeo-inp::placeholder{color:var(--dim)}
+.pgeo-res{display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.6);max-height:200px;overflow-y:auto}
+.pgeo-res.on{display:block}
+.gitem{padding:10px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);transition:background .12s;display:flex;align-items:flex-start;gap:9px}
+.gitem:last-child{border-bottom:none}
+.gitem:hover{background:var(--surface2)}
+.gitem-ic{font-size:15px;flex-shrink:0;margin-top:1px}
+.gitem-name{font-weight:700;font-size:12px}
+.gitem-sub{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;margin-top:1px}
+.geo-msg{padding:12px;font-size:11px;color:var(--dim);font-family:'Space Mono',monospace;text-align:center}
+
+/* NOTIFS */
+#notifs{position:fixed;top:70px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.ntf{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--neon);border-radius:10px;padding:10px 14px;font-size:13px;min-width:200px;animation:nin .3s cubic-bezier(.16,1,.3,1);box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.ntf.err{border-left-color:var(--danger)}
+.ntf.like{border-left-color:var(--neon2)}
+@keyframes nin{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* PANEL BUTTON */
+#pbtn{position:fixed;top:62px;right:0;z-index:1000;background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;padding:12px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:-4px 0 20px rgba(0,0,0,.4);transition:all .2s}
+#pbtn:hover{background:var(--surface2);border-color:var(--neon)}
+.pbi{font-size:16px}
+.pbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim)}
+.pbadge{background:var(--neon);color:#000;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;border-radius:10px;padding:2px 6px;min-width:20px;text-align:center}
+
+/* PANEL */
+#pov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1050;backdrop-filter:blur(3px)}
+#pov.on{display:block}
+#panel{position:fixed;top:0;right:0;width:380px;height:100vh;z-index:1100;background:var(--surface);border-left:1px solid var(--border);box-shadow:-8px 0 40px rgba(0,0,0,.8);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1)}
+#panel.open{transform:translateX(0)}
+.ph{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ph-ttl{font-size:18px;font-weight:800}
+.ph-ttl span{color:var(--neon)}
+.ph-sub{font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:3px}
+.ph-x{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.ph-x:hover{color:var(--text);border-color:var(--danger)}
+.psrch{padding:10px 14px 0;flex-shrink:0}
+.psrch input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:8px 12px 8px 32px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+.psrch input:focus{border-color:var(--neon)}
+.pvig{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.pvig-lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim);flex-shrink:0}
+.pvig-opts{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.pvig-opts::-webkit-scrollbar{display:none}
+.pvig-opt{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.pvig-opt:hover{border-color:rgba(255,255,255,.25);color:var(--text)}
+.pvig-opt.on{background:var(--surface);border-color:var(--neon);color:var(--neon);font-weight:700}
+.pvig-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pchips{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--border);scrollbar-width:none}
+.pchips::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:5px;white-space:nowrap;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:5px 11px;cursor:pointer;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .18s;flex-shrink:0}
+.chip:hover{border-color:rgba(255,255,255,.3);color:var(--text)}
+.chip.on{font-weight:700;color:#000}
+.chip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.plist{flex:1;overflow-y:auto;padding:4px 0 16px}
+.prow{border-left:3px solid transparent;cursor:pointer;transition:background .12s}
+.prow:hover{background:rgba(255,255,255,.025)}
+.prow.open{border-left-color:var(--neon);background:rgba(0,245,160,.04)}
+.prow-hdr{display:flex;align-items:center;gap:10px;padding:11px 16px}
+.prow-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.prow-ico:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(0,245,160,.35)}
+.prow-body{flex:1;min-width:0}
+.prow-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.prow-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ptag{font-size:9px;font-family:'Space Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--dim);white-space:nowrap}
+.ptag.cat{font-weight:700}
+.ptime{font-size:10px;font-family:'Space Mono',monospace}
+.plikes{font-size:10px;font-family:'Space Mono',monospace;color:var(--neon2)}
+.prow-bar{height:2px;background:var(--border);border-radius:1px;margin-top:6px;overflow:hidden}
+.prow-fill{height:100%;border-radius:1px;transition:width .3s}
+.prow-arrow{font-size:11px;color:var(--dim);transition:transform .2s;flex-shrink:0;margin-left:2px}
+.prow.open .prow-arrow{transform:rotate(90deg)}
+.pdetail{display:none;padding:0 16px 14px 66px;background:var(--surface2);border-left:3px solid var(--neon)}
+.prow.open + .pdetail{display:block}
+.pd-img{width:100%;border-radius:8px;margin-bottom:10px;max-height:180px;object-fit:cover;display:block}
+.pd-iframe{width:100%;border-radius:8px;height:160px;margin-bottom:10px;display:block}
+.pd-txt{font-size:13px;color:#aab4ca;line-height:1.6;margin-bottom:12px}
+.pd-acts{display:flex;gap:8px}
+.pd-like{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.pd-like:hover{border-color:var(--neon2);background:rgba(245,0,160,.08);color:var(--neon2)}
+.pd-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
+.pd-map{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--dim);cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
+.pd-map:hover{border-color:var(--neon);color:var(--neon)}
+.pempty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:12px;padding:40px;text-align:center;line-height:1.7}
+.pe-ico{font-size:38px;opacity:.3}
+
+/* MODAL */
+.mover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:2000;align-items:center;justify-content:center}
+.mover.on{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:min(480px,95vw);max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:sup .3s cubic-bezier(.16,1,.3,1)}
+@keyframes sup{from{transform:translateY(28px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhdr{padding:22px 22px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.mttl{font-size:20px;font-weight:800}
+.mttl span{color:var(--neon)}
+.mx{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mx:hover{color:var(--text);border-color:var(--danger)}
+.mbody{padding:0 22px 22px}
+.fg{margin-bottom:14px}
+label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'Space Mono',monospace}
+input[type=text],textarea,input[type=url]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;padding:11px 13px;outline:none;transition:border-color .2s;resize:vertical}
+input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
+.coords-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Space Mono',monospace;font-size:12px;color:var(--neon);display:flex;align-items:center;gap:7px}
+.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.cbtn{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s}
+.cbtn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)}
+.cbtn.sel{border-color:var(--cc,var(--neon));background:color-mix(in srgb,var(--cc,var(--neon)) 12%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--cc,var(--neon)) 16%,transparent)}
+.cb-ic{font-size:22px;line-height:1}
+.cb-lb{font-size:8.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim);line-height:1.2;text-align:center}
+.cbtn.sel .cb-lb{color:var(--cc,var(--neon))}
+.egrid{display:flex;flex-wrap:wrap;gap:5px}
+.ebtn{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ebtn:hover{transform:scale(1.12)}
+.ebtn.sel{border-width:2px}
+.ttabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.ttab{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 6px;cursor:pointer;text-align:center;transition:all .2s;font-size:20px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ttab span{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);font-family:'Space Mono',monospace}
+.ttab.sel{border-color:var(--neon);background:rgba(0,245,160,.07)}
+.ttab.sel span{color:var(--neon)}
+.fdrop{border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.fdrop:hover{border-color:var(--neon);background:rgba(0,245,160,.04)}
+.fdrop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.fdrop-ic{font-size:26px;margin-bottom:5px}
+.fdrop-tx{font-size:12px;color:var(--dim);font-family:'Space Mono',monospace}
+#prev-img{width:100%;border-radius:8px;margin-top:10px;display:none;max-height:150px;object-fit:cover}
+.bsub{width:100%;background:var(--neon);color:#000;border:none;border-radius:12px;padding:13px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .2s}
+.bsub:hover{box-shadow:var(--glow);transform:translateY(-1px)}
+.bsub:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* popup */
+.leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:16px!important;box-shadow:0 8px 40px rgba(0,0,0,.8)!important;padding:0!important;overflow:hidden}
+.leaflet-popup-content{margin:0!important;color:var(--text)}
+.leaflet-popup-tip-container{display:none}
+.leaflet-popup-close-button{color:var(--dim)!important;top:10px!important;right:10px!important;font-size:18px!important;z-index:10}
+.pop{padding:15px;min-width:220px;max-width:280px}
+.pop-hdr{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.pop-emo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid transparent}
+.pop-name{font-size:14px;font-weight:700;line-height:1.2}
+.pop-cat{font-size:10px;font-family:'Space Mono',monospace;margin-top:2px}
+.pop-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden}
+.pop-fill{height:100%;border-radius:2px}
+.pop-txt{font-size:13px;color:#aab4ca;line-height:1.5;margin-bottom:10px}
+.pop-media img{width:100%;border-radius:8px;margin-bottom:10px;max-height:140px;object-fit:cover}
+.pop-media iframe{width:100%;border-radius:8px;margin-bottom:10px;height:140px}
+.pop-foot{display:flex;align-items:center;gap:7px}
+.pop-like{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.pop-like:hover{border-color:var(--neon2);background:rgba(245,0,160,.08);color:var(--neon2)}
+.pop-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
+.tbdg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 9px;font-family:'Space Mono',monospace;font-size:11px;color:var(--amber);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.pop-like-hint{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);text-align:center;padding:6px 0 2px;opacity:.8}
+
+/* marker */
+.mk{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.mk-b{width:40px;height:40px;background:var(--surface);border:2px solid var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;position:relative;transition:all .3s}
+.mk-e{transform:rotate(45deg);font-size:18px;line-height:1}
+.mk-r{position:absolute;inset:-4px;border-radius:50% 50% 50% 0;border:1px solid rgba(0,245,160,.3);animation:mp 2s infinite}
+@keyframes mp{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.4);opacity:0}}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-pin"></div>
+    <div class="logo-text">Fl<span>are</span></div>
+  </div>
+  <div class="hdr-r">
+    <div class="spill"><div class="dot"></div><span id="cnt">0</span>&nbsp;flares activos</div>
+    <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
+    <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
+  </div>
+</header>
+
+<button id="fab">＋ Crear Flare</button>
+<div id="xhair"><div class="xh"></div></div>
+
+<div class="legend" id="legend">
+  <div class="leg-hdr" id="leg-hdr">
+    <div class="leg-t">Vigencia</div>
+    <div class="leg-toggle" id="leg-toggle">▲</div>
+  </div>
+  <div class="leg-body">
+    <div class="leg-r active" id="leg-nuevo"    data-filter="nuevo">
+      <div class="ld" style="background:var(--neon)"></div>
+      <div class="leg-r-lbl">Nuevo (&gt;30 min)</div>
+      <div class="leg-r-check">✓</div>
+    </div>
+    <div class="leg-r active" id="leg-maduro"   data-filter="maduro">
+      <div class="ld" style="background:var(--amber)"></div>
+      <div class="leg-r-lbl">Maduro (&lt;30 min)</div>
+      <div class="leg-r-check">✓</div>
+    </div>
+    <div class="leg-r active" id="leg-expirando" data-filter="expirando">
+      <div class="ld" style="background:var(--danger)"></div>
+      <div class="leg-r-lbl">Expirando (&lt;10 min)</div>
+      <div class="leg-r-check">✓</div>
+    </div>
+    <div class="leg-r filter-all" id="leg-all" data-filter="all">
+      <div class="ld" style="background:var(--dim)"></div>
+      <div class="leg-r-lbl" style="color:var(--text)">Ver todo</div>
+      <div class="leg-r-check">✓</div>
+    </div>
+  </div>
+</div>
+
+<div id="notifs"></div>
+
+<div id="pbtn">
+  <div class="pbi">🗂️</div>
+  <div class="pbl">Ver Flares</div>
+  <div class="pbadge" id="pbadge">0</div>
+</div>
+
+<div id="pov"></div>
+
+<div id="panel">
+  <div class="ph">
+    <div>
+      <div class="ph-ttl">Flares en <span>Vista</span></div>
+      <div class="ph-sub" id="ph-sub">0 flares en el área visible</div>
+    </div>
+    <button class="ph-x" id="panel-close">✕</button>
+  </div>
+  <div class="pgeo">
+    <div class="pgeo-label">🔍 Buscar lugar en el mapa</div>
+    <div class="pgeo-wrap">
+      <input class="pgeo-inp" id="pgeo-inp" type="text" placeholder="Tijuana, Roma Norte, CDMX..." autocomplete="off" spellcheck="false">
+      <div class="pgeo-res" id="pgeo-res"></div>
+    </div>
+  </div>
+  <div class="psrch"><input type="text" id="srch" placeholder="🔍  Buscar flare..."></div>
+  <div class="pvig" id="pvig">
+    <div class="pvig-lbl">Vigencia:</div>
+    <div class="pvig-opts">
+      <div class="pvig-opt on" id="pvig-all"   data-vf="all">Todos</div>
+      <div class="pvig-opt"   id="pvig-nuevo"  data-vf="nuevo"><span class="pvig-dot" style="background:var(--neon)"></span>Nuevo</div>
+      <div class="pvig-opt"   id="pvig-maduro" data-vf="maduro"><span class="pvig-dot" style="background:var(--amber)"></span>Maduro</div>
+      <div class="pvig-opt"   id="pvig-exp"    data-vf="expirando"><span class="pvig-dot" style="background:var(--danger)"></span>Expirando</div>
+    </div>
+  </div>
+  <div class="pchips" id="chips"></div>
+  <div class="plist" id="plist"></div>
+</div>
+
+<!-- Main Modal -->
+<div class="mover" id="mover">
+  <div class="modal">
+    <div class="mhdr">
+      <div class="mttl">Nuevo <span>Flare</span></div>
+      <button class="mx" id="modal-x">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="fg">
+        <label>Ubicación</label>
+        <div class="coords-pill"><span>📍</span><span id="ctxt">—</span></div>
+      </div>
+      <div class="fg">
+        <label>Categoría</label>
+        <div class="cgrid" id="cgrid"></div>
+      </div>
+      <div class="fg">
+        <label>Ícono</label>
+        <div class="egrid" id="egrid"></div>
+      </div>
+      <div class="fg">
+        <label>Tipo de contenido</label>
+        <div class="ttabs" id="ttabs">
+          <div class="ttab sel" data-t="text">💬<span>Texto</span></div>
+          <div class="ttab" data-t="image">🖼️<span>Foto</span></div>
+          <div class="ttab" data-t="video">🎬<span>Video</span></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Título</label>
+        <input type="text" id="f-ttl" placeholder="¿Qué está pasando?" maxlength="60">
+      </div>
+      <div class="fg" id="g-txt">
+        <label>Descripción</label>
+        <textarea id="f-txt" rows="3" placeholder="Cuéntanos más..."></textarea>
+      </div>
+      <div class="fg" id="g-img" style="display:none">
+        <label>Foto</label>
+        <div class="fdrop">
+          <input type="file" accept="image/*" id="f-img">
+          <div class="fdrop-ic">📸</div>
+          <div class="fdrop-tx">Arrastra o toca para subir</div>
+          <img id="prev-img">
+        </div>
+      </div>
+      <div class="fg" id="g-vid" style="display:none">
+        <label>URL de Video</label>
+        <input type="url" id="f-vid" placeholder="https://youtube.com/...">
+      </div>
+      <button class="bsub" id="bsub">⚡ Publicar Flare (1 hora)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   FLARE APP — con backend real (Netlify Functions + Neon)
+   ══════════════════════════════════════════════════════ */
+
+var CATS = [
+  {id:'food',     lbl:'Comida y\nBebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
+  {id:'sale',     lbl:'Ventas',            icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦']},
+  {id:'event',    lbl:'Evento',            icon:'🎉', color:'#a000f5', emojis:['🎉','🎵','🎸','🎭','🎪','🏆','🎤','🎬','🎊','🕺']},
+  {id:'incident', lbl:'Suceso',            icon:'⚡', color:'#ff4060', emojis:['⚡','🚨','🚧','💥','🔥','🚑','⚠️','🌊','🌪️','🆘']},
+  {id:'info',     lbl:'Información',       icon:'ℹ️', color:'#00f5a0', emojis:['ℹ️','📍','💡','📢','🗺️','🔍','📌','📣','🌐','✅']},
+];
+
+var MAX = 12*60*60*1000;
+var pins = {}; /* id → pin object (includes marker) */
+var placing = false, pending = null;
+var selCat = CATS[0], selEmoji = CATS[0].emojis[0], selType = 'text', imgData = null;
+var panelOpen = false, activeCat = null, expandedId = null;
+var vigFilter = 'all';
+var map;
+var pollTimer = null;
+
+/* ── User identity (anónima por dispositivo) ── */
+var MY_ID = localStorage.getItem('flare_uid');
+if (!MY_ID) { MY_ID = 'u' + Date.now() + Math.random().toString(36).slice(2,8); localStorage.setItem('flare_uid', MY_ID); }
+var likedIds = JSON.parse(localStorage.getItem('flare_liked') || '[]');
+function saveLiked() { localStorage.setItem('flare_liked', JSON.stringify(likedIds)); }
+function hasLiked(id) { return likedIds.indexOf(id) !== -1; }
+function markLiked(id) { if (!hasLiked(id)) { likedIds.push(id); saveLiked(); } }
+
+/* ── helpers ── */
+function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function fmtT(ms){if(ms<=0)return'0 min';var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?h+'h '+m+'m':m+' min'}
+function embedUrl(u){try{var x=new URL(u);if(x.hostname.includes('youtube')||x.hostname.includes('youtu.be')){var id=x.searchParams.get('v')||x.pathname.split('/').pop();return'https://www.youtube.com/embed/'+id}if(x.hostname.includes('vimeo'))return'https://player.vimeo.com/video/'+x.pathname.split('/').pop()}catch(e){}return null}
+function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');n.textContent=msg;c.appendChild(n);setTimeout(function(){n.remove()},3500)}
+function setSyncState(state, txt) {
+  var el = document.getElementById('sync');
+  el.className = state; // '', 'loading', 'error'
+  document.getElementById('sync-txt').textContent = txt;
+}
+
+function getPinStatus(pin){
+  var r = new Date(pin.expires_at).getTime() - Date.now();
+  if(r < 10*60*1000) return 'expirando';
+  if(r < 30*60*1000) return 'maduro';
+  return 'nuevo';
+}
+function visiblePins(){
+  if(!map) return [];
+  var b = map.getBounds();
+  return Object.values(pins).filter(function(p){ return b.contains([p.lat, p.lng]); });
+}
+function filteredVisible(){
+  var vp = visiblePins();
+  if(vigFilter !== 'all') vp = vp.filter(function(p){ return getPinStatus(p) === vigFilter; });
+  return vp;
+}
+function refreshBadge(){ document.getElementById('pbadge').textContent = filteredVisible().length; }
+
+/* ══════════════════════════════════════════════════════
+   API CALLS
+   ══════════════════════════════════════════════════════ */
+
+function apiFetch(url, opts) {
+  return fetch(url, opts).then(function(r) {
+    if (!r.ok) return r.json().then(function(d){ throw new Error(d.error || r.statusText); });
+    return r.json();
+  });
+}
+
+/* Poll server for flares in current bbox */
+function fetchFlares() {
+  if (!map) return;
+  var b = map.getBounds();
+  var params = new URLSearchParams({
+    minLat: b.getSouth().toFixed(6),
+    maxLat: b.getNorth().toFixed(6),
+    minLng: b.getWest().toFixed(6),
+    maxLng: b.getEast().toFixed(6),
+  });
+  setSyncState('loading', 'actualizando...');
+  apiFetch('/api/flares?' + params)
+    .then(function(rows) {
+      setSyncState('', 'sincronizado');
+      reconcilePins(rows);
+    })
+    .catch(function(e) {
+      setSyncState('error', 'sin conexión');
+      console.error('fetchFlares:', e);
+    });
+}
+
+/* Smart reconcile: add new, update existing, remove expired */
+function reconcilePins(rows) {
+  var now = Date.now();
+  var serverIds = {};
+
+  rows.forEach(function(row) {
+    serverIds[row.id] = true;
+    var exp = new Date(row.expires_at).getTime();
+    if (exp <= now) return; /* skip already-expired from server */
+
+    if (pins[row.id]) {
+      /* Update existing pin data (likes, expires_at may have changed) */
+      var pin = pins[row.id];
+      pin.expires_at = row.expires_at;
+      pin.likes = row.likes;
+      pin.liked = hasLiked(row.id);
+      refreshMk(pin);
+      refreshPop(pin);
+    } else {
+      /* New pin from server */
+      var pin = rowToPin(row);
+      pin.marker = makeMarker(pin);
+      pins[row.id] = pin;
+    }
+  });
+
+  /* Remove pins no longer on server */
+  Object.keys(pins).forEach(function(id) {
+    if (!serverIds[id]) {
+      map.removeLayer(pins[id].marker);
+      delete pins[id];
+    }
+  });
+
+  document.getElementById('cnt').textContent = Object.keys(pins).length;
+  applyVigFilter();
+  refreshBadge();
+  if (panelOpen) { buildChips(); renderPanel(); }
+}
+
+function rowToPin(row) {
+  return {
+    id: row.id,
+    lat: parseFloat(row.lat),
+    lng: parseFloat(row.lng),
+    title: row.title,
+    emoji: row.emoji,
+    cat: row.cat,
+    catLbl: row.cat_lbl,
+    catColor: row.cat_color,
+    catIcon: row.cat_icon,
+    type: row.type,
+    text: row.body_text || '',
+    image: row.image_url || null,
+    video: row.video_url || null,
+    createdAt: new Date(row.created_at).getTime(),
+    expires_at: row.expires_at,
+    likes: row.likes,
+    liked: hasLiked(row.id),
+    marker: null,
+  };
+}
+
+/* Post new flare to server */
+function postFlare(data) {
+  return apiFetch('/api/flares', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+/* Like a flare on server */
+function postLike(id) {
+  return apiFetch('/api/like?id=' + encodeURIComponent(id), { method: 'PATCH' });
+}
+
+/* Start polling every 15 seconds */
+function startPoll() {
+  fetchFlares();
+  pollTimer = setInterval(fetchFlares, 15000);
+}
+
+/* ── marker ── */
+function mkHTML(pin, dying){
+  var c = dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
+  return '<div class="mk"><div class="mk-b" style="border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
+}
+function makeMarker(pin){
+  var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
+  var ico = L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]});
+  var m = L.marker([pin.lat, pin.lng], {icon:ico}).addTo(map).bindPopup(popHTML(pin), {maxWidth:300});
+  m.on('popupopen', function(){ refreshPop(pin); });
+  return m;
+}
+function refreshMk(pin){
+  var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
+  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]}));
+}
+
+/* ── popup ── */
+function popHTML(pin){
+  var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+  var pct = Math.min(100, (r/MAX)*100);
+  var c = pin.catColor || 'var(--neon)';
+  var med = '';
+  if(pin.type==='image'&&pin.image) med='<div class="pop-media"><img src="'+pin.image+'" alt="img"></div>';
+  else if(pin.type==='video'&&pin.video){var s=embedUrl(pin.video);if(s)med='<div class="pop-media"><iframe src="'+s+'" frameborder="0" allowfullscreen></iframe></div>'}
+  return '<div class="pop">'
+    +'<div class="pop-hdr"><div class="pop-emo" style="background:'+c+'18;border-color:'+c+'44">'+pin.emoji+'</div>'
+    +'<div><div class="pop-name">'+esc(pin.title)+'</div><div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
+    +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
+    +med+(pin.text?'<div class="pop-txt">'+esc(pin.text)+'</div>':'')
+    +'<div class="pop-foot"><button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button><div class="tbdg">⏱ '+fmtT(r)+'</div></div>'
+    +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
+    +'</div>';
+}
+function refreshPop(pin){ if(pin.marker&&pin.marker.isPopupOpen()) pin.marker.setPopupContent(popHTML(pin)); }
+
+/* ── like ── */
+function doLike(id){
+  var pin = pins[id];
+  if(!pin) return;
+  if(pin.liked){ notif('Ya le diste ❤️ a este flare 😉','err'); return; }
+  /* Optimistic UI */
+  pin.liked = true;
+  pin.likes++;
+  markLiked(id);
+  notif('❤️ +5 min al flare "'+pin.title+'"','like');
+  refreshPop(pin);
+  if(panelOpen) renderPanel();
+  /* Persist to server */
+  postLike(id).then(function(data) {
+    pin.expires_at = data.expires_at;
+    pin.likes = data.likes;
+    refreshPop(pin);
+  }).catch(function(e) {
+    console.error('like error:', e);
+  });
+}
+
+/* ── panel ── */
+function togglePanel(){ panelOpen ? closePanel() : openPanel(); }
+function openPanel(){
+  panelOpen = true;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('pov').classList.add('on');
+  document.getElementById('pbtn').style.display = 'none';
+  buildChips(); renderPanel();
+}
+function closePanel(){
+  panelOpen = false;
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('pov').classList.remove('on');
+  document.getElementById('pbtn').style.display = 'flex';
+}
+
+function buildChips(){
+  var vp = filteredVisible();
+  var box = document.getElementById('chips');
+  box.innerHTML = '';
+  var all = document.createElement('div');
+  all.className = 'chip' + (activeCat === null ? ' on' : '');
+  if(activeCat === null){ all.style.background='var(--neon)'; all.style.borderColor='var(--neon)'; }
+  all.innerHTML = '<span>Todos</span><span style="opacity:.7">'+vp.length+'</span>';
+  all.addEventListener('click', function(){ activeCat=null; buildChips(); renderPanel(); });
+  box.appendChild(all);
+  CATS.forEach(function(cat){
+    var cnt = vp.filter(function(p){ return p.cat===cat.id; }).length;
+    if(!cnt) return;
+    var ch = document.createElement('div');
+    ch.className = 'chip' + (activeCat===cat.id ? ' on' : '');
+    if(activeCat===cat.id){ ch.style.background=cat.color; ch.style.borderColor=cat.color; }
+    ch.innerHTML = '<div class="chip-dot" style="background:'+cat.color+'"></div><span>'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span><span style="opacity:.7">'+cnt+'</span>';
+    ch.addEventListener('click', function(){ activeCat=(activeCat===cat.id)?null:cat.id; buildChips(); renderPanel(); });
+    box.appendChild(ch);
+  });
+}
+
+function renderPanel(){
+  var q = (document.getElementById('srch').value||'').toLowerCase();
+  var vp = filteredVisible();
+  if(activeCat) vp = vp.filter(function(p){ return p.cat===activeCat; });
+  if(q) vp = vp.filter(function(p){ return p.title.toLowerCase().includes(q)||(p.text||'').toLowerCase().includes(q); });
+
+  var vigLabels = {nuevo:'🟢 Nuevo',maduro:'🟡 Maduro',expirando:'🔴 Expirando'};
+  var vigSuffix = vigFilter!=='all' ? ' · '+vigLabels[vigFilter] : '';
+  document.getElementById('ph-sub').textContent = vp.length+' flare'+(vp.length!==1?'s':'')+' en vista'+vigSuffix;
+
+  var box = document.getElementById('plist');
+  if(!vp.length){
+    expandedId = null;
+    var emptyMsg = (q||activeCat||vigFilter!=='all') ? 'Sin resultados para este filtro.' : 'No hay flares en esta área.<br>¡Mueve el mapa o crea uno!';
+    box.innerHTML = '<div class="pempty"><div class="pe-ico">🔭</div>'+emptyMsg+'</div>';
+    return;
+  }
+
+  vp.sort(function(a,b){ return new Date(b.expires_at)-new Date(a.expires_at); });
+  var tl = {text:'💬 Texto',image:'🖼️ Foto',video:'🎬 Video'};
+  var html = '';
+
+  vp.forEach(function(pin){
+    var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+    var pct = Math.min(100, (r/MAX)*100);
+    var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
+    var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[4];
+    var isOpen = (pin.id===expandedId);
+
+    html += '<div class="prow'+(isOpen?' open':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
+      +'<div class="prow-hdr">'
+      +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
+      +'<div class="prow-body">'
+      +'<div class="prow-name">'+esc(pin.title)+'</div>'
+      +'<div class="prow-tags">'
+      +'<span class="ptag cat" style="border-color:'+cat.color+'55;color:'+cat.color+'">'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span>'
+      +'<span class="ptag">'+tl[pin.type]+'</span>'
+      +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
+      +(pin.likes>0?'<span class="plikes">❤️ '+pin.likes+'</span>':'')
+      +'</div>'
+      +'<div class="prow-bar"><div class="prow-fill" style="width:'+pct+'%;background:'+bc+'"></div></div>'
+      +'</div>'
+      +'<div class="prow-arrow">▶</div>'
+      +'</div>'
+      +'</div>';
+
+    var med2 = '';
+    if(pin.type==='image'&&pin.image) med2='<img class="pd-img" src="'+pin.image+'" alt="img">';
+    else if(pin.type==='video'&&pin.video){var s2=embedUrl(pin.video);if(s2)med2='<iframe class="pd-iframe" src="'+s2+'" frameborder="0" allowfullscreen></iframe>';}
+
+    html += '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
+      +med2
+      +(pin.text?'<div class="pd-txt">'+esc(pin.text)+'</div>':'')
+      +'<div class="pd-acts">'
+      +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">❤️ '+(pin.likes>0?'+'+pin.likes+' Me gusta':'Me gusta')+'</button>'
+      +'<button class="pd-map" data-fid="'+pin.id+'">🗺️ Ver en mapa</button>'
+      +'</div>'
+      +'</div>';
+  });
+
+  box.innerHTML = html;
+  box.onclick = function(e){
+    var lb = e.target.closest('[data-lid]');
+    if(lb){ e.stopPropagation(); doLike(lb.dataset.lid); return; }
+    var fb = e.target.closest('[data-fid]');
+    if(fb){ e.stopPropagation(); flyToPin(fb.dataset.fid); return; }
+    var ico = e.target.closest('.prow-ico');
+    if(ico){ var prow=ico.closest('.prow'); if(prow){ e.stopPropagation(); flyToPin(prow.dataset.pid); return; } }
+    var row = e.target.closest('.prow');
+    if(row){
+      var pid = row.dataset.pid;
+      expandedId = (expandedId===pid) ? null : pid;
+      renderPanel();
+      if(expandedId){ setTimeout(function(){ var el=document.getElementById('prow-'+expandedId); if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'}); },50); }
+    }
+  };
+}
+
+function flyToPin(id){
+  var pin = pins[id];
+  if(!pin) return;
+  map.flyTo([pin.lat, pin.lng], 16, {duration:.8});
+  setTimeout(function(){ pin.marker.openPopup(); }, 900);
+}
+
+/* ── placing ── */
+var fab = document.getElementById('fab');
+fab.addEventListener('click', function(){ placing ? stopPlace() : startPlace(); });
+function startPlace(){ placing=true; fab.textContent='✕  Cancelar'; fab.classList.add('placing'); document.getElementById('hint').style.display='flex'; document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); }
+function stopPlace(){ placing=false; fab.textContent='＋ Crear Flare'; fab.classList.remove('placing'); document.getElementById('hint').style.display='none'; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
+
+/* ── modal ── */
+function openModal(){ buildCG(); buildEG(); document.getElementById('mover').classList.add('on'); }
+function closeModal(){ document.getElementById('mover').classList.remove('on'); pending=null; document.getElementById('f-ttl').value=''; document.getElementById('f-txt').value=''; document.getElementById('f-vid').value=''; document.getElementById('prev-img').style.display='none'; imgData=null; setType('text'); }
+document.getElementById('modal-x').addEventListener('click', closeModal);
+document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+function buildCG(){
+  var g = document.getElementById('cgrid'); g.innerHTML='';
+  CATS.forEach(function(cat){
+    var b = document.createElement('div'); b.className='cbtn'+(cat.id===selCat.id?' sel':''); b.style.setProperty('--cc', cat.color);
+    b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
+    b.addEventListener('click', function(){ selCat=cat; selEmoji=cat.emojis[0]; buildCG(); buildEG(); });
+    g.appendChild(b);
+  });
+}
+function buildEG(){
+  var g = document.getElementById('egrid'); g.innerHTML='';
+  selCat.emojis.forEach(function(e){
+    var b = document.createElement('button'); var a=(e===selEmoji); b.className='ebtn'+(a?' sel':''); b.textContent=e;
+    if(a){ b.style.borderColor=selCat.color; b.style.background=selCat.color+'22'; }
+    b.addEventListener('click', function(){
+      g.querySelectorAll('.ebtn').forEach(function(x){ x.classList.remove('sel'); x.style.borderColor=''; x.style.background=''; });
+      b.classList.add('sel'); b.style.borderColor=selCat.color; b.style.background=selCat.color+'22'; selEmoji=e;
+    });
+    g.appendChild(b);
+  });
+}
+
+document.getElementById('ttabs').addEventListener('click', function(e){ var t=e.target.closest('.ttab'); if(t) setType(t.dataset.t); });
+function setType(t){ selType=t; document.querySelectorAll('.ttab').forEach(function(x){ x.classList.toggle('sel', x.dataset.t===t); }); document.getElementById('g-txt').style.display=t==='text'?'':'none'; document.getElementById('g-img').style.display=t==='image'?'':'none'; document.getElementById('g-vid').style.display=t==='video'?'':'none'; }
+
+document.getElementById('f-img').addEventListener('change', function(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader(); r.onload=function(ev){ imgData=ev.target.result; var i=document.getElementById('prev-img'); i.src=imgData; i.style.display='block'; }; r.readAsDataURL(f);
+});
+
+document.getElementById('bsub').addEventListener('click', function(){
+  if(!pending){ notif('Selecciona un punto en el mapa primero.','err'); return; }
+  var ttl = document.getElementById('f-ttl').value.trim();
+  if(!ttl){ notif('Ponle un título a tu flare.','err'); return; }
+
+  var btn = document.getElementById('bsub');
+  btn.disabled = true;
+  btn.textContent = '⏳ Publicando...';
+
+  var payload = {
+    lat: pending.lat,
+    lng: pending.lng,
+    title: ttl,
+    emoji: selEmoji,
+    cat: selCat.id,
+    cat_lbl: selCat.lbl.replace('\n',' '),
+    cat_color: selCat.color,
+    cat_icon: selCat.icon,
+    type: selType,
+    body_text: document.getElementById('f-txt').value.trim() || null,
+    image_url: selType==='image' ? imgData : null,
+    video_url: selType==='video' ? document.getElementById('f-vid').value.trim() : null,
+    dur_min: 60,
+  };
+
+  postFlare(payload)
+    .then(function(row) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Publicar Flare (1 hora)';
+      var pin = rowToPin(row);
+      pin.marker = makeMarker(pin);
+      pins[pin.id] = pin;
+      document.getElementById('cnt').textContent = Object.keys(pins).length;
+      closeModal();
+      map.flyTo([pin.lat, pin.lng], 15, {duration:1});
+      notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');
+      applyVigFilter();
+    })
+    .catch(function(e) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Publicar Flare (1 hora)';
+      notif('Error al publicar: '+e.message,'err');
+    });
+});
+
+/* ── vigencia filter ── */
+function applyVigFilter(){
+  Object.values(pins).forEach(function(pin){
+    if(!pin.marker) return;
+    var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
+    var el = pin.marker.getElement();
+    if(el) el.style.display = show ? '' : 'none';
+  });
+  ['nuevo','maduro','expirando','all'].forEach(function(f){
+    var row = document.getElementById('leg-'+(f==='all'?'all':f));
+    if(row) row.classList.toggle('active', vigFilter===f);
+  });
+  ['all','nuevo','maduro','exp'].forEach(function(k){
+    var el = document.getElementById('pvig-'+k);
+    if(!el) return;
+    var fval = k==='exp'?'expirando':k;
+    el.classList.toggle('on', vigFilter===fval);
+  });
+  refreshBadge();
+  if(panelOpen){ buildChips(); renderPanel(); }
+}
+
+document.getElementById('leg-hdr').addEventListener('click', function(){
+  document.getElementById('legend').classList.toggle('collapsed');
+});
+['leg-nuevo','leg-maduro','leg-expirando','leg-all'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(!el||!el.dataset.filter) return;
+  el.addEventListener('click', function(e){ e.stopPropagation(); vigFilter=el.dataset.filter; applyVigFilter(); });
+});
+document.querySelectorAll('.pvig-opt').forEach(function(btn){
+  btn.addEventListener('click', function(){ vigFilter=btn.dataset.vf; applyVigFilter(); });
+});
+
+/* ── panel buttons ── */
+document.getElementById('pbtn').addEventListener('click', function(){ togglePanel(); });
+document.getElementById('pov').addEventListener('click', function(){ closePanel(); });
+document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
+document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
+
+/* ── GEOCODER ── */
+(function(){
+  var inp=document.getElementById('pgeo-inp'), res=document.getElementById('pgeo-res'), timer=null;
+  inp.addEventListener('input',function(){ clearTimeout(timer); var q=inp.value.trim(); if(!q){res.classList.remove('on');res.innerHTML='';return;} res.innerHTML='<div class="geo-msg">Buscando...</div>'; res.classList.add('on'); timer=setTimeout(function(){search(q)},380); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='Escape'){res.classList.remove('on');inp.value='';} if(e.key==='Enter'){var f=res.querySelector('.gitem');if(f)f.click();} });
+  document.addEventListener('click',function(e){ if(!inp.contains(e.target)&&!res.contains(e.target)) res.classList.remove('on'); });
+  function search(q){ fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(q),{headers:{'Accept-Language':'es'}}).then(function(r){return r.json()}).then(function(data){ if(!data.length){res.innerHTML='<div class="geo-msg">Sin resultados</div>';return;} res.innerHTML=''; data.forEach(function(item){ var name=item.name||item.display_name.split(',')[0]; var sub=item.display_name.replace(name+', ','').split(',').slice(0,2).join(', '); var ic=geoIcon(item.type,item.class); var el=document.createElement('div'); el.className='gitem'; el.innerHTML='<div class="gitem-ic">'+ic+'</div><div><div class="gitem-name">'+name+'</div><div class="gitem-sub">'+sub+'</div></div>'; el.addEventListener('click',function(){ inp.value=name; res.classList.remove('on'); if(map)map.flyTo([parseFloat(item.lat),parseFloat(item.lon)],14,{duration:1.2}); }); res.appendChild(el); }); }).catch(function(){res.innerHTML='<div class="geo-msg">Error de búsqueda.</div>';}); }
+  function geoIcon(type,cls){ if(cls==='boundary'||type==='administrative')return'🏙️'; if(cls==='place')return type==='city'?'🏙️':type==='town'?'🌆':type==='village'?'🏘️':'📍'; if(cls==='amenity')return type==='restaurant'?'🍽️':type==='hospital'?'🏥':type==='school'?'🏫':'🏛️'; if(cls==='tourism')return'🗺️'; if(cls==='natural')return'🌿'; if(cls==='highway')return'🛣️'; return'📍'; }
+})();
+
+/* ── LEAFLET BOOT ── */
+function loadLeaflet(cb){ if(window.L){cb();return} var s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=cb;s.onerror=function(){alert('Error cargando el mapa.')};document.head.appendChild(s); }
+
+loadLeaflet(function(){
+  map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''}).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+
+  map.on('moveend zoomend', function(){
+    refreshBadge();
+    if(panelOpen){ buildChips(); renderPanel(); }
+    /* fetch new area when user moves map */
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(fetchFlares, 500);
+  });
+
+  map.on('click', function(e){
+    if(!placing) return;
+    pending = {lat:e.latlng.lat, lng:e.latlng.lng};
+    document.getElementById('ctxt').textContent = e.latlng.lat.toFixed(5)+', '+e.latlng.lng.toFixed(5);
+    stopPlace();
+    openModal();
+  });
+
+  /* Start polling */
+  startPoll();
+});
+</script>
+</body>
+</html>
