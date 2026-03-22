@@ -5,7 +5,7 @@
 import { neon } from "@neondatabase/serverless";
 
 function getDb() {
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon(process.env.NETLIFY_DATABASE_URL);
   return sql;
 }
 
