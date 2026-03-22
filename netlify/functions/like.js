@@ -16,7 +16,7 @@ export const handler = async (event) => {
   if (!id) return err(400, "id requerido");
 
   try {
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
     const BONUS_MS = 5 * 60 * 1000; // +5 min en ms
     const MAX_EXTRA = 12 * 60 * 60 * 1000; // máximo 12h desde creación
