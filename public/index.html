@@ -162,6 +162,8 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;displa
 .pd-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
 .pd-map{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--dim);cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
 .pd-map:hover{border-color:var(--neon);color:var(--neon)}
+.pd-gmaps{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;text-decoration:none}
+.pd-gmaps:hover{border-color:var(--amber);color:var(--amber)}
 .pempty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:12px;padding:40px;text-align:center;line-height:1.7}
 .pe-ico{font-size:38px;opacity:.3}
 
@@ -228,6 +230,8 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
 .pop-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
 .tbdg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 9px;font-family:'Space Mono',monospace;font-size:11px;color:var(--amber);display:flex;align-items:center;gap:4px;white-space:nowrap}
 .pop-like-hint{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);text-align:center;padding:6px 0 2px;opacity:.8}
+.pop-gmaps{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.pop-gmaps:hover{border-color:var(--neon);background:rgba(0,245,160,.08)}
 
 /* marker */
 .mk{display:flex;flex-direction:column;align-items:center;cursor:pointer}
@@ -235,6 +239,12 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
 .mk-e{transform:rotate(45deg);font-size:18px;line-height:1}
 .mk-r{position:absolute;inset:-4px;border-radius:50% 50% 50% 0;border:1px solid rgba(0,245,160,.3);animation:mp 2s infinite}
 @keyframes mp{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.4);opacity:0}}
+
+/* rich text links */
+.rich-link{color:var(--neon);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;font-size:11px;background:rgba(0,245,160,.07);border:1px solid rgba(0,245,160,.2);border-radius:5px;padding:1px 6px;margin:1px 0;transition:background .15s}
+.rich-link:hover{background:rgba(0,245,160,.15)}
+a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);background:rgba(245,0,160,.07)}
+a.rich-link[href^="tel:"]:hover{background:rgba(245,0,160,.15)}
 
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--surface)}
@@ -349,33 +359,13 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
         <div class="egrid" id="egrid"></div>
       </div>
       <div class="fg">
-        <label>Tipo de contenido</label>
-        <div class="ttabs" id="ttabs">
-          <div class="ttab sel" data-t="text">💬<span>Texto</span></div>
-          <div class="ttab" data-t="image">🖼️<span>Foto</span></div>
-          <div class="ttab" data-t="video">🎬<span>Video</span></div>
-        </div>
-      </div>
-      <div class="fg">
         <label>Título</label>
         <input type="text" id="f-ttl" placeholder="¿Qué está pasando?" maxlength="60">
       </div>
-      <div class="fg" id="g-txt">
+      <div class="fg">
         <label>Descripción</label>
-        <textarea id="f-txt" rows="3" placeholder="Cuéntanos más..."></textarea>
-      </div>
-      <div class="fg" id="g-img" style="display:none">
-        <label>Foto</label>
-        <div class="fdrop">
-          <input type="file" accept="image/*" id="f-img">
-          <div class="fdrop-ic">📸</div>
-          <div class="fdrop-tx">Arrastra o toca para subir</div>
-          <img id="prev-img">
-        </div>
-      </div>
-      <div class="fg" id="g-vid" style="display:none">
-        <label>URL de Video</label>
-        <input type="url" id="f-vid" placeholder="https://youtube.com/...">
+        <textarea id="f-txt" rows="4" placeholder="Cuéntanos más... puedes poner links, teléfonos, etc."></textarea>
+        <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:6px;line-height:1.6">💡 Los links y teléfonos se vuelven clickeables automáticamente</div>
       </div>
       <button class="bsub" id="bsub">⚡ Publicar Flare (1 hora)</button>
     </div>
@@ -415,7 +405,33 @@ function markLiked(id) { if (!hasLiked(id)) { likedIds.push(id); saveLiked(); } 
 /* ── helpers ── */
 function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 function fmtT(ms){if(ms<=0)return'0 min';var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?h+'h '+m+'m':m+' min'}
-function embedUrl(u){try{var x=new URL(u);if(x.hostname.includes('youtube')||x.hostname.includes('youtu.be')){var id=x.searchParams.get('v')||x.pathname.split('/').pop();return'https://www.youtube.com/embed/'+id}if(x.hostname.includes('vimeo'))return'https://player.vimeo.com/video/'+x.pathname.split('/').pop()}catch(e){}return null}
+
+/* Convierte texto plano en HTML con links, teléfonos y saltos de línea */
+function richText(raw) {
+  if(!raw) return '';
+  /* 1. Escapar HTML */
+  var s = esc(raw);
+  /* 2. Detectar URLs */
+  s = s.replace(/(https?:\/\/[^\s<>"]+)/g, function(url){
+    var display = url.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+    if(display.length > 40) display = display.slice(0,38)+'…';
+    return '<a href="'+url+'" target="_blank" rel="noopener" class="rich-link">🔗 '+display+'</a>';
+  });
+  /* 3. Detectar teléfonos MX: 10 dígitos, con o sin espacios/guiones, opcionalmente +52 */
+  s = s.replace(/(\+?52[\s\-]?)?(\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4})/g, function(match){
+    var digits = match.replace(/\D/g,'');
+    if(digits.length < 10) return match;
+    var tel = digits.length === 10 ? '+52'+digits : '+'+digits;
+    return '<a href="tel:'+tel+'" class="rich-link">📞 '+match+'</a>';
+  });
+  /* 4. Saltos de línea */
+  s = s.replace(/\n/g,'<br>');
+  return s;
+}
+
+function mapsUrl(lat, lng) {
+  return 'https://www.google.com/maps/dir/?api=1&destination='+lat+','+lng;
+}
 function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');n.textContent=msg;c.appendChild(n);setTimeout(function(){n.remove()},3500)}
 function setSyncState(state, txt) {
   var el = document.getElementById('sync');
@@ -579,15 +595,16 @@ function popHTML(pin){
   var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
   var pct = Math.min(100, (r/MAX)*100);
   var c = pin.catColor || 'var(--neon)';
-  var med = '';
-  if(pin.type==='image'&&pin.image) med='<div class="pop-media"><img src="'+pin.image+'" alt="img"></div>';
-  else if(pin.type==='video'&&pin.video){var s=embedUrl(pin.video);if(s)med='<div class="pop-media"><iframe src="'+s+'" frameborder="0" allowfullscreen></iframe></div>'}
   return '<div class="pop">'
     +'<div class="pop-hdr"><div class="pop-emo" style="background:'+c+'18;border-color:'+c+'44">'+pin.emoji+'</div>'
     +'<div><div class="pop-name">'+esc(pin.title)+'</div><div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
-    +med+(pin.text?'<div class="pop-txt">'+esc(pin.text)+'</div>':'')
-    +'<div class="pop-foot"><button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button><div class="tbdg">⏱ '+fmtT(r)+'</div></div>'
+    +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
+    +'<div class="pop-foot">'
+    +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button>'
+    +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
+    +'<a class="pop-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'" target="_blank" rel="noopener" title="Cómo llegar">🗺️</a>'
+    +'</div>'
     +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
     +'</div>';
 }
@@ -699,18 +716,15 @@ function renderPanel(){
       +'</div>'
       +'</div>';
 
-    var med2 = '';
-    if(pin.type==='image'&&pin.image) med2='<img class="pd-img" src="'+pin.image+'" alt="img">';
-    else if(pin.type==='video'&&pin.video){var s2=embedUrl(pin.video);if(s2)med2='<iframe class="pd-iframe" src="'+s2+'" frameborder="0" allowfullscreen></iframe>';}
-
-    html += '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
-      +med2
-      +(pin.text?'<div class="pd-txt">'+esc(pin.text)+'</div>':'')
+    var html_detail = '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
+      +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">❤️ '+(pin.likes>0?'+'+pin.likes+' Me gusta':'Me gusta')+'</button>'
-      +'<button class="pd-map" data-fid="'+pin.id+'">🗺️ Ver en mapa</button>'
+      +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
+      +'<a class="pd-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'" target="_blank" rel="noopener">🗺️ Cómo llegar</a>'
       +'</div>'
       +'</div>';
+    html += html_detail;
   });
 
   box.innerHTML = html;
@@ -746,7 +760,7 @@ function stopPlace(){ placing=false; fab.textContent='＋ Crear Flare'; fab.clas
 
 /* ── modal ── */
 function openModal(){ buildCG(); buildEG(); document.getElementById('mover').classList.add('on'); }
-function closeModal(){ document.getElementById('mover').classList.remove('on'); pending=null; document.getElementById('f-ttl').value=''; document.getElementById('f-txt').value=''; document.getElementById('f-vid').value=''; document.getElementById('prev-img').style.display='none'; imgData=null; setType('text'); }
+function closeModal(){ document.getElementById('mover').classList.remove('on'); pending=null; document.getElementById('f-ttl').value=''; document.getElementById('f-txt').value=''; }
 document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
@@ -798,10 +812,8 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_lbl: selCat.lbl.replace('\n',' '),
     cat_color: selCat.color,
     cat_icon: selCat.icon,
-    type: selType,
+    type: 'text',
     body_text: document.getElementById('f-txt').value.trim() || null,
-    image_url: selType==='image' ? imgData : null,
-    video_url: selType==='video' ? document.getElementById('f-vid').value.trim() : null,
     dur_min: 60,
   };
 
