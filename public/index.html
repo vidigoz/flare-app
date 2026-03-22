@@ -619,7 +619,7 @@ function popHTML(pin){
     +'<div class="pop-foot">'
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
-    +'<a class="pop-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'" target="_blank" rel="noopener" title="Cómo llegar">🗺️</a>'
+    +'<a class="pop-gmaps" data-gmaps="'+pin.lat+','+pin.lng+'" href="javascript:void(0)" title="Cómo llegar">🗺️</a>'
     +'</div>'
     +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
     +'</div>';
@@ -737,7 +737,7 @@ function renderPanel(){
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">❤️ '+(pin.likes>0?'+'+pin.likes+' Me gusta':'Me gusta')+'</button>'
       +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
-      +'<a class="pd-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'" target="_blank" rel="noopener">🗺️ Cómo llegar</a>'
+      +'<a class="pd-gmaps" data-gmaps="'+pin.lat+','+pin.lng+'" href="javascript:void(0)">🗺️ Cómo llegar</a>'
       +'</div>'
       +'</div>';
     html += html_detail;
@@ -937,6 +937,16 @@ document.getElementById('leg-hdr').addEventListener('click', function(){
 });
 document.querySelectorAll('.pvig-opt').forEach(function(btn){
   btn.addEventListener('click', function(){ vigFilter=btn.dataset.vf; applyVigFilter(); });
+});
+
+/* ── Google Maps global handler ── */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-gmaps]');
+  if(!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  var coords = el.dataset.gmaps;
+  window.open('https://www.google.com/maps/dir/?api=1&destination='+coords, '_blank');
 });
 
 /* ── panel buttons ── */
