@@ -5,6 +5,16 @@
 [functions]
   node_bundler = "esbuild"
 
+[[redirects]]
+  from = "/api/flares"
+  to = "/.netlify/functions/flares"
+  status = 200
+
+[[redirects]]
+  from = "/api/like"
+  to = "/.netlify/functions/like"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
