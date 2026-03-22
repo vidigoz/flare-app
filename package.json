@@ -1,0 +1,9 @@
+{
+  "name": "flare-app",
+  "version": "1.0.0",
+  "description": "Flare — El mapa que respira",
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
