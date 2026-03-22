@@ -2,7 +2,7 @@
 // GET  /api/flares?minLat=&maxLat=&minLng=&maxLng=   → flares visibles en bbox
 // POST /api/flares                                    → crear nuevo flare
 
-import { neon } from "@netlify/neon";
+import { neon } from "@neondatabase/serverless";
 
 function getDb() {
   const sql = neon(process.env.NETLIFY_DATABASE_URL);
