@@ -1,5 +1,5 @@
 # Flare App 🔥
-**El mapa que respira** — con backend real en Netlify + Neon DB
+**El mapa en vivo** — con backend real en Netlify + Neon DB
 
 ---
 
