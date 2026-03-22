@@ -205,6 +205,11 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
 .fdrop-ic{font-size:26px;margin-bottom:5px}
 .fdrop-tx{font-size:12px;color:var(--dim);font-family:'Space Mono',monospace}
 #prev-img{width:100%;border-radius:8px;margin-top:10px;display:none;max-height:150px;object-fit:cover}
+.loc-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.loc-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:11px 8px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.loc-btn:hover{border-color:var(--neon);background:rgba(0,245,160,.07);color:var(--neon)}
+.loc-btn.active{border-color:var(--neon);background:rgba(0,245,160,.12);color:var(--neon)}
+.loc-btn:disabled{opacity:.5;cursor:not-allowed}
 .bsub{width:100%;background:var(--neon);color:#000;border:none;border-radius:12px;padding:13px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .2s}
 .bsub:hover{box-shadow:var(--glow);transform:translateY(-1px)}
 .bsub:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -348,7 +353,11 @@ a.rich-link[href^="tel:"]:hover{background:rgba(245,0,160,.15)}
     <div class="mbody">
       <div class="fg">
         <label>Ubicación</label>
-        <div class="coords-pill"><span>📍</span><span id="ctxt">—</span></div>
+        <div class="loc-opts">
+          <button class="loc-btn" id="loc-gps">📍 Usar mi ubicación actual</button>
+          <button class="loc-btn" id="loc-map">🗺️ Elegir en el mapa</button>
+        </div>
+        <div class="coords-pill" id="coords-pill" style="display:none"><span>✅</span><span id="ctxt">—</span></div>
       </div>
       <div class="fg">
         <label>Categoría</label>
@@ -759,8 +768,65 @@ function startPlace(){ placing=true; fab.textContent='✕  Cancelar'; fab.classL
 function stopPlace(){ placing=false; fab.textContent='＋ Crear Flare'; fab.classList.remove('placing'); document.getElementById('hint').style.display='none'; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
 
 /* ── modal ── */
-function openModal(){ buildCG(); buildEG(); document.getElementById('mover').classList.add('on'); }
-function closeModal(){ document.getElementById('mover').classList.remove('on'); pending=null; document.getElementById('f-ttl').value=''; document.getElementById('f-txt').value=''; }
+function setPending(lat, lng) {
+  pending = {lat:lat, lng:lng};
+  document.getElementById('ctxt').textContent = lat.toFixed(5)+', '+lng.toFixed(5);
+  document.getElementById('coords-pill').style.display = 'flex';
+}
+
+function openModal(){
+  buildCG(); buildEG();
+  pending = null;
+  document.getElementById('coords-pill').style.display = 'none';
+  document.getElementById('ctxt').textContent = '—';
+  document.getElementById('loc-gps').classList.remove('active');
+  document.getElementById('loc-map').classList.remove('active');
+  document.getElementById('mover').classList.add('on');
+}
+function closeModal(){
+  document.getElementById('mover').classList.remove('on');
+  pending=null;
+  document.getElementById('f-ttl').value='';
+  document.getElementById('f-txt').value='';
+  document.getElementById('coords-pill').style.display='none';
+  stopPlace();
+}
+document.getElementById('modal-x').addEventListener('click', closeModal);
+document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+/* GPS button */
+document.getElementById('loc-gps').addEventListener('click', function(){
+  var btn = this;
+  btn.disabled = true;
+  btn.textContent = '⏳ Obteniendo ubicación...';
+  if(!navigator.geolocation){ notif('Tu browser no soporta geolocalización','err'); btn.disabled=false; btn.textContent='📍 Usar mi ubicación actual'; return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      btn.disabled = false;
+      btn.textContent = '📍 Usar mi ubicación actual';
+      btn.classList.add('active');
+      document.getElementById('loc-map').classList.remove('active');
+      setPending(pos.coords.latitude, pos.coords.longitude);
+      /* center map on user */
+      map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, {duration:1});
+    },
+    function(err){
+      btn.disabled = false;
+      btn.textContent = '📍 Usar mi ubicación actual';
+      notif('No se pudo obtener tu ubicación. Elige en el mapa.','err');
+    },
+    {enableHighAccuracy:true, timeout:8000}
+  );
+});
+
+/* Map-tap button */
+document.getElementById('loc-map').addEventListener('click', function(){
+  this.classList.add('active');
+  document.getElementById('loc-gps').classList.remove('active');
+  closeModal();
+  startPlace();
+  notif('📍 Toca el mapa para elegir la ubicación');
+});
 document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
@@ -898,11 +964,21 @@ loadLeaflet(function(){
 
   map.on('click', function(e){
     if(!placing) return;
-    pending = {lat:e.latlng.lat, lng:e.latlng.lng};
-    document.getElementById('ctxt').textContent = e.latlng.lat.toFixed(5)+', '+e.latlng.lng.toFixed(5);
     stopPlace();
+    setPending(e.latlng.lat, e.latlng.lng);
     openModal();
   });
+
+  /* Centrar en la ubicación del usuario al cargar */
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, {duration:1.5});
+      },
+      function() { /* si niega el permiso, se queda en Tecate por defecto */ },
+      {enableHighAccuracy:false, timeout:5000}
+    );
+  }
 
   /* Start polling */
   startPoll();
