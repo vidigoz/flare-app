@@ -21,24 +21,39 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height
 #map{width:100%;height:100vh}
 .leaflet-tile-pane{filter:hue-rotate(200deg) brightness(.45) saturate(1.3)}
 
-/* HEADER */
-header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(8,11,18,.97) 0%,transparent 100%)}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-pin{width:30px;height:30px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
-.logo-pin::after{content:'';position:absolute;width:10px;height:10px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-.logo-text{font-size:22px;font-weight:800;letter-spacing:-.5px}
+/* HEADER — compacto en móvil */
+header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(8,11,18,.97) 0%,transparent 100%)}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-pin{width:24px;height:24px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
+.logo-pin::after{content:'';position:absolute;width:8px;height:8px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.logo-text{font-size:18px;font-weight:800;letter-spacing:-.5px}
 .logo-text span{color:var(--neon)}
-.hdr-r{display:flex;gap:10px;align-items:center}
-.spill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:12px;color:var(--dim)}
+.hdr-r{display:flex;gap:6px;align-items:center}
+.spill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-#hint{display:none;border-color:rgba(245,0,160,.4);color:var(--neon2)}
+#hint{display:none;border-color:rgba(245,0,160,.4);color:var(--neon2);font-size:10px}
 
-/* FAB */
-#fab{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--neon);color:#000;border:none;border-radius:30px;padding:14px 28px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:8px;transition:all .2s}
-#fab:hover{transform:translateX(-50%) scale(1.05)}
+/* SYNC — solo ícono en móvil */
+#sync{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 8px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);transition:all .3s}
+#sync.loading{border-color:rgba(0,245,160,.4);color:var(--neon)}
+#sync.error{border-color:rgba(255,64,96,.4);color:var(--danger)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);transition:background .3s;flex-shrink:0}
+#sync.loading .sync-dot{background:var(--neon);animation:blink 1s infinite}
+#sync.error .sync-dot{background:var(--danger)}
+#sync-txt{display:none}
+@media(min-width:480px){#sync-txt{display:inline}}
+
+/* FAB — centrado, zona segura */
+#fab-wrap{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:10px}
+#fab{background:var(--neon);color:#000;border:none;border-radius:30px;padding:13px 26px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+#fab:active{transform:scale(.97)}
 #fab.placing{background:var(--neon2);animation:fabg 1s infinite}
 @keyframes fabg{0%,100%{box-shadow:var(--glow2),0 8px 32px rgba(0,0,0,.6)}50%{box-shadow:0 0 50px rgba(245,0,160,.6),0 8px 32px rgba(0,0,0,.6)}}
+#fab-menu{display:flex;flex-direction:column;gap:8px;align-items:center;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .2s cubic-bezier(.16,1,.3,1)}
+#fab-menu.on{opacity:1;pointer-events:all;transform:translateY(0)}
+#fab-menu button{background:rgba(15,20,32,.95);border:1.5px solid var(--border);border-radius:22px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:12px 24px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.6);transition:all .18s;white-space:nowrap;backdrop-filter:blur(12px);-webkit-tap-highlight-color:transparent}
+#fab-menu button:active{transform:scale(.97)}
 
 /* CROSSHAIR */
 #xhair{display:none;position:fixed;inset:0;z-index:500;pointer-events:none;align-items:center;justify-content:center}
@@ -48,8 +63,11 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;displa
 .xh::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
 .xh::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
 
-/* LEGEND — collapsible + filterable */
-.legend{position:fixed;bottom:96px;left:20px;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .25s}
+/* LEGEND — oculta en móvil, visible en desktop */
+.legend{display:none}
+@media(min-width:640px){
+  .legend{display:block;position:fixed;bottom:96px;left:20px;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .25s}
+}
 .leg-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;gap:12px}
 .leg-hdr:hover{background:var(--surface2)}
 .leg-t{font-weight:700;color:var(--text);font-size:10px;letter-spacing:1px;text-transform:uppercase}
@@ -66,186 +84,83 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;displa
 .leg-r-check{font-size:10px;opacity:0;transition:opacity .15s}
 .leg-r.active .leg-r-check{opacity:1}
 
-/* GEOCODER inside panel */
+/* GEOCODER */
 .pgeo{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .pgeo-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-family:'Space Mono',monospace;margin-bottom:7px}
 .pgeo-wrap{position:relative}
-.pgeo-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:9px 12px 9px 34px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+.pgeo-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:9px 12px 9px 34px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
 .pgeo-inp:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
 .pgeo-inp::placeholder{color:var(--dim)}
 .pgeo-res{display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.6);max-height:200px;overflow-y:auto}
-.pgeo-res.on{display:block;animation:gfade .15s ease}
-@keyframes gfade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-.gitem{padding:10px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);transition:background .12s;display:flex;align-items:flex-start;gap:9px}
+.pgeo-res.on{display:block}
+.gitem{padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);transition:background .12s;display:flex;align-items:flex-start;gap:9px}
 .gitem:last-child{border-bottom:none}
-.gitem:hover{background:var(--surface2)}
+.gitem:active{background:var(--surface2)}
 .gitem-ic{font-size:15px;flex-shrink:0;margin-top:1px}
-.gitem-name{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gitem-sub{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gitem-name{font-weight:700;font-size:13px}
+.gitem-sub{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;margin-top:1px}
 .geo-msg{padding:12px;font-size:11px;color:var(--dim);font-family:'Space Mono',monospace;text-align:center}
-#notifs{position:fixed;top:70px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.ntf{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--neon);border-radius:10px;padding:10px 14px;font-size:13px;min-width:200px;animation:nin .3s cubic-bezier(.16,1,.3,1);box-shadow:0 4px 20px rgba(0,0,0,.5)}
+
+/* NOTIFS */
+#notifs{position:fixed;top:60px;right:12px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:calc(100vw - 24px)}
+.ntf{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--neon);border-radius:10px;padding:10px 14px;font-size:13px;animation:nin .3s cubic-bezier(.16,1,.3,1);box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .ntf.err{border-left-color:var(--danger)}
 .ntf.like{border-left-color:var(--neon2)}
 @keyframes nin{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
 
-/* PANEL BUTTON — top right, below header */
-#pbtn{position:fixed;top:62px;right:0;z-index:1000;background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;padding:12px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:-4px 0 20px rgba(0,0,0,.4);transition:all .2s}
-#pbtn:hover{background:var(--surface2);border-color:var(--neon)}
+/* PANEL BUTTON */
+#pbtn{position:fixed;top:56px;right:0;z-index:1000;background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;padding:10px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:-4px 0 20px rgba(0,0,0,.4);transition:all .2s;-webkit-tap-highlight-color:transparent}
+#pbtn:active{background:var(--surface2)}
 .pbi{font-size:16px}
 .pbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim)}
-.pbadge{background:var(--neon);color:#000;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;border-radius:10px;padding:2px 6px;min-width:20px;text-align:center}
+.pbadge{background:var(--neon);color:#000;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;border-radius:10px;padding:2px 5px;min-width:18px;text-align:center}
 
-/* PANEL */
+/* PANEL — bottom sheet en móvil, sidebar en desktop */
 #pov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1050;backdrop-filter:blur(3px)}
 #pov.on{display:block}
-#panel{position:fixed;top:0;right:0;width:380px;height:100vh;z-index:1100;background:var(--surface);border-left:1px solid var(--border);box-shadow:-8px 0 40px rgba(0,0,0,.8);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1)}
-#panel.open{transform:translateX(0)}
 
-/* panel header */
-.ph{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.ph-ttl{font-size:18px;font-weight:800}
-.ph-ttl span{color:var(--neon)}
-.ph-sub{font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:3px}
-.ph-x{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
-.ph-x:hover{color:var(--text);border-color:var(--danger)}
-.ph-csv{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.ph-csv:hover{color:var(--neon);border-color:var(--neon)}
-.ph-help{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Space Mono',monospace;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.ph-help:hover{color:var(--neon);border-color:var(--neon);box-shadow:0 0 10px rgba(0,245,160,.2)}
+/* móvil: bottom sheet */
+#panel{position:fixed;left:0;right:0;bottom:0;height:85vh;z-index:1100;background:var(--surface);border-top:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.8);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1)}
+#panel.open{transform:translateY(0)}
+/* handle para arrastrar */
+#panel::before{content:'';display:block;width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
 
-/* MANUAL MODAL */
-#manual-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:3500;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0 60px}
-#manual-overlay.on{display:flex}
-#manual-box{background:var(--bg);border:1px solid var(--border);border-radius:20px;width:min(860px,96vw);margin:auto;box-shadow:0 24px 80px rgba(0,0,0,.9);overflow:hidden;animation:sup .3s cubic-bezier(.16,1,.3,1);position:relative}
-.manual-topbar{position:sticky;top:0;z-index:10;background:rgba(8,11,18,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.manual-nav{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;flex:1}
-.manual-nav::-webkit-scrollbar{display:none}
-.manual-nav a{padding:14px 14px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;text-decoration:none}
-.manual-nav a:hover{color:var(--text)}
-.manual-nav a.active{color:var(--neon);border-bottom-color:var(--neon)}
-.manual-close{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
-.manual-close:hover{color:var(--text);border-color:var(--danger)}
-.manual-content{padding:0;position:relative}
-
-/* manual body styles — scoped inside #manual-box */
-#manual-box .m-hero{position:relative;z-index:1;padding:56px 32px 40px;text-align:center;overflow:hidden}
-#manual-box .m-hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:500px;height:260px;background:radial-gradient(ellipse,rgba(0,245,160,.1) 0%,transparent 70%);pointer-events:none}
-#manual-box .m-hero-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px}
-#manual-box .m-hero-pin{width:34px;height:34px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
-#manual-box .m-hero-pin::after{content:'';position:absolute;width:12px;height:12px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-#manual-box .m-hero-title{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-2px;line-height:1}
-#manual-box .m-hero-title .hl{color:var(--neon)}
-#manual-box .m-hero-sub{font-size:13px;color:var(--dim);font-family:'Space Mono',monospace;margin-top:10px}
-#manual-box main{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:32px 32px 60px}
-#manual-box .section{margin-bottom:64px;scroll-margin-top:60px}
-#manual-box .sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:24px}
-#manual-box .sec-num{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--neon);letter-spacing:2px;background:rgba(0,245,160,.08);border:1px solid rgba(0,245,160,.2);border-radius:6px;padding:3px 8px}
-#manual-box .sec-title{font-size:clamp(20px,3vw,26px);font-weight:800;letter-spacing:-0.5px}
-#manual-box .sec-title .hl{color:var(--neon)}
-#manual-box .sec-title .hl2{color:var(--neon2)}
-#manual-box .sec-title .hl3{color:var(--amber)}
-#manual-box .cards{display:grid;gap:14px}
-#manual-box .cards.c2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-#manual-box .cards.c3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-#manual-box .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
-#manual-box .card:hover{border-color:rgba(0,245,160,.3);transform:translateY(-2px)}
-#manual-box .card-icon{font-size:28px;margin-bottom:12px;display:block}
-#manual-box .card-title{font-size:14px;font-weight:700;margin-bottom:6px}
-#manual-box .card-desc{font-size:12px;color:#9aa3b8;line-height:1.6;font-family:'Space Mono',monospace}
-#manual-box .steps{display:flex;flex-direction:column;gap:0}
-#manual-box .step{display:grid;grid-template-columns:48px 1fr;gap:16px;position:relative}
-#manual-box .step:not(:last-child)::after{content:'';position:absolute;left:23px;top:48px;bottom:0;width:2px;background:linear-gradient(180deg,rgba(0,245,160,.3) 0%,var(--border) 100%)}
-#manual-box .step-num{width:48px;height:48px;background:var(--surface2);border:2px solid var(--neon);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--neon);font-family:'Space Mono',monospace;flex-shrink:0;box-shadow:0 0 16px rgba(0,245,160,.12);position:relative;z-index:1}
-#manual-box .step-body{padding-bottom:28px}
-#manual-box .step-title{font-size:15px;font-weight:700;margin-bottom:6px;padding-top:10px}
-#manual-box .step-desc{font-size:12px;color:#9aa3b8;line-height:1.6;font-family:'Space Mono',monospace}
-#manual-box .step-tip{display:inline-flex;align-items:center;gap:6px;background:rgba(0,245,160,.07);border:1px solid rgba(0,245,160,.2);border-radius:8px;padding:7px 11px;font-size:10px;font-family:'Space Mono',monospace;color:var(--neon);margin-top:8px}
-#manual-box .callout{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--neon);border-radius:12px;padding:14px;margin:14px 0}
-#manual-box .callout.warn{border-left-color:var(--amber)}
-#manual-box .callout.hot{border-left-color:var(--neon2)}
-#manual-box .callout-icon{font-size:20px;flex-shrink:0;margin-top:1px}
-#manual-box .callout-body{font-size:12px;color:#9aa3b8;line-height:1.7;font-family:'Space Mono',monospace}
-#manual-box .callout-body strong{color:var(--text);font-family:'Syne',sans-serif}
-#manual-box .cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-#manual-box .cat-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
-#manual-box .cat-icon{font-size:26px}
-#manual-box .cat-name{font-size:11px;font-weight:700}
-#manual-box .cat-desc{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;line-height:1.5}
-#manual-box .cat-emojis{font-size:10px;letter-spacing:2px;color:var(--dim)}
-#manual-box .vig-table{border:1px solid var(--border);border-radius:12px;overflow:hidden}
-#manual-box .vig-row{display:grid;grid-template-columns:110px 1fr auto;align-items:center}
-#manual-box .vig-row:not(:last-child){border-bottom:1px solid var(--border)}
-#manual-box .vig-row > *{padding:12px 14px}
-#manual-box .vig-row.nuevo{background:rgba(0,245,160,.04)}
-#manual-box .vig-row.maduro{background:rgba(255,179,0,.04)}
-#manual-box .vig-row.expirando{background:rgba(255,64,96,.04)}
-#manual-box .vig-label{font-weight:700;font-size:12px;display:flex;align-items:center;gap:7px}
-#manual-box .vig-desc{font-size:11px;color:#9aa3b8;font-family:'Space Mono',monospace;line-height:1.5}
-#manual-box .vig-time{font-family:'Space Mono',monospace;font-size:10px;text-align:right;white-space:nowrap}
-#manual-box .shortcut-grid{display:grid;grid-template-columns:auto 1fr;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-#manual-box .sk-key{background:var(--surface2);padding:10px 14px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--neon);border-bottom:1px solid var(--border);display:flex;align-items:center;white-space:nowrap}
-#manual-box .sk-desc{padding:10px 14px;font-size:12px;color:#9aa3b8;font-family:'Space Mono',monospace;border-bottom:1px solid var(--border)}
-#manual-box .sk-key:last-child,#manual-box .sk-desc:last-child{border-bottom:none}
-#manual-box .csv-table{border:1px solid var(--border);border-radius:12px;overflow:hidden;width:100%}
-#manual-box .csv-head{background:var(--surface2);display:grid;grid-template-columns:140px 90px 1fr}
-#manual-box .csv-head > div{padding:9px 12px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
-#manual-box .csv-data-row{display:grid;grid-template-columns:140px 90px 1fr;border-top:1px solid var(--border)}
-#manual-box .csv-data-row > div{padding:10px 12px;font-size:11px;font-family:'Space Mono',monospace}
-#manual-box .csv-data-row:nth-child(odd){background:rgba(255,255,255,.01)}
-#manual-box .col-req{color:var(--neon);font-weight:700}
-#manual-box .col-opt{color:var(--dim)}
-#manual-box .tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:9px;font-family:'Space Mono',monospace;margin:1px}
-#manual-box .tag.r{border-color:rgba(0,245,160,.3);color:var(--neon)}
-#manual-box .tag.o{border-color:rgba(122,132,153,.3);color:var(--dim)}
-#manual-box .m-footer{text-align:center;padding:32px 24px;border-top:1px solid var(--border);font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
-#manual-box .m-footer span{color:var(--neon)}
-@media(max-width:600px){
-  #manual-box main{padding:24px 16px 48px}
-  #manual-box .vig-row{grid-template-columns:1fr;gap:0}
-  #manual-box .vig-time{text-align:left;padding-top:0}
-  #manual-box .csv-head,#manual-box .csv-data-row{grid-template-columns:100px 70px 1fr}
+/* desktop: sidebar derecho */
+@media(min-width:640px){
+  #panel{left:auto;right:0;top:0;bottom:auto;width:380px;height:100vh;border-top:none;border-left:1px solid var(--border);border-radius:0;transform:translateX(100%)}
+  #panel.open{transform:translateX(0)}
+  #panel::before{display:none}
 }
 
-/* search */
+.ph{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ph-ttl{font-size:16px;font-weight:800}
+.ph-ttl span{color:var(--neon)}
+.ph-sub{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:2px}
+.ph-x{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.ph-x:active{color:var(--text);border-color:var(--danger)}
 .psrch{padding:10px 14px 0;flex-shrink:0}
-.psrch input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:8px 12px 8px 32px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+.psrch input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:10px 12px 10px 32px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
 .psrch input:focus{border-color:var(--neon)}
-
-/* panel vigencia strip */
 .pvig{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
 .pvig-lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim);flex-shrink:0}
 .pvig-opts{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .pvig-opts::-webkit-scrollbar{display:none}
-.pvig-opt{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
-.pvig-opt:hover{border-color:rgba(255,255,255,.25);color:var(--text)}
+.pvig-opt{display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .pvig-opt.on{background:var(--surface);border-color:var(--neon);color:var(--neon);font-weight:700}
-.pvig-opt[data-vf="nuevo"].on{border-color:var(--neon);color:var(--neon)}
-.pvig-opt[data-vf="maduro"].on{border-color:var(--amber);color:var(--amber)}
-.pvig-opt[data-vf="expirando"].on{border-color:var(--danger);color:var(--danger)}
 .pvig-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-
-/* filter chips */
 .pchips{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--border);scrollbar-width:none}
 .pchips::-webkit-scrollbar{display:none}
-.chip{display:flex;align-items:center;gap:5px;white-space:nowrap;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:5px 11px;cursor:pointer;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .18s;flex-shrink:0}
-.chip:hover{border-color:rgba(255,255,255,.3);color:var(--text)}
+.chip{display:flex;align-items:center;gap:5px;white-space:nowrap;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .18s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .chip.on{font-weight:700;color:#000}
 .chip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-
-/* pin list */
-.plist{flex:1;overflow-y:auto;padding:4px 0 16px}
-
-/* pin row */
-.prow{border-left:3px solid transparent;cursor:pointer;transition:background .12s}
-.prow:hover{background:rgba(255,255,255,.025)}
+.plist{flex:1;overflow-y:auto;padding:4px 0 max(16px,env(safe-area-inset-bottom))}
+.prow{border-left:3px solid transparent;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent}
+.prow:active{background:rgba(255,255,255,.025)}
 .prow.open{border-left-color:var(--neon);background:rgba(0,245,160,.04)}
-
-.prow-hdr{display:flex;align-items:center;gap:10px;padding:11px 16px}
-.prow-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s}
-.prow-ico:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(0,245,160,.35)}
+.prow-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.prow-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid transparent}
 .prow-body{flex:1;min-width:0}
-.prow-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.prow-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
 .prow-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .ptag{font-size:9px;font-family:'Space Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--dim);white-space:nowrap}
 .ptag.cat{font-weight:700}
@@ -255,133 +170,80 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 24px;displa
 .prow-fill{height:100%;border-radius:1px;transition:width .3s}
 .prow-arrow{font-size:11px;color:var(--dim);transition:transform .2s;flex-shrink:0;margin-left:2px}
 .prow.open .prow-arrow{transform:rotate(90deg)}
-
-/* detail */
-.pdetail{display:none;padding:0 16px 14px 66px;background:var(--surface2);border-left:3px solid var(--neon)}
+.pdetail{display:none;padding:0 16px 14px 68px;background:var(--surface2);border-left:3px solid var(--neon)}
 .prow.open + .pdetail{display:block}
-.pd-img{width:100%;border-radius:8px;margin-bottom:10px;max-height:180px;object-fit:cover;display:block}
-.pd-iframe{width:100%;border-radius:8px;height:160px;margin-bottom:10px;display:block}
 .pd-txt{font-size:13px;color:#aab4ca;line-height:1.6;margin-bottom:12px}
-.pd-acts{display:flex;gap:8px}
-.pd-like{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
-.pd-like:hover,.pd-like:focus{border-color:var(--neon2);background:rgba(245,0,160,.08);color:var(--neon2);outline:none}
+.pd-acts{display:flex;gap:8px;flex-wrap:wrap}
+.pd-like{flex:1;min-width:100px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;-webkit-tap-highlight-color:transparent}
 .pd-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
-.pd-map{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--dim);cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
-.pd-map:hover,.pd-map:focus{border-color:var(--neon);color:var(--neon);outline:none}
-
-/* empty */
+.pd-map{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--dim);cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.pd-map:active{border-color:var(--neon);color:var(--neon)}
+.pd-gmaps{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.pd-gmaps:active{border-color:var(--amber);color:var(--amber)}
 .pempty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:12px;padding:40px;text-align:center;line-height:1.7}
 .pe-ico{font-size:38px;opacity:.3}
 
-/* MODAL */
-.mover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:2000;align-items:center;justify-content:center}
+/* MODAL — bottom sheet en móvil */
+.mover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:2000;align-items:flex-end;justify-content:center}
 .mover.on{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:min(480px,95vw);max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:sup .3s cubic-bezier(.16,1,.3,1)}
-@keyframes sup{from{transform:translateY(28px);opacity:0}to{transform:translateY(0);opacity:1}}
-.mhdr{padding:22px 22px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.mttl{font-size:20px;font-weight:800}
+@media(min-width:640px){.mover{align-items:center}}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.8);animation:sup .3s cubic-bezier(.16,1,.3,1);padding-bottom:max(16px,env(safe-area-inset-bottom))}
+@media(min-width:640px){.modal{border-radius:20px;animation:supD .3s cubic-bezier(.16,1,.3,1)}}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes supD{from{transform:translateY(28px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhdr{padding:16px 18px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.mttl{font-size:18px;font-weight:800}
 .mttl span{color:var(--neon)}
-.mx{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.mx:hover{color:var(--text);border-color:var(--danger)}
-.mbody{padding:0 22px 22px}
+.mx{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.mbody{padding:0 18px 8px}
 .fg{margin-bottom:14px}
 label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'Space Mono',monospace}
-input[type=text],textarea,input[type=url]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;padding:11px 13px;outline:none;transition:border-color .2s;resize:vertical}
-input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
+input[type=text],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s;resize:none;-webkit-appearance:none}
+input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
 .coords-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Space Mono',monospace;font-size:12px;color:var(--neon);display:flex;align-items:center;gap:7px}
-
-/* cat grid */
 .cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.cbtn{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s}
-.cbtn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)}
-.cbtn.sel{border-color:var(--cc,var(--neon));background:color-mix(in srgb,var(--cc,var(--neon)) 12%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--cc,var(--neon)) 16%,transparent)}
+.cbtn{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.cbtn.sel{border-color:var(--cc,var(--neon));background:color-mix(in srgb,var(--cc,var(--neon)) 12%,transparent)}
 .cb-ic{font-size:22px;line-height:1}
-.cb-lb{font-size:8.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim);line-height:1.2;text-align:center}
+.cb-lb{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim);line-height:1.2;text-align:center}
 .cbtn.sel .cb-lb{color:var(--cc,var(--neon))}
-
-/* emoji grid */
 .egrid{display:flex;flex-wrap:wrap;gap:5px}
-.ebtn{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.ebtn:hover{transform:scale(1.12)}
+.ebtn{width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
 .ebtn.sel{border-width:2px}
+.bsub{width:100%;background:var(--neon);color:#000;border:none;border-radius:12px;padding:15px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.bsub:active{opacity:.85}
+.bsub:disabled{opacity:.5;cursor:not-allowed}
 
-/* type tabs */
-.ttabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.ttab{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 6px;cursor:pointer;text-align:center;transition:all .2s;font-size:20px;display:flex;flex-direction:column;align-items:center;gap:4px}
-.ttab span{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);font-family:'Space Mono',monospace}
-.ttab.sel{border-color:var(--neon);background:rgba(0,245,160,.07)}
-.ttab.sel span{color:var(--neon)}
-
-/* file drop */
-.fdrop{border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
-.fdrop:hover{border-color:var(--neon);background:rgba(0,245,160,.04)}
-.fdrop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.fdrop-ic{font-size:26px;margin-bottom:5px}
-.fdrop-tx{font-size:12px;color:var(--dim);font-family:'Space Mono',monospace}
-#prev-img{width:100%;border-radius:8px;margin-top:10px;display:none;max-height:150px;object-fit:cover}
-.bsub{width:100%;background:var(--neon);color:#000;border:none;border-radius:12px;padding:13px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .2s}
-.bsub:hover{box-shadow:var(--glow);transform:translateY(-1px)}
-
-/* popup */
+/* POPUP */
 .leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:16px!important;box-shadow:0 8px 40px rgba(0,0,0,.8)!important;padding:0!important;overflow:hidden}
 .leaflet-popup-content{margin:0!important;color:var(--text)}
 .leaflet-popup-tip-container{display:none}
 .leaflet-popup-close-button{color:var(--dim)!important;top:10px!important;right:10px!important;font-size:18px!important;z-index:10}
-.pop{padding:15px;min-width:220px;max-width:280px}
+.pop{padding:14px;min-width:200px;max-width:260px}
 .pop-hdr{display:flex;align-items:center;gap:9px;margin-bottom:9px}
-.pop-emo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid transparent}
-.pop-name{font-size:14px;font-weight:700;line-height:1.2}
+.pop-emo{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid transparent}
+.pop-name{font-size:13px;font-weight:700;line-height:1.2}
 .pop-cat{font-size:10px;font-family:'Space Mono',monospace;margin-top:2px}
 .pop-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden}
 .pop-fill{height:100%;border-radius:2px}
-.pop-txt{font-size:13px;color:#aab4ca;line-height:1.5;margin-bottom:10px}
-.pop-media img{width:100%;border-radius:8px;margin-bottom:10px;max-height:140px;object-fit:cover}
-.pop-media iframe{width:100%;border-radius:8px;margin-bottom:10px;height:140px}
-.pop-foot{display:flex;align-items:center;gap:7px}
-.pop-like{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s}
-.pop-like:hover{border-color:var(--neon2);background:rgba(245,0,160,.08);color:var(--neon2)}
+.pop-txt{font-size:12px;color:#aab4ca;line-height:1.5;margin-bottom:10px}
+.pop-foot{display:flex;align-items:center;gap:6px}
+.pop-like{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 8px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s;-webkit-tap-highlight-color:transparent}
 .pop-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
-.tbdg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 9px;font-family:'Space Mono',monospace;font-size:11px;color:var(--amber);display:flex;align-items:center;gap:4px;white-space:nowrap}
-
+.tbdg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 7px;font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);display:flex;align-items:center;gap:3px;white-space:nowrap}
 .pop-like-hint{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);text-align:center;padding:6px 0 2px;opacity:.8}
-/* marker */
+.pop-gmaps{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+
+/* MARKER */
 .mk{display:flex;flex-direction:column;align-items:center;cursor:pointer}
 .mk-b{width:40px;height:40px;background:var(--surface);border:2px solid var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;position:relative;transition:all .3s}
 .mk-e{transform:rotate(45deg);font-size:18px;line-height:1}
 .mk-r{position:absolute;inset:-4px;border-radius:50% 50% 50% 0;border:1px solid rgba(0,245,160,.3);animation:mp 2s infinite}
 @keyframes mp{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.4);opacity:0}}
 
-/* CSV IMPORT MODAL */
-#csv-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:3000;align-items:center;justify-content:center}
-#csv-modal.on{display:flex;animation:sup .3s cubic-bezier(.16,1,.3,1)}
-.csv-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:min(480px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)}
-.csv-hdr{padding:20px 20px 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.csv-ttl{font-size:18px;font-weight:800}.csv-ttl span{color:var(--neon)}
-.csv-body{padding:0 20px 20px}
-.csv-drop{border:2px dashed var(--border);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:14px}
-.csv-drop:hover,.csv-drop.drag{border-color:var(--neon);background:rgba(0,245,160,.04)}
-.csv-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.csv-drop-ic{font-size:32px;margin-bottom:8px}
-.csv-drop-txt{font-size:13px;color:var(--dim);font-family:'Space Mono',monospace;line-height:1.6}
-.csv-preview{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;display:none}
-.csv-preview-ttl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);font-family:'Space Mono',monospace;margin-bottom:10px}
-.csv-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
-.csv-row:last-child{border-bottom:none}
-.csv-row-ico{font-size:18px;flex-shrink:0;width:24px;text-align:center}
-.csv-row-info{flex:1;min-width:0}
-.csv-row-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.csv-row-meta{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;margin-top:2px}
-.csv-row-status{font-size:10px;font-family:'Space Mono',monospace;flex-shrink:0}
-.csv-stats{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.csv-stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Space Mono',monospace;font-size:11px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:80px}
-.csv-stat-n{font-size:18px;font-weight:700;color:var(--neon)}
-.csv-stat-l{color:var(--dim)}
-.csv-err{background:rgba(255,64,96,.1);border:1px solid rgba(255,64,96,.3);border-radius:8px;padding:10px 12px;font-size:12px;font-family:'Space Mono',monospace;color:var(--danger);margin-bottom:12px;display:none;line-height:1.6}
-.csv-actions{display:flex;gap:8px}
-.csv-load{flex:1;background:var(--neon);color:#000;border:none;border-radius:10px;padding:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:none}
-.csv-load:hover{box-shadow:var(--glow);transform:translateY(-1px)}
-.csv-cancel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-family:'Syne',sans-serif;font-size:14px;color:var(--text);cursor:pointer;transition:all .2s}
-.csv-cancel:hover{border-color:var(--danger);color:var(--danger)}
+/* RICH TEXT */
+.rich-link{color:var(--neon);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;font-size:11px;background:rgba(0,245,160,.07);border:1px solid rgba(0,245,160,.2);border-radius:5px;padding:2px 7px;margin:1px 0}
+a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);background:rgba(245,0,160,.07)}
 
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--surface)}
@@ -400,10 +262,17 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
   <div class="hdr-r">
     <div class="spill"><div class="dot"></div><span id="cnt">0</span>&nbsp;flares activos</div>
     <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
+    <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
   </div>
 </header>
 
-<button id="fab">＋ Crear Flare</button>
+<div id="fab-wrap">
+  <div id="fab-menu">
+    <button id="fab-gps">📍 Mi ubicación</button>
+    <button id="fab-map">🗺️ Elegir en mapa</button>
+  </div>
+  <button id="fab">＋ Crear Flare</button>
+</div>
 <div id="xhair"><div class="xh"></div></div>
 
 <div class="legend" id="legend">
@@ -412,12 +281,12 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
     <div class="leg-toggle" id="leg-toggle">▲</div>
   </div>
   <div class="leg-body">
-    <div class="leg-r active" id="leg-nuevo"   data-filter="nuevo">
+    <div class="leg-r active" id="leg-nuevo"    data-filter="nuevo">
       <div class="ld" style="background:var(--neon)"></div>
       <div class="leg-r-lbl">Nuevo (&gt;30 min)</div>
       <div class="leg-r-check">✓</div>
     </div>
-    <div class="leg-r active" id="leg-maduro"  data-filter="maduro">
+    <div class="leg-r active" id="leg-maduro"   data-filter="maduro">
       <div class="ld" style="background:var(--amber)"></div>
       <div class="leg-r-lbl">Maduro (&lt;30 min)</div>
       <div class="leg-r-check">✓</div>
@@ -437,34 +306,22 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
 
 <div id="notifs"></div>
 
-<!-- Panel trigger button -->
 <div id="pbtn">
   <div class="pbi">🗂️</div>
   <div class="pbl">Ver Flares</div>
   <div class="pbadge" id="pbadge">0</div>
 </div>
 
-<!-- Panel overlay -->
 <div id="pov"></div>
 
-<!-- Panel -->
 <div id="panel">
   <div class="ph">
     <div>
       <div class="ph-ttl">Flares en <span>Vista</span></div>
       <div class="ph-sub" id="ph-sub">0 flares en el área visible</div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <button class="ph-help" id="ph-help" title="Manual de usuario" onclick="openManual()">?</button>
-      <label class="ph-csv" id="csv-label" title="Cargar flares desde CSV">
-        📂
-        <input type="file" accept=".csv" id="csv-input" style="display:none">
-      </label>
-      <button class="ph-x" id="panel-close">✕</button>
-    </div>
+    <button class="ph-x" id="panel-close">✕</button>
   </div>
-
-  <!-- Geocoder inside panel -->
   <div class="pgeo">
     <div class="pgeo-label">🔍 Buscar lugar en el mapa</div>
     <div class="pgeo-wrap">
@@ -472,220 +329,18 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
       <div class="pgeo-res" id="pgeo-res"></div>
     </div>
   </div>
-
   <div class="psrch"><input type="text" id="srch" placeholder="🔍  Buscar flare..."></div>
-
-  <!-- Vigencia filter strip inside panel -->
   <div class="pvig" id="pvig">
     <div class="pvig-lbl">Vigencia:</div>
     <div class="pvig-opts">
-      <div class="pvig-opt on" id="pvig-all"   data-vf="all">        Todos</div>
+      <div class="pvig-opt on" id="pvig-all"   data-vf="all">Todos</div>
       <div class="pvig-opt"   id="pvig-nuevo"  data-vf="nuevo"><span class="pvig-dot" style="background:var(--neon)"></span>Nuevo</div>
       <div class="pvig-opt"   id="pvig-maduro" data-vf="maduro"><span class="pvig-dot" style="background:var(--amber)"></span>Maduro</div>
       <div class="pvig-opt"   id="pvig-exp"    data-vf="expirando"><span class="pvig-dot" style="background:var(--danger)"></span>Expirando</div>
     </div>
   </div>
-
   <div class="pchips" id="chips"></div>
   <div class="plist" id="plist"></div>
-</div>
-
-<!-- MANUAL MODAL -->
-<div id="manual-overlay">
-  <div id="manual-box">
-
-    <!-- sticky topbar with nav + close -->
-    <div class="manual-topbar">
-      <nav class="manual-nav" id="manual-nav">
-        <a class="active" href="#m-overview" onclick="manualScroll('m-overview',this)">¿Qué es?</a>
-        <a href="#m-interface" onclick="manualScroll('m-interface',this)">Interfaz</a>
-        <a href="#m-crear"     onclick="manualScroll('m-crear',this)">Crear Flare</a>
-        <a href="#m-cats"      onclick="manualScroll('m-cats',this)">Categorías</a>
-        <a href="#m-vig"       onclick="manualScroll('m-vig',this)">Vigencia</a>
-        <a href="#m-panel"     onclick="manualScroll('m-panel',this)">Panel</a>
-        <a href="#m-tips"      onclick="manualScroll('m-tips',this)">Tips</a>
-      </nav>
-      <button class="manual-close" onclick="closeManual()">✕</button>
-    </div>
-
-    <div class="manual-content" id="manual-content">
-
-      <!-- HERO -->
-      <div class="m-hero">
-        <div class="m-hero-logo">
-          <div class="m-hero-pin"></div>
-          <div style="font-size:clamp(24px,5vw,38px);font-weight:800;letter-spacing:-1px">Fl<span style="color:var(--neon)">are</span></div>
-        </div>
-        <h1 class="m-hero-title">Manual de <span class="hl">Usuario</span></h1>
-        <p class="m-hero-sub">Guía completa · Versión 1.0</p>
-      </div>
-
-      <main>
-
-        <!-- 1. QUÉ ES -->
-        <section class="section" id="m-overview">
-          <div class="sec-hdr">
-            <div class="sec-num">01</div>
-            <h2 class="sec-title">¿Qué es <span class="hl">Flare</span>?</h2>
-          </div>
-          <div class="cards c3">
-            <div class="card"><span class="card-icon">📍</span><div class="card-title">Mapa en Vivo</div><div class="card-desc">Coloca marcadores geolocalizados en cualquier parte del mapa con un solo toque.</div></div>
-            <div class="card"><span class="card-icon">⏱️</span><div class="card-title">Eventos Efímeros</div><div class="card-desc">Cada flare dura exactamente 1 hora y desaparece solo. El mapa siempre es fresco.</div></div>
-            <div class="card"><span class="card-icon">❤️</span><div class="card-title">Likes = Tiempo</div><div class="card-desc">Cada like que recibe un flare le suma +5 minutos de vida. Hasta 12 horas máximo.</div></div>
-            <div class="card"><span class="card-icon">🗂️</span><div class="card-title">Panel Lateral</div><div class="card-desc">Ve todos los flares visibles en pantalla, filtra por categoría y vigencia.</div></div>
-            <div class="card"><span class="card-icon">🔍</span><div class="card-title">Buscador de Lugares</div><div class="card-desc">Navega rápidamente a cualquier ciudad, colonia o lugar del mundo desde el panel.</div></div>
-          </div>
-        </section>
-
-        <!-- 2. INTERFAZ -->
-        <section class="section" id="m-interface">
-          <div class="sec-hdr">
-            <div class="sec-num">02</div>
-            <h2 class="sec-title">La <span class="hl">Interfaz</span></h2>
-          </div>
-          <div class="cards c2">
-            <div class="card" style="border-color:rgba(0,245,160,.2)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:22px">⊕</span><div class="card-title" style="margin:0;color:var(--neon)">Botón "＋ Crear Flare"</div></div><div class="card-desc">Centrado en la parte inferior. Tócalo para activar el modo de colocación. El cursor cambia a mira.</div></div>
-            <div class="card" style="border-color:rgba(0,200,255,.2)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:22px">🗂️</span><div class="card-title" style="margin:0;color:#00c8ff">Botón Panel (derecha)</div></div><div class="card-desc">Abre el panel lateral con la lista de todos los flares en el área visible del mapa.</div></div>
-            <div class="card" style="border-color:rgba(255,179,0,.2)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:22px">📊</span><div class="card-title" style="margin:0;color:var(--amber)">Leyenda (inferior izq.)</div></div><div class="card-desc">Filtro rápido de vigencia. Colapsa o expande tocando el encabezado. Filtra qué marcadores son visibles.</div></div>
-            <div class="card" style="border-color:rgba(245,0,160,.2)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:22px">💠</span><div class="card-title" style="margin:0;color:var(--neon2)">Marcadores en el mapa</div></div><div class="card-desc">Cada pin tiene el emoji de su categoría. Tócalo para ver el popup con texto, hipervínculos y botón de like.</div></div>
-          </div>
-        </section>
-
-        <!-- 3. CREAR FLARE -->
-        <section class="section" id="m-crear">
-          <div class="sec-hdr">
-            <div class="sec-num">03</div>
-            <h2 class="sec-title">Cómo Crear un <span class="hl">Flare</span></h2>
-          </div>
-          <div class="steps">
-            <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Presiona "＋ Crear Flare"</div><div class="step-desc">El botón inferior se activa. El cursor del mapa se convierte en una mira de color rosa.</div><div class="step-tip">💡 Puedes cancelar tocando el mismo botón</div></div></div>
-            <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Toca el punto exacto en el mapa</div><div class="step-desc">Haz click o toca donde quieres colocar el flare. Las coordenadas se capturan automáticamente.</div><div class="step-tip">📍 Las coordenadas aparecen en el formulario</div></div></div>
-            <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Elige categoría e ícono</div><div class="step-desc">Selecciona entre 5 categorías. Luego elige el emoji específico que mejor describa tu flare.</div></div></div>
-            <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Escribe título y descripción</div><div class="step-desc">El título es obligatorio (máx 60 caracteres). En la descripción, los números de teléfono y links se convierten automáticamente en hipervínculos clicables.</div><div class="step-tip">💡 Incluye tu número o link si quieres contacto directo</div></div></div>
-            <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Publica con "⚡ Publicar Flare"</div><div class="step-desc">El flare aparece inmediatamente en el mapa con 1 hora de vigencia y el mapa hace zoom automáticamente.</div></div></div>
-          </div>
-        </section>
-
-        <!-- 4. CATEGORÍAS -->
-        <section class="section" id="m-cats">
-          <div class="sec-hdr">
-            <div class="sec-num">04</div>
-            <h2 class="sec-title"><span class="hl">Categorías</span> Disponibles</h2>
-          </div>
-          <div class="cat-grid">
-            <div class="cat-card" style="border-color:rgba(255,149,0,.3)"><div class="cat-icon">🍽️</div><div class="cat-name" style="color:#ff9500">Comida y Bebida</div><div class="cat-desc">Tacos, restaurantes, food trucks, cenas especiales, pop-ups</div><div class="cat-emojis">🍕🌮🍔🍜🥗🍺☕🍦🥩🍣</div></div>
-            <div class="cat-card" style="border-color:rgba(0,194,255,.3)"><div class="cat-icon">🏷️</div><div class="cat-name" style="color:#00c2ff">Ventas</div><div class="cat-desc">Garage sales, liquidaciones, ofertas por tiempo limitado</div><div class="cat-emojis">🏷️💸🛒🎁💰🛍️🤑💎🔖📦</div></div>
-            <div class="cat-card" style="border-color:rgba(160,0,245,.3)"><div class="cat-icon">🎉</div><div class="cat-name" style="color:#a000f5">Evento</div><div class="cat-desc">Conciertos, torneos, festivales, eventos culturales</div><div class="cat-emojis">🎉🎵🎸🎭🎪🏆🎤🎬🎊🕺</div></div>
-            <div class="cat-card" style="border-color:rgba(255,64,96,.3)"><div class="cat-icon">⚡</div><div class="cat-name" style="color:#ff4060">Suceso</div><div class="cat-desc">Accidentes, retenes, incendios, bloqueos, emergencias</div><div class="cat-emojis">⚡🚨🚧💥🔥🚑⚠️🌊🌪️🆘</div></div>
-            <div class="cat-card" style="border-color:rgba(0,245,160,.3)"><div class="cat-icon">ℹ️</div><div class="cat-name" style="color:var(--neon)">Información</div><div class="cat-desc">Avisos, cortes de agua/luz, ferias de empleo</div><div class="cat-emojis">ℹ️📍💡📢🗺️🔍📌📣🌐✅</div></div>
-          </div>
-        </section>
-
-        <!-- 5. VIGENCIA -->
-        <section class="section" id="m-vig">
-          <div class="sec-hdr">
-            <div class="sec-num">05</div>
-            <h2 class="sec-title">Sistema de <span class="hl3">Vigencia</span></h2>
-          </div>
-          <div class="vig-table">
-            <div class="vig-row" style="background:var(--surface2);border-bottom:1px solid var(--border)">
-              <div style="padding:10px 14px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--dim)">ESTADO</div>
-              <div style="padding:10px 14px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--dim)">DESCRIPCIÓN</div>
-              <div style="padding:10px 14px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--dim);text-align:right">TIEMPO</div>
-            </div>
-            <div class="vig-row nuevo"><div class="vig-label" style="color:var(--neon)"><div style="width:8px;height:8px;border-radius:50%;background:var(--neon)"></div>Nuevo</div><div class="vig-desc">Flare recién publicado. El marcador brilla en verde.</div><div class="vig-time" style="color:var(--neon)">&gt; 30 min</div></div>
-            <div class="vig-row maduro"><div class="vig-label" style="color:var(--amber)"><div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>Maduro</div><div class="vig-desc">En su fase media. Aún relevante pero pronto expira.</div><div class="vig-time" style="color:var(--amber)">10 – 30 min</div></div>
-            <div class="vig-row expirando"><div class="vig-label" style="color:var(--danger)"><div style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></div>Expirando</div><div class="vig-desc">Últimos minutos. El marcador cambia a rojo.</div><div class="vig-time" style="color:var(--danger)">&lt; 10 min</div></div>
-          </div>
-          <div class="callout" style="margin-top:14px"><div class="callout-icon">❤️</div><div class="callout-body"><strong>El sistema de Likes extiende la vida</strong><br>Cada ❤️ agrega <strong style="color:var(--neon)">+5 minutos</strong> a la vigencia. Un flare popular puede llegar hasta <strong style="color:var(--amber)">12 horas</strong> máximo. ¡Solo un like por flare!</div></div>
-          <div class="callout warn" style="margin-top:10px"><div class="callout-icon">⏱️</div><div class="callout-body"><strong>Vigencia base</strong> = 1 hora &nbsp;·&nbsp; <strong>Bonus por like</strong> = +5 min &nbsp;·&nbsp; <strong>Máximo</strong> = 12 horas<br>El sistema revisa expiración cada 10 segundos y elimina flares vencidos automáticamente.</div></div>
-        </section>
-
-        <!-- 6. PANEL -->
-        <section class="section" id="m-panel">
-          <div class="sec-hdr">
-            <div class="sec-num">06</div>
-            <h2 class="sec-title">El <span class="hl">Panel</span> Lateral</h2>
-          </div>
-          <div class="steps">
-            <div class="step"><div class="step-num" style="font-size:20px">🗂️</div><div class="step-body"><div class="step-title">Abrir / Cerrar</div><div class="step-desc">Presiona el botón "🗂️ Ver Flares" en el lado derecho de la pantalla. Ciérralo tocando fuera o con el ✕.</div></div></div>
-            <div class="step"><div class="step-num" style="font-size:20px">🔍</div><div class="step-body"><div class="step-title">Buscar un lugar en el mapa</div><div class="step-desc">Escribe cualquier ciudad, colonia o dirección. Selecciona el resultado y el mapa vuela automáticamente.</div><div class="step-tip">🌍 Funciona con ciudades de todo el mundo</div></div></div>
-            <div class="step"><div class="step-num" style="font-size:20px">⏱️</div><div class="step-body"><div class="step-title">Filtro de Vigencia</div><div class="step-desc">Filtra por <strong>Todos · Nuevo · Maduro · Expirando</strong>. El mismo filtro aplica también a los marcadores en el mapa.</div></div></div>
-            <div class="step"><div class="step-num" style="font-size:20px">🏷️</div><div class="step-body"><div class="step-title">Chips de Categoría</div><div class="step-desc">Filtra los flares por categoría. Puedes combinar filtros de vigencia + categoría simultáneamente.</div></div></div>
-            <div class="step"><div class="step-num" style="font-size:20px">📌</div><div class="step-body"><div class="step-title">Interacción con cada flare</div><div class="step-desc"><strong>Toca el emoji</strong> → el mapa vuela al flare<br><strong>Toca la fila</strong> → expande/colapsa el detalle<br><strong>Botón ❤️</strong> → da like desde el panel<br><strong>Botón 🗺️</strong> → vuela al flare y abre popup</div></div></div>
-          </div>
-          <div class="callout hot" style="margin-top:8px"><div class="callout-icon">💡</div><div class="callout-body"><strong>El panel sólo muestra flares del área visible</strong><br>Si mueves o haces zoom en el mapa, el panel y su contador se actualizan automáticamente.</div></div>
-        </section>
-
-        <!-- 7. TIPS -->
-        <section class="section" id="m-tips">
-          <div class="sec-hdr">
-            <div class="sec-num">07</div>
-            <h2 class="sec-title">Tips y <span class="hl2">Trucos</span></h2>
-          </div>
-          <div class="cards c2">
-            <div class="card"><span class="card-icon">🎯</span><div class="card-title">Títulos específicos ganan más likes</div><div class="card-desc">"Tacos de carne asada con tortilla hecha a mano" > "Hay tacos aquí"</div></div>
-            <div class="card"><span class="card-icon">🗂️</span><div class="card-title">Usa el panel para explorar</div><div class="card-desc">Mueve el mapa a una zona nueva → el panel actualiza automáticamente los flares de esa área.</div></div>
-            <div class="card"><span class="card-icon">🔗</span><div class="card-title">Links y teléfonos son clicables</div><div class="card-desc">Escribe tu número o URL en la descripción y se convierten automáticamente en hipervínculo.</div></div>
-            <div class="card"><span class="card-icon">🚧</span><div class="card-title">Retenes: categoría Suceso</div><div class="card-desc">Usa emoji 🚧 + categoría Suceso para alertar retenes. La comunidad lo agradece.</div></div>
-            <div class="card"><span class="card-icon">🔍</span><div class="card-title">Busca cualquier ciudad</div><div class="card-desc">Desde el panel puedes navegar a Tijuana, CDMX, Monterrey o cualquier lugar del mundo.</div></div>
-            <div class="card"><span class="card-icon">⏱️</span><div class="card-title">Dale vida a los mejores flares</div><div class="card-desc">Si ves un flare útil expirando, dale ❤️ para extenderle 5 minutos más.</div></div>
-          </div>
-          <div style="margin-top:24px">
-            <div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px">⌨️ Atajos y gestos</div>
-            <div class="shortcut-grid">
-              <div class="sk-key">Toque en mapa (modo crear)</div><div class="sk-desc">Coloca el flare en ese punto y abre el formulario</div>
-              <div class="sk-key">Toque en marcador</div><div class="sk-desc">Abre el popup de detalle del flare</div>
-              <div class="sk-key">Toque en emoji del panel</div><div class="sk-desc">El mapa vuela directo al flare</div>
-              <div class="sk-key">Toque en fila del panel</div><div class="sk-desc">Expande o colapsa el detalle en el panel</div>
-              <div class="sk-key">Toque en leyenda (mapa)</div><div class="sk-desc">Filtra marcadores por vigencia en el mapa</div>
-              <div class="sk-key">Scroll / pinch en mapa</div><div class="sk-desc">Zoom in/out · El panel se actualiza al soltar</div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      <div class="m-footer">Hecho con <span>❤️</span> para la comunidad · <span>Flare</span> — El mapa que respira</div>
-    </div>
-  </div>
-</div>
-
-<!-- CSV Import Modal -->
-<div id="csv-modal">
-  <div class="csv-box">
-    <div class="csv-hdr">
-      <div class="csv-ttl">Cargar <span>Flares</span> desde CSV</div>
-      <button class="mx" id="csv-modal-x">✕</button>
-    </div>
-    <div class="csv-body">
-      <div class="csv-drop" id="csv-drop">
-        <input type="file" accept=".csv" id="csv-drop-input">
-        <div class="csv-drop-ic">📄</div>
-        <div class="csv-drop-txt">
-          Arrastra tu archivo CSV aquí<br>o toca para seleccionar
-        </div>
-      </div>
-
-      <div class="csv-err" id="csv-err"></div>
-
-      <div class="csv-stats" id="csv-stats" style="display:none">
-        <div class="csv-stat"><div class="csv-stat-n" id="csv-n-total">0</div><div class="csv-stat-l">Total</div></div>
-        <div class="csv-stat"><div class="csv-stat-n" id="csv-n-ok" style="color:var(--neon)">0</div><div class="csv-stat-l">Válidos</div></div>
-        <div class="csv-stat"><div class="csv-stat-n" id="csv-n-err" style="color:var(--danger)">0</div><div class="csv-stat-l">Con error</div></div>
-      </div>
-
-      <div class="csv-preview" id="csv-preview">
-        <div class="csv-preview-ttl">Vista previa</div>
-        <div id="csv-rows"></div>
-      </div>
-
-      <div class="csv-actions">
-        <button class="csv-cancel" id="csv-cancel">Cancelar</button>
-        <button class="csv-load" id="csv-load">⚡ Lanzar flares</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- Main Modal -->
@@ -698,7 +353,7 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
     <div class="mbody">
       <div class="fg">
         <label>Ubicación</label>
-        <div class="coords-pill"><span>📍</span><span id="ctxt">—</span></div>
+        <div class="coords-pill" id="coords-pill"><span>📍</span><span id="ctxt">—</span></div>
       </div>
       <div class="fg">
         <label>Categoría</label>
@@ -709,33 +364,13 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
         <div class="egrid" id="egrid"></div>
       </div>
       <div class="fg">
-        <label>Tipo de contenido</label>
-        <div class="ttabs" id="ttabs">
-          <div class="ttab sel" data-t="text">💬<span>Texto</span></div>
-          <div class="ttab" data-t="image">🖼️<span>Foto</span></div>
-          <div class="ttab" data-t="video">🎬<span>Video</span></div>
-        </div>
-      </div>
-      <div class="fg">
         <label>Título</label>
         <input type="text" id="f-ttl" placeholder="¿Qué está pasando?" maxlength="60">
       </div>
-      <div class="fg" id="g-txt">
+      <div class="fg">
         <label>Descripción</label>
-        <textarea id="f-txt" rows="3" placeholder="Cuéntanos más..."></textarea>
-      </div>
-      <div class="fg" id="g-img" style="display:none">
-        <label>Foto</label>
-        <div class="fdrop">
-          <input type="file" accept="image/*" id="f-img">
-          <div class="fdrop-ic">📸</div>
-          <div class="fdrop-tx">Arrastra o toca para subir</div>
-          <img id="prev-img">
-        </div>
-      </div>
-      <div class="fg" id="g-vid" style="display:none">
-        <label>URL de Video</label>
-        <input type="url" id="f-vid" placeholder="https://youtube.com/...">
+        <textarea id="f-txt" rows="4" placeholder="Cuéntanos más... puedes poner links, teléfonos, etc."></textarea>
+        <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:6px;line-height:1.6">💡 Los links y teléfonos se vuelven clickeables automáticamente</div>
       </div>
       <button class="bsub" id="bsub">⚡ Publicar Flare (1 hora)</button>
     </div>
@@ -743,9 +378,9 @@ input[type=text]:focus,textarea:focus,input[type=url]:focus{border-color:var(--n
 </div>
 
 <script>
-/* ─────────────────────────────────────────────────────
-   ALL GLOBALS — functions called from HTML must be global
-   ───────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   FLARE APP — con backend real (Netlify Functions + Neon)
+   ══════════════════════════════════════════════════════ */
 
 var CATS = [
   {id:'food',     lbl:'Comida y\nBebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
@@ -755,134 +390,323 @@ var CATS = [
   {id:'info',     lbl:'Información',       icon:'ℹ️', color:'#00f5a0', emojis:['ℹ️','📍','💡','📢','🗺️','🔍','📌','📣','🌐','✅']},
 ];
 
-var BASE  = 60*60*1000, BONUS = 5*60*1000, MAX = 12*60*60*1000;
-var pins=[], placing=false, pending=null;
-var selCat=CATS[0], selEmoji=CATS[0].emojis[0], selType='text', imgData=null;
-var panelOpen=false, activeCat=null, expandedId=null;
-var vigFilter='all'; /* 'all' | 'nuevo' | 'maduro' | 'expirando' */
+var MAX = 12*60*60*1000;
+var pins = {}; /* id → pin object (includes marker) */
+var placing = false, pending = null;
+var selCat = CATS[0], selEmoji = CATS[0].emojis[0], selType = 'text', imgData = null;
+var panelOpen = false, activeCat = null, expandedId = null;
+var vigFilter = 'all';
 var map;
+var pollTimer = null;
+
+/* ── User identity (anónima por dispositivo) ── */
+var MY_ID = localStorage.getItem('flare_uid');
+if (!MY_ID) { MY_ID = 'u' + Date.now() + Math.random().toString(36).slice(2,8); localStorage.setItem('flare_uid', MY_ID); }
+var likedIds = JSON.parse(localStorage.getItem('flare_liked') || '[]');
+function saveLiked() { localStorage.setItem('flare_liked', JSON.stringify(likedIds)); }
+function hasLiked(id) { return likedIds.indexOf(id) !== -1; }
+function markLiked(id) { if (!hasLiked(id)) { likedIds.push(id); saveLiked(); } }
 
 /* ── helpers ── */
 function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 function fmtT(ms){if(ms<=0)return'0 min';var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?h+'h '+m+'m':m+' min'}
-function embedUrl(u){try{var x=new URL(u);if(x.hostname.includes('youtube')||x.hostname.includes('youtu.be')){var id=x.searchParams.get('v')||x.pathname.split('/').pop();return'https://www.youtube.com/embed/'+id}if(x.hostname.includes('vimeo'))return'https://player.vimeo.com/video/'+x.pathname.split('/').pop()}catch(e){}return null}
+
+/* Convierte texto plano en HTML con links, teléfonos y saltos de línea */
+function richText(raw) {
+  if(!raw) return '';
+  /* 1. Escapar HTML */
+  var s = esc(raw);
+  /* 2. Detectar URLs */
+  s = s.replace(/(https?:\/\/[^\s<>"]+)/g, function(url){
+    var display = url.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+    if(display.length > 40) display = display.slice(0,38)+'…';
+    return '<a href="'+url+'" target="_blank" rel="noopener" class="rich-link">🔗 '+display+'</a>';
+  });
+  /* 3. Detectar teléfonos MX: 10 dígitos, con o sin espacios/guiones, opcionalmente +52 */
+  s = s.replace(/(\+?52[\s\-]?)?(\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4})/g, function(match){
+    var digits = match.replace(/\D/g,'');
+    if(digits.length < 10) return match;
+    var tel = digits.length === 10 ? '+52'+digits : '+'+digits;
+    return '<a href="tel:'+tel+'" class="rich-link">📞 '+match+'</a>';
+  });
+  /* 4. Saltos de línea */
+  s = s.replace(/\n/g,'<br>');
+  return s;
+}
+
+function mapsUrl(lat, lng) {
+  /* En iOS abre Apple Maps o Google Maps según lo que tenga instalado.
+     En Android abre Google Maps. En desktop abre Google Maps en browser. */
+  return 'https://maps.google.com/?q='+lat+','+lng+'&ll='+lat+','+lng+'&z=17';
+}
 function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');n.textContent=msg;c.appendChild(n);setTimeout(function(){n.remove()},3500)}
-function visiblePins(){if(!map)return[];var b=map.getBounds();return pins.filter(function(p){return b.contains([p.lat,p.lng])})}
-function getPinStatus(pin){var r=pin.expiresAt-Date.now();if(r<10*60*1000)return'expirando';if(r<30*60*1000)return'maduro';return'nuevo'}
-function filteredVisible(){var vp=visiblePins();if(vigFilter!=='all')vp=vp.filter(function(p){return getPinStatus(p)===vigFilter});return vp}
-function refreshBadge(){document.getElementById('pbadge').textContent=filteredVisible().length}
+function setSyncState(state, txt) {
+  var el = document.getElementById('sync');
+  el.className = state; // '', 'loading', 'error'
+  document.getElementById('sync-txt').textContent = txt;
+}
+
+function getPinStatus(pin){
+  var r = new Date(pin.expires_at).getTime() - Date.now();
+  if(r < 10*60*1000) return 'expirando';
+  if(r < 30*60*1000) return 'maduro';
+  return 'nuevo';
+}
+function visiblePins(){
+  if(!map) return [];
+  var b = map.getBounds();
+  return Object.values(pins).filter(function(p){ return b.contains([p.lat, p.lng]); });
+}
+function filteredVisible(){
+  var vp = visiblePins();
+  if(vigFilter !== 'all') vp = vp.filter(function(p){ return getPinStatus(p) === vigFilter; });
+  return vp;
+}
+function refreshBadge(){ document.getElementById('pbadge').textContent = filteredVisible().length; }
+
+/* ══════════════════════════════════════════════════════
+   API CALLS
+   ══════════════════════════════════════════════════════ */
+
+function apiFetch(url, opts) {
+  return fetch(url, opts).then(function(r) {
+    if (!r.ok) return r.json().then(function(d){ throw new Error(d.error || r.statusText); });
+    return r.json();
+  });
+}
+
+/* Poll server for flares in current bbox */
+function fetchFlares() {
+  if (!map) return;
+  var b = map.getBounds();
+  var params = new URLSearchParams({
+    minLat: b.getSouth().toFixed(6),
+    maxLat: b.getNorth().toFixed(6),
+    minLng: b.getWest().toFixed(6),
+    maxLng: b.getEast().toFixed(6),
+  });
+  setSyncState('loading', 'actualizando...');
+  apiFetch('/api/flares?' + params)
+    .then(function(rows) {
+      setSyncState('', 'sincronizado');
+      reconcilePins(rows);
+    })
+    .catch(function(e) {
+      setSyncState('error', 'sin conexión');
+      console.error('fetchFlares:', e);
+    });
+}
+
+/* Smart reconcile: add new, update existing, remove expired */
+function reconcilePins(rows) {
+  var now = Date.now();
+  var serverIds = {};
+
+  rows.forEach(function(row) {
+    serverIds[row.id] = true;
+    var exp = new Date(row.expires_at).getTime();
+    if (exp <= now) return; /* skip already-expired from server */
+
+    if (pins[row.id]) {
+      /* Update existing pin data (likes, expires_at may have changed) */
+      var pin = pins[row.id];
+      pin.expires_at = row.expires_at;
+      pin.likes = row.likes;
+      pin.liked = hasLiked(row.id);
+      refreshMk(pin);
+      refreshPop(pin);
+    } else {
+      /* New pin from server */
+      var pin = rowToPin(row);
+      pin.marker = makeMarker(pin);
+      pins[row.id] = pin;
+    }
+  });
+
+  /* Remove pins no longer on server */
+  Object.keys(pins).forEach(function(id) {
+    if (!serverIds[id]) {
+      map.removeLayer(pins[id].marker);
+      delete pins[id];
+    }
+  });
+
+  document.getElementById('cnt').textContent = Object.keys(pins).length;
+  applyVigFilter();
+  refreshBadge();
+  if (panelOpen) { buildChips(); renderPanel(); }
+}
+
+function rowToPin(row) {
+  return {
+    id: row.id,
+    lat: parseFloat(row.lat),
+    lng: parseFloat(row.lng),
+    title: row.title,
+    emoji: row.emoji,
+    cat: row.cat,
+    catLbl: row.cat_lbl,
+    catColor: row.cat_color,
+    catIcon: row.cat_icon,
+    type: row.type,
+    text: row.body_text || '',
+    image: row.image_url || null,
+    video: row.video_url || null,
+    createdAt: new Date(row.created_at).getTime(),
+    expires_at: row.expires_at,
+    likes: row.likes,
+    liked: hasLiked(row.id),
+    marker: null,
+  };
+}
+
+/* Post new flare to server */
+function postFlare(data) {
+  return apiFetch('/api/flares', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+/* Like a flare on server */
+function postLike(id) {
+  return apiFetch('/api/like?id=' + encodeURIComponent(id), { method: 'PATCH' });
+}
+
+/* Start polling every 15 seconds */
+function startPoll() {
+  fetchFlares();
+  pollTimer = setInterval(fetchFlares, 15000);
+}
 
 /* ── marker ── */
-function mkHTML(pin,dying){
-  var c=dying?'var(--danger)':(pin.catColor||'var(--neon)');
-  return'<div class="mk"><div class="mk-b" style="border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>'
+function mkHTML(pin, dying){
+  var c = dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
+  return '<div class="mk"><div class="mk-b" style="border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
 }
 function makeMarker(pin){
-  var ico=L.divIcon({className:'',html:mkHTML(pin,false),iconSize:[44,52],iconAnchor:[22,52]});
-  var m=L.marker([pin.lat,pin.lng],{icon:ico}).addTo(map).bindPopup(popHTML(pin),{maxWidth:300});
-  m.on('popupopen',function(){refreshPop(pin)});
+  var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
+  var ico = L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]});
+  var m = L.marker([pin.lat, pin.lng], {icon:ico}).addTo(map).bindPopup(popHTML(pin), {maxWidth:300});
+  m.on('popupopen', function(){ refreshPop(pin); });
   return m;
 }
-function refreshMk(pin){var r=pin.expiresAt-Date.now();pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin,r<10*60*1000),iconSize:[44,52],iconAnchor:[22,52]}))}
+function refreshMk(pin){
+  var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
+  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]}));
+}
 
 /* ── popup ── */
 function popHTML(pin){
-  var r=Math.max(0,pin.expiresAt-Date.now()),pct=Math.min(100,(r/MAX)*100),c=pin.catColor||'var(--neon)';
-  var med='';
-  if(pin.type==='image'&&pin.image)med='<div class="pop-media"><img src="'+pin.image+'" alt="img"></div>';
-  else if(pin.type==='video'&&pin.video){var s=embedUrl(pin.video);if(s)med='<div class="pop-media"><iframe src="'+s+'" frameborder="0" allowfullscreen></iframe></div>'}
-  return'<div class="pop">'
+  var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+  var pct = Math.min(100, (r/MAX)*100);
+  var c = pin.catColor || 'var(--neon)';
+  return '<div class="pop">'
     +'<div class="pop-hdr"><div class="pop-emo" style="background:'+c+'18;border-color:'+c+'44">'+pin.emoji+'</div>'
     +'<div><div class="pop-name">'+esc(pin.title)+'</div><div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
-    +med+(pin.text?'<div class="pop-txt">'+esc(pin.text)+'</div>':'')
-    +'<div class="pop-foot"><button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button><div class="tbdg">⏱ '+fmtT(r)+'</div></div>'
-    +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
+    +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
+    +'<div class="pop-foot">'
+    +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button>'
+    +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
+    +'<a class="pop-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'" title="Ver en Maps">🗺️</a>'
     +'</div>'
+    +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
+    +'</div>';
 }
-function refreshPop(pin){if(pin.marker&&pin.marker.isPopupOpen())pin.marker.setPopupContent(popHTML(pin))}
+function refreshPop(pin){ if(pin.marker&&pin.marker.isPopupOpen()) pin.marker.setPopupContent(popHTML(pin)); }
 
-/* ── like (global so popup onclick works) ── */
+/* ── like ── */
 function doLike(id){
-  var pin=pins.find(function(p){return p.id===id});
-  if(!pin)return;
-  if(pin.liked){notif('Ya le diste ❤️ a este flare 😉','err');return}
-  pin.liked=true;pin.likes++;
-  pin.expiresAt=Math.min(pin.expiresAt+BONUS,pin.createdAt+MAX);
+  var pin = pins[id];
+  if(!pin) return;
+  if(pin.liked){ notif('Ya le diste ❤️ a este flare 😉','err'); return; }
+  /* Optimistic UI */
+  pin.liked = true;
+  pin.likes++;
+  markLiked(id);
   notif('❤️ +5 min al flare "'+pin.title+'"','like');
   refreshPop(pin);
-  if(panelOpen)renderPanel();
+  if(panelOpen) renderPanel();
+  /* Persist to server */
+  postLike(id).then(function(data) {
+    pin.expires_at = data.expires_at;
+    pin.likes = data.likes;
+    refreshPop(pin);
+  }).catch(function(e) {
+    console.error('like error:', e);
+  });
 }
 
 /* ── panel ── */
-function togglePanel(){panelOpen?closePanel():openPanel()}
+function togglePanel(){ panelOpen ? closePanel() : openPanel(); }
 function openPanel(){
-  panelOpen=true;
+  panelOpen = true;
   document.getElementById('panel').classList.add('open');
   document.getElementById('pov').classList.add('on');
-  document.getElementById('pbtn').style.display='none';
-  buildChips();renderPanel();
+  document.getElementById('pbtn').style.display = 'none';
+  buildChips(); renderPanel();
 }
 function closePanel(){
-  panelOpen=false;
+  panelOpen = false;
   document.getElementById('panel').classList.remove('open');
   document.getElementById('pov').classList.remove('on');
-  document.getElementById('pbtn').style.display='flex';
+  document.getElementById('pbtn').style.display = 'flex';
 }
 
 function buildChips(){
-  var vp=filteredVisible();
-  var box=document.getElementById('chips');
-  box.innerHTML='';
-  var all=document.createElement('div');
-  all.className='chip'+(activeCat===null?' on':'');
-  if(activeCat===null){all.style.background='var(--neon)';all.style.borderColor='var(--neon)'}
-  all.innerHTML='<span>Todos</span><span style="opacity:.7">'+vp.length+'</span>';
-  all.addEventListener('click',function(){activeCat=null;buildChips();renderPanel()});
+  var vp = filteredVisible();
+  var box = document.getElementById('chips');
+  box.innerHTML = '';
+  var all = document.createElement('div');
+  all.className = 'chip' + (activeCat === null ? ' on' : '');
+  if(activeCat === null){ all.style.background='var(--neon)'; all.style.borderColor='var(--neon)'; }
+  all.innerHTML = '<span>Todos</span><span style="opacity:.7">'+vp.length+'</span>';
+  all.addEventListener('click', function(){ activeCat=null; buildChips(); renderPanel(); });
   box.appendChild(all);
   CATS.forEach(function(cat){
-    var cnt=vp.filter(function(p){return p.cat===cat.id}).length;
-    if(!cnt)return;
-    var ch=document.createElement('div');
-    ch.className='chip'+(activeCat===cat.id?' on':'');
-    if(activeCat===cat.id){ch.style.background=cat.color;ch.style.borderColor=cat.color}
-    ch.innerHTML='<div class="chip-dot" style="background:'+cat.color+'"></div><span>'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span><span style="opacity:.7">'+cnt+'</span>';
-    ch.addEventListener('click',function(){activeCat=(activeCat===cat.id)?null:cat.id;buildChips();renderPanel()});
+    var cnt = vp.filter(function(p){ return p.cat===cat.id; }).length;
+    if(!cnt) return;
+    var ch = document.createElement('div');
+    ch.className = 'chip' + (activeCat===cat.id ? ' on' : '');
+    if(activeCat===cat.id){ ch.style.background=cat.color; ch.style.borderColor=cat.color; }
+    ch.innerHTML = '<div class="chip-dot" style="background:'+cat.color+'"></div><span>'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span><span style="opacity:.7">'+cnt+'</span>';
+    ch.addEventListener('click', function(){ activeCat=(activeCat===cat.id)?null:cat.id; buildChips(); renderPanel(); });
     box.appendChild(ch);
   });
 }
 
 function renderPanel(){
-  var q=(document.getElementById('srch').value||'').toLowerCase();
-  var vp=filteredVisible();
-  if(activeCat)vp=vp.filter(function(p){return p.cat===activeCat});
-  if(q)vp=vp.filter(function(p){return p.title.toLowerCase().includes(q)||(p.text||'').toLowerCase().includes(q)});
+  var q = (document.getElementById('srch').value||'').toLowerCase();
+  var vp = filteredVisible();
+  if(activeCat) vp = vp.filter(function(p){ return p.cat===activeCat; });
+  if(q) vp = vp.filter(function(p){ return p.title.toLowerCase().includes(q)||(p.text||'').toLowerCase().includes(q); });
 
-  var vigLabels={nuevo:'🟢 Nuevo',maduro:'🟡 Maduro',expirando:'🔴 Expirando'};
-  var vigSuffix=vigFilter!=='all'?' · '+vigLabels[vigFilter]:'';
-  document.getElementById('ph-sub').textContent=vp.length+' flare'+(vp.length!==1?'s':'')+' en vista'+vigSuffix;
+  var vigLabels = {nuevo:'🟢 Nuevo',maduro:'🟡 Maduro',expirando:'🔴 Expirando'};
+  var vigSuffix = vigFilter!=='all' ? ' · '+vigLabels[vigFilter] : '';
+  document.getElementById('ph-sub').textContent = vp.length+' flare'+(vp.length!==1?'s':'')+' en vista'+vigSuffix;
 
-  var box=document.getElementById('plist');
+  var box = document.getElementById('plist');
   if(!vp.length){
-    expandedId=null;
-    var emptyMsg=(q||activeCat||vigFilter!=='all')?'Sin resultados para este filtro.':'No hay flares en esta área.<br>¡Mueve el mapa o crea uno!';
-    box.innerHTML='<div class="pempty"><div class="pe-ico">🔭</div>'+emptyMsg+'</div>';
+    expandedId = null;
+    var emptyMsg = (q||activeCat||vigFilter!=='all') ? 'Sin resultados para este filtro.' : 'No hay flares en esta área.<br>¡Mueve el mapa o crea uno!';
+    box.innerHTML = '<div class="pempty"><div class="pe-ico">🔭</div>'+emptyMsg+'</div>';
     return;
   }
 
-  vp.sort(function(a,b){return b.expiresAt-a.expiresAt});
-  var tl={text:'💬 Texto',image:'🖼️ Foto',video:'🎬 Video'};
-  var html='';
+  vp.sort(function(a,b){ return new Date(b.expires_at)-new Date(a.expires_at); });
+  var tl = {text:'💬 Texto',image:'🖼️ Foto',video:'🎬 Video'};
+  var html = '';
 
   vp.forEach(function(pin){
-    var r=Math.max(0,pin.expiresAt-Date.now());
-    var pct=Math.min(100,(r/MAX)*100);
-    var bc=r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
-    var cat=CATS.find(function(c){return c.id===pin.cat})||CATS[4];
-    var isOpen=(pin.id===expandedId);
+    var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+    var pct = Math.min(100, (r/MAX)*100);
+    var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
+    var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[4];
+    var isOpen = (pin.id===expandedId);
 
-    /* row */
-    html+='<div class="prow'+(isOpen?' open':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
+    html += '<div class="prow'+(isOpen?' open':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
       +'<div class="prow-hdr">'
       +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
       +'<div class="prow-body">'
@@ -897,588 +721,267 @@ function renderPanel(){
       +'</div>'
       +'<div class="prow-arrow">▶</div>'
       +'</div>'
-      +'</div>';/* end prow */
+      +'</div>';
 
-    /* detail — sibling right after prow */
-    var med2='';
-    if(pin.type==='image'&&pin.image)med2='<img class="pd-img" src="'+pin.image+'" alt="img">';
-    else if(pin.type==='video'&&pin.video){var s2=embedUrl(pin.video);if(s2)med2='<iframe class="pd-iframe" src="'+s2+'" frameborder="0" allowfullscreen></iframe>'}
-
-    html+='<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
-      +med2
-      +(pin.text?'<div class="pd-txt">'+esc(pin.text)+'</div>':'')
+    var html_detail = '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
+      +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">❤️ '+(pin.likes>0?'+'+pin.likes+' Me gusta':'Me gusta')+'</button>'
-      +'<button class="pd-map" data-fid="'+pin.id+'">🗺️ Ver en mapa</button>'
+      +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
+      +'<a class="pd-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'">🗺️ Cómo llegar</a>'
       +'</div>'
       +'</div>';
+    html += html_detail;
   });
 
-  box.innerHTML=html;
-
-  /* Persistent event delegation on the container */
-  box.onclick=function(e){
-    /* like button */
-    var lb=e.target.closest('[data-lid]');
-    if(lb){e.stopPropagation();doLike(lb.dataset.lid);return}
-    /* fly button inside detail */
-    var fb=e.target.closest('[data-fid]');
-    if(fb){e.stopPropagation();flyToPin(fb.dataset.fid);return}
-    /* click on the emoji icon — fly directly */
-    var ico=e.target.closest('.prow-ico');
-    if(ico){
-      var prow=ico.closest('.prow');
-      if(prow){e.stopPropagation();flyToPin(prow.dataset.pid);return}
-    }
-    /* click anywhere else on the row — expand/collapse */
-    var row=e.target.closest('.prow');
+  box.innerHTML = html;
+  box.onclick = function(e){
+    var lb = e.target.closest('[data-lid]');
+    if(lb){ e.stopPropagation(); doLike(lb.dataset.lid); return; }
+    var fb = e.target.closest('[data-fid]');
+    if(fb){ e.stopPropagation(); flyToPin(fb.dataset.fid); return; }
+    var ico = e.target.closest('.prow-ico');
+    if(ico){ var prow=ico.closest('.prow'); if(prow){ e.stopPropagation(); flyToPin(prow.dataset.pid); return; } }
+    var row = e.target.closest('.prow');
     if(row){
-      var pid=row.dataset.pid;
-      expandedId=(expandedId===pid)?null:pid;
+      var pid = row.dataset.pid;
+      expandedId = (expandedId===pid) ? null : pid;
       renderPanel();
-      if(expandedId){
-        setTimeout(function(){
-          var el=document.getElementById('prow-'+expandedId);
-          if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});
-        },50);
-      }
+      if(expandedId){ setTimeout(function(){ var el=document.getElementById('prow-'+expandedId); if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'}); },50); }
     }
   };
 }
 
 function flyToPin(id){
-  var pin=pins.find(function(p){return p.id===id});
-  if(!pin)return;
-  /* Don't close panel — slide map view to pin and open its popup */
-  map.flyTo([pin.lat,pin.lng],16,{duration:.8});
-  setTimeout(function(){pin.marker.openPopup()},900);
+  var pin = pins[id];
+  if(!pin) return;
+  map.flyTo([pin.lat, pin.lng], 16, {duration:.8});
+  setTimeout(function(){ pin.marker.openPopup(); }, 900);
 }
 
-function updateCount(){
-  document.getElementById('cnt').textContent=pins.length;
-  refreshBadge();
-  if(panelOpen){buildChips();renderPanel()}
-}
+/* ── FAB menu ── */
+var fabMenuOpen = false;
+var fab = document.getElementById('fab');
+var fabMenu = document.getElementById('fab-menu');
 
-/* ── placing ── */
-var fab=document.getElementById('fab');
-fab.addEventListener('click',function(){placing?stopPlace():startPlace()});
-function startPlace(){placing=true;fab.textContent='✕  Cancelar';fab.classList.add('placing');document.getElementById('hint').style.display='flex';document.getElementById('xhair').classList.add('on');map&&(map.getContainer().style.cursor='crosshair')}
-function stopPlace(){placing=false;fab.textContent='＋ Crear Flare';fab.classList.remove('placing');document.getElementById('hint').style.display='none';document.getElementById('xhair').classList.remove('on');map&&(map.getContainer().style.cursor='')}
+fab.addEventListener('click', function(e){
+  e.stopPropagation();
+  if(placing){ stopPlace(); return; }
+  fabMenuOpen = !fabMenuOpen;
+  fabMenu.classList.toggle('on', fabMenuOpen);
+  fab.textContent = fabMenuOpen ? '✕  Cancelar' : '＋ Crear Flare';
+});
+
+document.addEventListener('click', function(){
+  if(fabMenuOpen){ fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare'; }
+});
+
+/* 📍 Mi ubicación */
+document.getElementById('fab-gps').addEventListener('click', function(e){
+  e.stopPropagation();
+  fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare';
+  fab.textContent='⏳ Obteniendo...'; fab.disabled=true;
+  if(!navigator.geolocation){ notif('Tu browser no soporta geolocalización','err'); fab.textContent='＋ Crear Flare'; fab.disabled=false; return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      fab.textContent='＋ Crear Flare'; fab.disabled=false;
+      map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, {duration:1});
+      setPending(pos.coords.latitude, pos.coords.longitude);
+      openModal();
+    },
+    function(){
+      fab.textContent='＋ Crear Flare'; fab.disabled=false;
+      notif('No se pudo obtener tu ubicación','err');
+    },
+    {enableHighAccuracy:true, timeout:8000}
+  );
+});
+
+/* 🗺️ Elegir en mapa */
+document.getElementById('fab-map').addEventListener('click', function(e){
+  e.stopPropagation();
+  fabMenuOpen=false; fabMenu.classList.remove('on');
+  fab.textContent='✕  Cancelar';
+  startPlace();
+});
+
+function startPlace(){ placing=true; fab.classList.add('placing'); document.getElementById('hint').style.display='flex'; document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); }
+function stopPlace(){ placing=false; fab.classList.remove('placing'); fab.textContent='＋ Crear Flare'; fab.disabled=false; document.getElementById('hint').style.display='none'; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
 
 /* ── modal ── */
-function openModal(){buildCG();buildEG();document.getElementById('mover').classList.add('on')}
-function closeModal(){document.getElementById('mover').classList.remove('on');pending=null;document.getElementById('f-ttl').value='';document.getElementById('f-txt').value='';document.getElementById('f-vid').value='';document.getElementById('prev-img').style.display='none';imgData=null;setType('text')}
-document.getElementById('modal-x').addEventListener('click',closeModal);
-document.getElementById('mover').addEventListener('click',function(e){if(e.target===this)closeModal()});
+function setPending(lat, lng){
+  pending = {lat:lat, lng:lng};
+  document.getElementById('ctxt').textContent = lat.toFixed(5)+', '+lng.toFixed(5);
+}
+function openModal(){
+  buildCG(); buildEG();
+  document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
+  document.getElementById('mover').classList.add('on');
+}
+function closeModal(){
+  document.getElementById('mover').classList.remove('on');
+  pending=null;
+  document.getElementById('f-ttl').value='';
+  document.getElementById('f-txt').value='';
+  stopPlace();
+}
+document.getElementById('modal-x').addEventListener('click', closeModal);
+document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+document.getElementById('modal-x').addEventListener('click', closeModal);
+document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
 function buildCG(){
-  var g=document.getElementById('cgrid');g.innerHTML='';
+  var g = document.getElementById('cgrid'); g.innerHTML='';
   CATS.forEach(function(cat){
-    var b=document.createElement('div');b.className='cbtn'+(cat.id===selCat.id?' sel':'');b.style.setProperty('--cc',cat.color);
+    var b = document.createElement('div'); b.className='cbtn'+(cat.id===selCat.id?' sel':''); b.style.setProperty('--cc', cat.color);
     b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
-    b.addEventListener('click',function(){selCat=cat;selEmoji=cat.emojis[0];buildCG();buildEG()});
+    b.addEventListener('click', function(){ selCat=cat; selEmoji=cat.emojis[0]; buildCG(); buildEG(); });
     g.appendChild(b);
   });
 }
 function buildEG(){
-  var g=document.getElementById('egrid');g.innerHTML='';
+  var g = document.getElementById('egrid'); g.innerHTML='';
   selCat.emojis.forEach(function(e){
-    var b=document.createElement('button');var a=(e===selEmoji);b.className='ebtn'+(a?' sel':'');b.textContent=e;
-    if(a){b.style.borderColor=selCat.color;b.style.background=selCat.color+'22'}
-    b.addEventListener('click',function(){
-      g.querySelectorAll('.ebtn').forEach(function(x){x.classList.remove('sel');x.style.borderColor='';x.style.background=''});
-      b.classList.add('sel');b.style.borderColor=selCat.color;b.style.background=selCat.color+'22';selEmoji=e;
+    var b = document.createElement('button'); var a=(e===selEmoji); b.className='ebtn'+(a?' sel':''); b.textContent=e;
+    if(a){ b.style.borderColor=selCat.color; b.style.background=selCat.color+'22'; }
+    b.addEventListener('click', function(){
+      g.querySelectorAll('.ebtn').forEach(function(x){ x.classList.remove('sel'); x.style.borderColor=''; x.style.background=''; });
+      b.classList.add('sel'); b.style.borderColor=selCat.color; b.style.background=selCat.color+'22'; selEmoji=e;
     });
     g.appendChild(b);
   });
 }
 
-document.getElementById('ttabs').addEventListener('click',function(e){var t=e.target.closest('.ttab');if(t)setType(t.dataset.t)});
-function setType(t){selType=t;document.querySelectorAll('.ttab').forEach(function(x){x.classList.toggle('sel',x.dataset.t===t)});document.getElementById('g-txt').style.display=t==='text'?'':'none';document.getElementById('g-img').style.display=t==='image'?'':'none';document.getElementById('g-vid').style.display=t==='video'?'':'none'}
 
-document.getElementById('f-img').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){imgData=ev.target.result;var i=document.getElementById('prev-img');i.src=imgData;i.style.display='block'};r.readAsDataURL(f)});
+document.getElementById('bsub').addEventListener('click', function(){
+  if(!pending){ notif('Selecciona un punto en el mapa primero.','err'); return; }
+  var ttl = document.getElementById('f-ttl').value.trim();
+  if(!ttl){ notif('Ponle un título a tu flare.','err'); return; }
 
-document.getElementById('bsub').addEventListener('click',function(){
-  if(!pending){notif('Selecciona un punto en el mapa primero.','err');return}
-  var ttl=document.getElementById('f-ttl').value.trim();
-  if(!ttl){notif('Ponle un título a tu flare.','err');return}
-  var now=Date.now();
-  var pin={id:'p'+now+Math.random().toString(36).substr(2,4),lat:pending.lat,lng:pending.lng,title:ttl,emoji:selEmoji,cat:selCat.id,catLbl:selCat.lbl.replace('\n',' '),catColor:selCat.color,catIcon:selCat.icon,type:selType,text:document.getElementById('f-txt').value.trim(),image:selType==='image'?imgData:null,video:selType==='video'?document.getElementById('f-vid').value.trim():null,createdAt:now,expiresAt:now+BASE,likes:0,liked:false,marker:null};
-  pin.marker=makeMarker(pin);pins.push(pin);updateCount();closeModal();map.flyTo([pin.lat,pin.lng],15,{duration:1});notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');applyVigFilter();
+  var btn = document.getElementById('bsub');
+  btn.disabled = true;
+  btn.textContent = '⏳ Publicando...';
+
+  var payload = {
+    lat: pending.lat,
+    lng: pending.lng,
+    title: ttl,
+    emoji: selEmoji,
+    cat: selCat.id,
+    cat_lbl: selCat.lbl.replace('\n',' '),
+    cat_color: selCat.color,
+    cat_icon: selCat.icon,
+    type: 'text',
+    body_text: document.getElementById('f-txt').value.trim() || null,
+    dur_min: 60,
+  };
+
+  postFlare(payload)
+    .then(function(row) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Publicar Flare (1 hora)';
+      var pin = rowToPin(row);
+      pin.marker = makeMarker(pin);
+      pins[pin.id] = pin;
+      document.getElementById('cnt').textContent = Object.keys(pins).length;
+      closeModal();
+      map.flyTo([pin.lat, pin.lng], 15, {duration:1});
+      notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');
+      applyVigFilter();
+    })
+    .catch(function(e) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Publicar Flare (1 hora)';
+      notif('Error al publicar: '+e.message,'err');
+    });
 });
 
-/* ── ticker ── */
-setInterval(function(){
-  var now=Date.now(),alive=[];
-  pins.forEach(function(pin){if(now>=pin.expiresAt){map.removeLayer(pin.marker);notif('💨 Flare "'+pin.title+'" expirado','err')}else{alive.push(pin);refreshMk(pin);refreshPop(pin)}});
-  pins=alive;updateCount();applyVigFilter();
-},10000);
-
-/* ── panel btn & overlay ── */
-document.getElementById('pbtn').addEventListener('click',function(){togglePanel()});
-document.getElementById('pov').addEventListener('click',function(){closePanel()});
-document.getElementById('panel-close').addEventListener('click',function(){closePanel()});
-document.getElementById('srch').addEventListener('input',function(){renderPanel()});
-
-/* ── LEGEND COLLAPSE + VIGENCIA FILTER ── */
-document.getElementById('leg-hdr').addEventListener('click', function(){
-  document.getElementById('legend').classList.toggle('collapsed');
-});
-
+/* ── vigencia filter ── */
 function applyVigFilter(){
-  pins.forEach(function(pin){
+  Object.values(pins).forEach(function(pin){
     if(!pin.marker) return;
     var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
     var el = pin.marker.getElement();
     if(el) el.style.display = show ? '' : 'none';
   });
-  /* sync legend row highlights */
   ['nuevo','maduro','expirando','all'].forEach(function(f){
     var row = document.getElementById('leg-'+(f==='all'?'all':f));
     if(row) row.classList.toggle('active', vigFilter===f);
   });
-  /* sync panel vigencia strip */
   ['all','nuevo','maduro','exp'].forEach(function(k){
-    var el=document.getElementById('pvig-'+k);
+    var el = document.getElementById('pvig-'+k);
     if(!el) return;
-    var fval=k==='exp'?'expirando':k;
+    var fval = k==='exp'?'expirando':k;
     el.classList.toggle('on', vigFilter===fval);
   });
-  /* always sync badge immediately */
   refreshBadge();
-  /* sync panel list if open */
   if(panelOpen){ buildChips(); renderPanel(); }
 }
 
+document.getElementById('leg-hdr').addEventListener('click', function(){
+  document.getElementById('legend').classList.toggle('collapsed');
+});
 ['leg-nuevo','leg-maduro','leg-expirando','leg-all'].forEach(function(id){
   var el = document.getElementById(id);
-  if(!el || !el.dataset.filter) return;
-  el.addEventListener('click', function(e){
-    e.stopPropagation();
-    vigFilter = el.dataset.filter;
-    applyVigFilter();
-  });
+  if(!el||!el.dataset.filter) return;
+  el.addEventListener('click', function(e){ e.stopPropagation(); vigFilter=el.dataset.filter; applyVigFilter(); });
 });
-
-/* panel vigencia strip buttons */
 document.querySelectorAll('.pvig-opt').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    vigFilter = btn.dataset.vf;
-    applyVigFilter();
-  });
+  btn.addEventListener('click', function(){ vigFilter=btn.dataset.vf; applyVigFilter(); });
 });
 
-/* ── GEOCODER (inside panel) ── */
+/* ── panel buttons ── */
+document.getElementById('pbtn').addEventListener('click', function(){ togglePanel(); });
+document.getElementById('pov').addEventListener('click', function(){ closePanel(); });
+document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
+document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
+
+/* ── GEOCODER ── */
 (function(){
-  var inp=document.getElementById('pgeo-inp');
-  var res=document.getElementById('pgeo-res');
-  var timer=null;
-
-  inp.addEventListener('input',function(){
-    clearTimeout(timer);
-    var q=inp.value.trim();
-    if(!q){res.classList.remove('on');res.innerHTML='';return}
-    res.innerHTML='<div class="geo-msg">Buscando...</div>';
-    res.classList.add('on');
-    timer=setTimeout(function(){search(q)},380);
-  });
-
-  inp.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){res.classList.remove('on');inp.value=''}
-    if(e.key==='Enter'){var f=res.querySelector('.gitem');if(f)f.click()}
-  });
-
-  document.addEventListener('click',function(e){
-    if(!inp.contains(e.target)&&!res.contains(e.target)){res.classList.remove('on')}
-  });
-
-  function search(q){
-    fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(q),{headers:{'Accept-Language':'es'}})
-    .then(function(r){return r.json()})
-    .then(function(data){
-      if(!data.length){res.innerHTML='<div class="geo-msg">Sin resultados para "'+q+'"</div>';return}
-      res.innerHTML='';
-      data.forEach(function(item){
-        var name=item.name||item.display_name.split(',')[0];
-        var sub=item.display_name.replace(name+', ','').split(',').slice(0,2).join(', ');
-        var ic=geoIcon(item.type,item.class);
-        var el=document.createElement('div');
-        el.className='gitem';
-        el.innerHTML='<div class="gitem-ic">'+ic+'</div><div><div class="gitem-name">'+name+'</div><div class="gitem-sub">'+sub+'</div></div>';
-        el.addEventListener('click',function(){
-          inp.value=name;
-          res.classList.remove('on');
-          if(map)map.flyTo([parseFloat(item.lat),parseFloat(item.lon)],14,{duration:1.2});
-        });
-        res.appendChild(el);
-      });
-    })
-    .catch(function(){res.innerHTML='<div class="geo-msg">Error al buscar. Intenta de nuevo.</div>'});
-  }
-
-  function geoIcon(type,cls){
-    if(cls==='boundary'||type==='administrative')return'🏙️';
-    if(cls==='place')return type==='city'?'🏙️':type==='town'?'🌆':type==='village'?'🏘️':'📍';
-    if(cls==='amenity')return type==='restaurant'?'🍽️':type==='hospital'?'🏥':type==='school'?'🏫':'🏛️';
-    if(cls==='tourism')return'🗺️';if(cls==='natural')return'🌿';if(cls==='highway')return'🛣️';
-    return'📍';
-  }
+  var inp=document.getElementById('pgeo-inp'), res=document.getElementById('pgeo-res'), timer=null;
+  inp.addEventListener('input',function(){ clearTimeout(timer); var q=inp.value.trim(); if(!q){res.classList.remove('on');res.innerHTML='';return;} res.innerHTML='<div class="geo-msg">Buscando...</div>'; res.classList.add('on'); timer=setTimeout(function(){search(q)},380); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='Escape'){res.classList.remove('on');inp.value='';} if(e.key==='Enter'){var f=res.querySelector('.gitem');if(f)f.click();} });
+  document.addEventListener('click',function(e){ if(!inp.contains(e.target)&&!res.contains(e.target)) res.classList.remove('on'); });
+  function search(q){ fetch('https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q='+encodeURIComponent(q),{headers:{'Accept-Language':'es'}}).then(function(r){return r.json()}).then(function(data){ if(!data.length){res.innerHTML='<div class="geo-msg">Sin resultados</div>';return;} res.innerHTML=''; data.forEach(function(item){ var name=item.name||item.display_name.split(',')[0]; var sub=item.display_name.replace(name+', ','').split(',').slice(0,2).join(', '); var ic=geoIcon(item.type,item.class); var el=document.createElement('div'); el.className='gitem'; el.innerHTML='<div class="gitem-ic">'+ic+'</div><div><div class="gitem-name">'+name+'</div><div class="gitem-sub">'+sub+'</div></div>'; el.addEventListener('click',function(){ inp.value=name; res.classList.remove('on'); if(map)map.flyTo([parseFloat(item.lat),parseFloat(item.lon)],14,{duration:1.2}); }); res.appendChild(el); }); }).catch(function(){res.innerHTML='<div class="geo-msg">Error de búsqueda.</div>';}); }
+  function geoIcon(type,cls){ if(cls==='boundary'||type==='administrative')return'🏙️'; if(cls==='place')return type==='city'?'🏙️':type==='town'?'🌆':type==='village'?'🏘️':'📍'; if(cls==='amenity')return type==='restaurant'?'🍽️':type==='hospital'?'🏥':type==='school'?'🏫':'🏛️'; if(cls==='tourism')return'🗺️'; if(cls==='natural')return'🌿'; if(cls==='highway')return'🛣️'; return'📍'; }
 })();
-
-/* ── CSV IMPORT ────────────────────────────────────────
-   Columns: lat, lng, title, category, emoji, type, text, duration_min
-   category values: food | sale | event | incident | info
-   type values: text | image | video
-   duration_min: 1–720 (optional, default 60)
-──────────────────────────────────────────────────────── */
-(function(){
-  var modal    = document.getElementById('csv-modal');
-  var dropZone = document.getElementById('csv-drop');
-  var dropInp  = document.getElementById('csv-drop-input');
-  var panelInp = document.getElementById('csv-input');
-  var errBox   = document.getElementById('csv-err');
-  var statsBox = document.getElementById('csv-stats');
-  var preview  = document.getElementById('csv-preview');
-  var rowsBox  = document.getElementById('csv-rows');
-  var loadBtn  = document.getElementById('csv-load');
-  var parsed   = [];
-
-  /* open modal from panel button */
-  panelInp.addEventListener('change', function(e){ openCSVModal(e.target.files[0]); panelInp.value=''; });
-  document.getElementById('csv-label').addEventListener('click', function(e){ e.stopPropagation(); });
-
-  /* open modal from drop zone inside modal */
-  dropInp.addEventListener('change', function(e){ handleFile(e.target.files[0]); dropInp.value=''; });
-
-  /* drag & drop */
-  dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.classList.add('drag'); });
-  dropZone.addEventListener('dragleave', function(){ dropZone.classList.remove('drag'); });
-  dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
-
-  /* close */
-  document.getElementById('csv-modal-x').addEventListener('click', closeCSVModal);
-  document.getElementById('csv-cancel').addEventListener('click', closeCSVModal);
-  modal.addEventListener('click', function(e){ if(e.target===modal) closeCSVModal(); });
-
-  function openCSVModal(file){
-    resetUI();
-    modal.classList.add('on');
-    if(file) handleFile(file);
-  }
-
-  function closeCSVModal(){
-    modal.classList.remove('on');
-    resetUI();
-  }
-
-  function resetUI(){
-    parsed=[];
-    errBox.style.display='none'; errBox.textContent='';
-    statsBox.style.display='none';
-    preview.style.display='none';
-    rowsBox.innerHTML='';
-    loadBtn.style.display='none';
-    dropZone.querySelector('.csv-drop-txt').innerHTML='Arrastra tu archivo CSV aquí<br>o toca para seleccionar';
-  }
-
-  function handleFile(file){
-    if(!file){ showErr('Archivo inválido.'); return; }
-    if(!file.name.endsWith('.csv')){ showErr('El archivo debe ser .csv'); return; }
-    var reader = new FileReader();
-    reader.onload = function(e){ parseCSV(e.target.result, file.name); };
-    reader.readAsText(file, 'UTF-8');
-  }
-
-  function parseCSV(text, fname){
-    resetUI();
-    dropZone.querySelector('.csv-drop-txt').innerHTML = '📄 <strong>'+fname+'</strong>';
-
-    var lines = text.trim().split(/\r?\n/);
-    if(lines.length < 2){ showErr('El CSV está vacío o no tiene datos.'); return; }
-
-    /* normalize header */
-    var header = lines[0].split(',').map(function(h){ return h.trim().toLowerCase().replace(/[^a-z_]/g,''); });
-    var req = ['lat','lng','title'];
-    var missing = req.filter(function(r){ return header.indexOf(r)===-1; });
-    if(missing.length){ showErr('Columnas requeridas faltantes: '+missing.join(', ')); return; }
-
-    var col = {};
-    header.forEach(function(h,i){ col[h]=i; });
-
-    var ok=0, errs=0, errMsgs=[];
-    parsed=[];
-
-    for(var i=1;i<lines.length;i++){
-      var line = lines[i].trim();
-      if(!line) continue;
-
-      /* handle quoted fields */
-      var fields = splitCSVLine(line);
-
-      var lat  = parseFloat(get(fields, col.lat));
-      var lng  = parseFloat(get(fields, col.lng));
-      var ttl  = get(fields, col.title);
-      var catId= (get(fields, col.category)||'info').toLowerCase().trim();
-      var emoji= get(fields, col.emoji)||'';
-      var type = (get(fields, col.type)||'text').toLowerCase().trim();
-      var text = get(fields, col.text)||'';
-      var dur  = parseInt(get(fields, col.duration_min)||'60', 10);
-
-      /* validate */
-      var rowErrs=[];
-      if(isNaN(lat)||lat<-90||lat>90) rowErrs.push('lat inválido');
-      if(isNaN(lng)||lng<-180||lng>180) rowErrs.push('lng inválido');
-      if(!ttl) rowErrs.push('título vacío');
-
-      var cat = CATS.find(function(c){ return c.id===catId; }) || CATS[4];
-      if(!['text','image','video'].includes(type)) type='text';
-      if(isNaN(dur)||dur<1) dur=60;
-      if(dur>720) dur=720;
-      if(!emoji || !isEmoji(emoji)) emoji = cat.emojis[0];
-
-      if(rowErrs.length){
-        errs++;
-        errMsgs.push('Fila '+(i)+': '+rowErrs.join(', '));
-      } else {
-        ok++;
-        parsed.push({ lat:lat, lng:lng, title:ttl, cat:cat, emoji:emoji, type:type, text:text, dur:dur });
-      }
-    }
-
-    /* show stats */
-    document.getElementById('csv-n-total').textContent = ok+errs;
-    document.getElementById('csv-n-ok').textContent    = ok;
-    document.getElementById('csv-n-err').textContent   = errs;
-    statsBox.style.display='flex';
-
-    /* show errors */
-    if(errMsgs.length){
-      errBox.innerHTML = '⚠️ '+errMsgs.slice(0,5).join('<br>')+(errMsgs.length>5?'<br>...y '+(errMsgs.length-5)+' más':'');
-      errBox.style.display='block';
-    }
-
-    /* preview first 8 valid rows */
-    if(parsed.length){
-      var html='';
-      parsed.slice(0,8).forEach(function(r,idx){
-        var bc = r.dur<=10?'var(--danger)':r.dur<=30?'var(--amber)':'var(--neon)';
-        html+='<div class="csv-row">'
-          +'<div class="csv-row-ico">'+r.emoji+'</div>'
-          +'<div class="csv-row-info">'
-          +'<div class="csv-row-title">'+esc(r.title)+'</div>'
-          +'<div class="csv-row-meta">'+r.cat.icon+' '+r.cat.lbl.replace('\n',' ')+' · '+r.lat.toFixed(4)+', '+r.lng.toFixed(4)+'</div>'
-          +'</div>'
-          +'<div class="csv-row-status" style="color:'+bc+'">⏱ '+r.dur+'m</div>'
-          +'</div>';
-      });
-      if(parsed.length>8) html+='<div style="padding:8px 0;font-size:11px;color:var(--dim);font-family:\'Space Mono\',monospace;text-align:center">...y '+(parsed.length-8)+' más</div>';
-      rowsBox.innerHTML=html;
-      preview.style.display='block';
-      loadBtn.style.display='block';
-      loadBtn.textContent='⚡ Lanzar '+parsed.length+' flare'+(parsed.length!==1?'s':'');
-    }
-  }
-
-  /* load all valid flares onto the map */
-  loadBtn.addEventListener('click', function(){
-    if(!parsed.length) return;
-    var now=Date.now(), count=0;
-    parsed.forEach(function(r, idx){
-      setTimeout(function(){
-        var pin={
-          id:'csv'+now+idx,
-          lat:r.lat, lng:r.lng,
-          title:r.title,
-          emoji:r.emoji,
-          cat:r.cat.id,
-          catLbl:r.cat.lbl.replace('\n',' '),
-          catColor:r.cat.color,
-          catIcon:r.cat.icon,
-          type:r.type,
-          text:r.text,
-          image:null, video:null,
-          createdAt:now,
-          expiresAt:now+(r.dur*60*1000),
-          likes:0, liked:false, marker:null
-        };
-        pin.marker=makeMarker(pin);
-        pins.push(pin);
-        count++;
-        if(count===parsed.length){
-          updateCount();
-          notif('🔥 '+count+' flare'+(count!==1?'s':'')+' lanzado'+(count!==1?'s':'')+'!');
-          closeCSVModal();
-          /* fly to center of all loaded flares */
-          var lats=parsed.map(function(p){return p.lat});
-          var lngs=parsed.map(function(p){return p.lng});
-          var clat=(Math.min.apply(null,lats)+Math.max.apply(null,lats))/2;
-          var clng=(Math.min.apply(null,lngs)+Math.max.apply(null,lngs))/2;
-          map.flyTo([clat,clng],12,{duration:1.2});
-          applyVigFilter();
-        }
-      }, idx*30); /* stagger 30ms each so map doesn't freeze */
-    });
-  });
-
-  /* helpers */
-  function get(fields, idx){ return idx!==undefined ? (fields[idx]||'').trim() : ''; }
-
-  function splitCSVLine(line){
-    var result=[], cur='', inQ=false;
-    for(var i=0;i<line.length;i++){
-      var ch=line[i];
-      if(ch==='"'){ inQ=!inQ; }
-      else if(ch===','&&!inQ){ result.push(cur); cur=''; }
-      else{ cur+=ch; }
-    }
-    result.push(cur);
-    return result;
-  }
-
-  function isEmoji(str){
-    /* simple check: non-ASCII character present */
-    return /[^\u0000-\u007F]/.test(str);
-  }
-
-  function showErr(msg){
-    errBox.textContent='❌ '+msg;
-    errBox.style.display='block';
-  }
-})();
-
-/* ── MANUAL ── */
-function openManual(){
-  document.getElementById('manual-overlay').classList.add('on');
-  document.getElementById('manual-content').scrollTop=0;
-}
-function closeManual(){
-  document.getElementById('manual-overlay').classList.remove('on');
-}
-function manualScroll(id,el){
-  event.preventDefault();
-  var target=document.getElementById(id);
-  if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
-  document.querySelectorAll('.manual-nav a').forEach(function(a){a.classList.remove('active')});
-  if(el) el.classList.add('active');
-}
-/* close manual on overlay click */
-document.getElementById('manual-overlay').addEventListener('click',function(e){
-  if(e.target===this) closeManual();
-});
 
 /* ── LEAFLET BOOT ── */
-function loadLeaflet(cb){
-  if(window.L){cb();return}
-  var s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=cb;s.onerror=function(){alert('Error cargando el mapa.')};document.head.appendChild(s);
-}
+function loadLeaflet(cb){ if(window.L){cb();return} var s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=cb;s.onerror=function(){alert('Error cargando el mapa.')};document.head.appendChild(s); }
 
 loadLeaflet(function(){
-  map=L.map('map',{center:[19.4326,-99.1332],zoom:13,zoomControl:false});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:''}).addTo(map);
+  map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
 
-  map.on('moveend zoomend',function(){refreshBadge();if(panelOpen){buildChips();renderPanel()}});
+  map.on('moveend zoomend', function(){
+    refreshBadge();
+    if(panelOpen){ buildChips(); renderPanel(); }
+    /* fetch new area when user moves map */
+    clearTimeout(pollTimer);
+    pollTimer = setTimeout(fetchFlares, 500);
+  });
 
-  map.on('click',function(e){
-    if(!placing)return;
-    pending={lat:e.latlng.lat,lng:e.latlng.lng};
-    document.getElementById('ctxt').textContent=e.latlng.lat.toFixed(5)+', '+e.latlng.lng.toFixed(5);
+  map.on('click', function(e){
+    if(!placing) return;
     stopPlace();
+    setPending(e.latlng.lat, e.latlng.lng);
     openModal();
   });
 
-  /* demo flares — 5 CDMX + 60 Tecate BC */
-  var demos=[
-    /* ── CDMX originals ── */
-    {lat:19.4326,lng:-99.1332,title:'Concierto en el Zócalo',       emoji:'🎤',cat:'event',    text:'¡Música en vivo increíble!',             off:-20},
-    {lat:19.4280,lng:-99.1280,title:'Quesadillas aquí',              emoji:'🌮',cat:'food',     text:'Las mejores del centro 🔥',              off:-45},
-    {lat:19.4380,lng:-99.1400,title:'Tráfico en Reforma',            emoji:'🚨',cat:'incident', text:'Accidente, busca alternativa',            off:-55},
-    {lat:19.4350,lng:-99.1500,title:'Feria de ropa usada',           emoji:'🛍️',cat:'sale',     text:'Precios increíbles hoy',                  off:-10},
-    {lat:19.4260,lng:-99.1450,title:'Cierre de calle',               emoji:'🚧',cat:'info',     text:'Por obras hasta las 6pm',                 off:-30},
+  /* Centrar en la ubicación del usuario al cargar */
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, {duration:1.5});
+      },
+      function() { /* si niega el permiso, se queda en Tecate por defecto */ },
+      {enableHighAccuracy:false, timeout:5000}
+    );
+  }
 
-    /* ── TECATE BC — Comida y Bebida ── */
-    {lat:32.5720,lng:-116.6280,title:'Tacos de carne asada El Güero',     emoji:'🌮',cat:'food', text:'Los mejores tacos de Tecate. $20 cada uno, tortilla hecha a mano.',           off:-12},
-    {lat:32.5698,lng:-116.6315,title:'Birria de res estilo Tecate',        emoji:'🍜',cat:'food', text:'Consomé incluido. Abierto hasta que se acabe. Frente al mercado.',             off:-8},
-    {lat:32.5745,lng:-116.6190,title:'Pizza artesanal horno de leña',      emoji:'🍕',cat:'food', text:'Pizzas grandes $180. Masa madre, ingredientes locales.',                       off:-33},
-    {lat:32.5680,lng:-116.6350,title:'Cerveza artesanal Tecate origen',    emoji:'🍺',cat:'food', text:'Cata gratis hoy sábado 4pm. Brewery local con vista al cerro.',                off:-5},
-    {lat:32.5760,lng:-116.6240,title:'Hot dogs estilo Sonora aquí',        emoji:'🍔',cat:'food', text:'Con tocino, aguacate y mayo. $35 cada uno. Solo fines de semana.',             off:-50},
-    {lat:32.5710,lng:-116.6410,title:'Mariscos El Pescador fresco',        emoji:'🥗',cat:'food', text:'Ceviche tostadas y cocteles. Camarón fresco de Ensenada.',                     off:-22},
-    {lat:32.5730,lng:-116.6155,title:'Tamales oaxaqueños recién hechos',   emoji:'🍦',cat:'food', text:'Tamales de rajas, pollo y dulce. $18 cada uno. Señora junto a la parroquia.',  off:-40},
-    {lat:32.5695,lng:-116.6295,title:'Café de olla y pan dulce',           emoji:'☕',cat:'food', text:'Panadería familiar. Pan saliendo del horno ahorita.',                          off:-15},
-    {lat:32.5755,lng:-116.6370,title:'Pozole rojo todo el día',            emoji:'🥩',cat:'food', text:'Pozole de cerdo con todos los toppings. $80 el plato grande.',                off:-28},
-    {lat:32.5672,lng:-116.6200,title:'Sushi burritos fusion local',        emoji:'🍣',cat:'food', text:'Nuevo local abierto esta semana. 2x1 en rollos hasta las 6pm.',               off:-7},
-
-    /* ── TECATE BC — Eventos ── */
-    {lat:32.5715,lng:-116.6325,title:'Juego béisbol Liga Municipal',       emoji:'⚾',cat:'event', text:'Tecate Cerveceros vs Ensenada Lobos. Estadio municipal 4pm. Entrada $30.',   off:-18},
-    {lat:32.5740,lng:-116.6180,title:'Béisbol infantil categoría 10-12',   emoji:'🏆',cat:'event', text:'Final del torneo. Cancha trasera del estadio. Entrada libre.',               off:-35},
-    {lat:32.5688,lng:-116.6390,title:'Torneo de béisbol Doble A',          emoji:'🎪',cat:'event', text:'Equipos de Tijuana, Mexicali y Tecate. Todo el fin de semana.',              off:-3},
-    {lat:32.5770,lng:-116.6260,title:'Festival cultural Kumiai',           emoji:'🎭',cat:'event', text:'Danzas tradicionales y artesanías. Parque central. Gratis.',                 off:-42},
-    {lat:32.5702,lng:-116.6340,title:'Carrera 5K Tecate Corre',            emoji:'🚀',cat:'event', text:'Salida desde el kiosco a las 7am. Inscripciones en parque.',                off:-55},
-    {lat:32.5725,lng:-116.6215,title:'Concierto norteño Plaza Hidalgo',    emoji:'🎵',cat:'event', text:'Banda El Recodo tribute. Gratis. Empieza 8pm.',                              off:-10},
-    {lat:32.5685,lng:-116.6145,title:'Expo artesanías y manualidades',     emoji:'🎊',cat:'event', text:'Más de 40 expositores. Centro comunitario. Sábado y domingo.',               off:-25},
-    {lat:32.5748,lng:-116.6310,title:'Tarde de lucha libre Tecate',        emoji:'🕺',cat:'event', text:'Función especial con Máscaras famosas. $80 entrada general.',               off:-48},
-
-    /* ── TECATE BC — Sucesos / Incidentes ── */
-    {lat:32.5718,lng:-116.6355,title:'Accidente en Blvd Juárez y 4ta',    emoji:'🚨',cat:'incident', text:'Dos carros involucrados. Un carril bloqueado. Precaución.',               off:-6},
-    {lat:32.5692,lng:-116.6185,title:'Volcadura tráiler carretera libre', emoji:'💥',cat:'incident', text:'Carretera Tecate-Tijuana km 38. Cierran carril derecho. Usa Mexico 2.',   off:-14},
-    {lat:32.5762,lng:-116.6295,title:'Accidente moto vs camioneta',        emoji:'🚑',cat:'incident', text:'Servicios de emergencia en escena. Evita Av Hidalgo norte.',               off:-31},
-    {lat:32.5705,lng:-116.6420,title:'Árbol caído bloquea calle',          emoji:'🌪️',cat:'incident', text:'Calle Madero entre 2da y 3ra. Paso peatonal libre pero sin autos.',        off:-9},
-    {lat:32.5678,lng:-116.6230,title:'Fuga de agua Calle Oregón',          emoji:'🌊',cat:'incident', text:'Rompe tubería principal. CESPT ya fue avisado. Charco grande.',            off:-22},
-    {lat:32.5742,lng:-116.6160,title:'Incendio pastizal cerro sur',        emoji:'🔥',cat:'incident', text:'Bomberos controlando. No hay casas en riesgo por ahora.',                 off:-44},
-    {lat:32.5695,lng:-116.6380,title:'Pelea afuera de cantina La Barda',   emoji:'⚡',cat:'incident', text:'Policía ya presente. Evita la zona por la 5ta y Ruiz.',                  off:-3},
-    {lat:32.5728,lng:-116.6290,title:'Semáforo descompuesto Av Hidalgo',   emoji:'⚠️',cat:'incident', text:'Crucero sin señal. Maneja con precaución en Hidalgo y Morelos.',          off:-17},
-
-    /* ── TECATE BC — Retenes Alcoholímetro ── */
-    {lat:32.5722,lng:-116.6310,title:'Retén alcoholímetro entrada norte', emoji:'🚧',cat:'incident', text:'Operativo activo desde las 10pm. Policía Municipal. Blvd Juárez norte.',  off:-2},
-    {lat:32.5688,lng:-116.6245,title:'Alcoholímetro salida a TJ',          emoji:'🚧',cat:'incident', text:'Retén en km 1 carretera Tecate-Tijuana. Demora aprox 15 min.',             off:-11},
-    {lat:32.5751,lng:-116.6195,title:'Operativo vial Av Constitución',     emoji:'🚧',cat:'incident', text:'Revisión de documentos y alcoholímetro. Trae licencia y tarjeta circulación.', off:-38},
-    {lat:32.5700,lng:-116.6400,title:'Retén salida a Mexicali',            emoji:'🚧',cat:'incident', text:'Carretera 3 km 2. Activo hasta las 3am. Policía Estatal.',                off:-5},
-    {lat:32.5735,lng:-116.6160,title:'Alcoholímetro centro parque',        emoji:'🚧',cat:'incident', text:'Frente al parque Hidalgo. Viernes y sábado toda la noche.',               off:-29},
-
-    /* ── TECATE BC — Ventas ── */
-    {lat:32.5708,lng:-116.6335,title:'Venta muebles casi nuevos',          emoji:'💸',cat:'sale', text:'Sala comedor y recámaras. Precios de liquidación. Sólo hoy.',               off:-20},
-    {lat:32.5680,lng:-116.6270,title:'Celulares iPhone reacondicionados',  emoji:'📦',cat:'sale', text:'iPhone 12, 13 y 14 desde $4,500. Garantía 3 meses. Frente a Oxxo centro.', off:-8},
-    {lat:32.5745,lng:-116.6210,title:'Venta de garage colonos del cerro',  emoji:'🛍️',cat:'sale', text:'Ropa, electrodomésticos, juguetes y más. Sábado 8am-2pm.',                  off:-45},
-    {lat:32.5718,lng:-116.6380,title:'Muebles de melamina a precio',       emoji:'💎',cat:'sale', text:'Roperos, mesas y libreros. Fabricación local. Entrega a domicilio.',          off:-13},
-    {lat:32.5692,lng:-116.6145,title:'Teléfonos Samsung usados baratos',   emoji:'📦',cat:'sale', text:'S21 y A52 desde $2,800. Desbloqueados. Avenida Hidalgo 340.',                off:-36},
-    {lat:32.5760,lng:-116.6300,title:'Venta garage familia Hernández',     emoji:'🛒',cat:'sale', text:'Herramienta, bicicletas, ropa americana. Regateo aceptado. Col Esperanza.', off:-7},
-    {lat:32.5698,lng:-116.6355,title:'Lavadoras y refrigeradores usados',  emoji:'💰',cat:'sale', text:'Reparados y garantizados. Desde $1,200. Taller mecánico Calle 3ra.',         off:-52},
-    {lat:32.5725,lng:-116.6175,title:'Ropa americana por kilo $80',        emoji:'🎁',cat:'sale', text:'Ropa de paca. Selección amplia de marcas. Bodega en Calle Obregón.',          off:-16},
-    {lat:32.5685,lng:-116.6415,title:'MacBooks y laptops reacondicionadas',emoji:'💻',cat:'sale', text:'MacBook Air M1 desde $14,000. Factura disponible. Garantía 6 meses.',        off:-4},
-    {lat:32.5740,lng:-116.6255,title:'Venta de ATV y motos de cross',      emoji:'🔖',cat:'sale', text:'Motos Honda y Yamaha usadas. Financiamiento disponible. Col Industrial.',    off:-27},
-    {lat:32.5715,lng:-116.6195,title:'Garage sale objetos vintage',        emoji:'🤑',cat:'sale', text:'Discos de vinil, revistas antiguas, muñecas y juguetes. Col Centro.',        off:-60},
-
-    /* ── TECATE BC — Información ── */
-    {lat:32.5702,lng:-116.6320,title:'Corte de agua jueves 6hrs',          emoji:'💡',cat:'info', text:'CESPT suspende servicio jueves de 8am a 2pm. Colonias Centro y Reforma.',   off:-18},
-    {lat:32.5738,lng:-116.6165,title:'Feria del empleo Tecate',            emoji:'📢',cat:'info', text:'Más de 30 empresas. Trae CV. Auditorio Municipal. Martes 9am-2pm.',          off:-41},
-    {lat:32.5690,lng:-116.6390,title:'Clínica IMSS cerrada por sindicato', emoji:'ℹ️',cat:'info', text:'Sin consultas externas. Urgencias funcionando. Busca clínica particular.',   off:-9},
-    {lat:32.5758,lng:-116.6235,title:'Mercado tianguis domingo 6am',       emoji:'🗺️',cat:'info', text:'Regresa el tianguis dominical. Av Constitución completa. Llega temprano.',   off:-33},
-    {lat:32.5712,lng:-116.6280,title:'Taller mecánico gratis diagnóstico', emoji:'🔍',cat:'info', text:'Diagnóstico computarizado sin costo. Taller El Compa. Blvd Juárez 215.',     off:-15},
-    {lat:32.5682,lng:-116.6165,title:'Biblioteca municipal nuevos libros', emoji:'📌',cat:'info', text:'Llegaron 400 títulos nuevos. Membresía gratis para residentes.',              off:-50},
-    {lat:32.5748,lng:-116.6345,title:'Vacunación antirrábica canina',      emoji:'✅',cat:'info', text:'Gratis. Trae a tu perro o gato. Centro de Salud Urbano. Sábado 9am-1pm.',   off:-24},
-    {lat:32.5705,lng:-116.6225,title:'Pago predial con 15% descuento',     emoji:'📣',cat:'info', text:'Descuento válido hasta fin de mes. Tesorería Municipal. Trae recibo.',        off:-6},
-  ];
-  setTimeout(function(){
-    demos.forEach(function(d){
-      var cat=CATS.find(function(c){return c.id===d.cat})||CATS[4];
-      var now=Date.now();
-      var pin={
-        id:'demo'+Math.random().toString(36).substr(2,6),
-        lat:d.lat,lng:d.lng,title:d.title,emoji:d.emoji,
-        cat:cat.id,catLbl:cat.lbl.replace('\n',' '),catColor:cat.color,catIcon:cat.icon,
-        type:'text',text:d.text,image:null,video:null,
-        createdAt:now+d.off*60000,
-        expiresAt:now+(60-Math.abs(d.off))*60000,
-        likes:Math.floor(Math.random()*15),liked:false,marker:null
-      };
-      pin.marker=makeMarker(pin);pins.push(pin);
-    });
-    updateCount();
-    /* start centered on Tecate where the action is */
-    map.setView([32.5720,-116.6280],14);
-    applyVigFilter();
-  },600);
+  /* Start polling */
+  startPoll();
 });
 </script>
 </body>
