@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flare Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080b12;--surface:#0f1420;--surface2:#161c2e;--border:#1e2a45;--neon:#00f5a0;--neon2:#f500a0;--amber:#ffb300;--danger:#ff4060;--text:#e8eaf0;--dim:#7a8499}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 16px}
+
+/* LOGIN */
+#login-wrap{width:100%;max-width:380px;margin:auto}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px}
+.logo-pin{width:28px;height:28px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 0 20px rgba(0,245,160,.4);position:relative}
+.logo-pin::after{content:'';position:absolute;width:10px;height:10px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.login-title{font-size:22px;font-weight:800}
+.login-title span{color:var(--neon)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px}
+.login-label{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:8px}
+.login-inp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Space Mono',monospace;font-size:16px;padding:12px 14px;outline:none;transition:border-color .2s;letter-spacing:2px}
+.login-inp:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
+.login-btn{width:100%;background:var(--neon);color:#000;border:none;border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;transition:all .2s}
+.login-btn:hover{opacity:.9}
+.login-err{color:var(--danger);font-family:'Space Mono',monospace;font-size:11px;margin-top:10px;text-align:center;display:none}
+
+/* ADMIN PANEL */
+#admin-wrap{display:none;width:100%;max-width:720px}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.admin-title{font-size:22px;font-weight:800}
+.admin-title span{color:var(--neon)}
+.logout-btn{background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:7px 14px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+.section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+.sec-title{font-size:16px;font-weight:800;margin-bottom:6px}
+.sec-title span{color:var(--neon)}
+.sec-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:20px;line-height:1.6}
+
+/* CSV FORMAT */
+.csv-example{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Space Mono',monospace;font-size:11px;color:var(--neon);line-height:1.8;overflow-x:auto;white-space:pre;margin-bottom:16px}
+.field-list{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.field{display:flex;gap:10px;align-items:flex-start;font-family:'Space Mono',monospace;font-size:11px}
+.field-name{color:var(--neon);font-weight:700;white-space:nowrap;min-width:110px}
+.field-req{background:rgba(0,245,160,.1);border:1px solid rgba(0,245,160,.25);color:var(--neon);border-radius:4px;padding:1px 5px;font-size:9px;white-space:nowrap}
+.field-opt{background:var(--surface2);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;font-size:9px;white-space:nowrap}
+.field-desc{color:var(--dim);line-height:1.5}
+
+/* DROP ZONE */
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.dropzone:hover,.dropzone.drag{border-color:var(--neon);background:rgba(0,245,160,.04)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{font-size:36px;margin-bottom:10px}
+.dz-title{font-size:15px;font-weight:700;margin-bottom:5px}
+.dz-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
+.dz-file{margin-top:10px;font-family:'Space Mono',monospace;font-size:12px;color:var(--neon)}
+
+/* PREVIEW TABLE */
+#preview-wrap{display:none;margin-top:16px}
+.preview-hdr{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.preview-table{width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:11px}
+.preview-table th{background:var(--surface2);padding:8px 10px;text-align:left;color:var(--dim);font-weight:700;border-bottom:1px solid var(--border)}
+.preview-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.preview-table tr:hover td{background:rgba(255,255,255,.02)}
+.preview-table td.err{color:var(--danger)}
+.preview-count{font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);margin-top:8px}
+
+/* ACTIONS */
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-upload{flex:1;min-width:160px;background:var(--neon);color:#000;border:none;border-radius:10px;padding:12px 20px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-upload:hover{opacity:.9}
+.btn-upload:disabled{opacity:.4;cursor:not-allowed}
+.btn-clear{background:var(--surface2);border:1px solid var(--border);color:var(--dim);border-radius:10px;padding:12px 16px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s}
+.btn-clear:hover{border-color:var(--dim);color:var(--text)}
+
+/* PURGE */
+.btn-purge{background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:10px;padding:10px 16px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s}
+.btn-purge:hover{background:rgba(255,64,96,.08)}
+
+/* LOG */
+#log{display:none;margin-top:16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.8;max-height:200px;overflow-y:auto}
+.log-ok{color:var(--neon)}
+.log-err{color:var(--danger)}
+.log-info{color:var(--dim)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat-val{font-size:24px;font-weight:800;color:var(--neon);font-family:'Space Mono',monospace}
+.stat-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-wrap">
+  <div class="login-logo">
+    <div class="logo-pin"></div>
+    <div class="login-title">Flare <span>Admin</span></div>
+  </div>
+  <div class="login-card">
+    <label class="login-label">Contraseña de acceso</label>
+    <input class="login-inp" type="password" id="pwd-inp" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">Entrar →</button>
+    <div class="login-err" id="login-err">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-wrap">
+  <div class="admin-header">
+    <div class="admin-title">Flare <span>Admin</span></div>
+    <button class="logout-btn" id="logout-btn">Salir ×</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="section">
+    <div class="sec-title">Estado del <span>Mapa</span></div>
+    <div class="sec-sub">Flares activos en la base de datos ahora mismo.</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Flares activos</div></div>
+      <div class="stat"><div class="stat-val" id="stat-food">—</div><div class="stat-lbl">Comida</div></div>
+      <div class="stat"><div class="stat-val" id="stat-event">—</div><div class="stat-lbl">Eventos</div></div>
+      <div class="stat"><div class="stat-val" id="stat-incident">—</div><div class="stat-lbl">Sucesos</div></div>
+    </div>
+    <button class="btn-purge" id="purge-btn">🗑️ Borrar todos los flares activos</button>
+  </div>
+
+  <!-- Upload CSV -->
+  <div class="section">
+    <div class="sec-title">Carga Masiva de <span>Flares</span></div>
+    <div class="sec-sub">Sube un archivo CSV para crear múltiples flares de una vez. Máximo 500 por carga.</div>
+
+    <div class="csv-example">lat,lng,title,cat,emoji,description,dur_min
+32.5210,-116.9430,Tacos El Güero,food,🌮,Carne asada y adobada,120
+32.5180,-116.9380,Retén Km 3,incident,🚧,Alcoholímetro ambos lados,60
+32.5250,-116.9410,Feria del Empleo,event,🎉,CV en mano al parque,180</div>
+
+    <div class="field-list">
+      <div class="field"><span class="field-name">lat</span><span class="field-req">requerido</span><span class="field-desc">Latitud (ej: 32.5210)</span></div>
+      <div class="field"><span class="field-name">lng</span><span class="field-req">requerido</span><span class="field-desc">Longitud (ej: -116.9430)</span></div>
+      <div class="field"><span class="field-name">title</span><span class="field-req">requerido</span><span class="field-desc">Título del flare (máx 100 chars)</span></div>
+      <div class="field"><span class="field-name">cat</span><span class="field-opt">opcional</span><span class="field-desc">food · sale · event · incident · info (default: info)</span></div>
+      <div class="field"><span class="field-name">emoji</span><span class="field-opt">opcional</span><span class="field-desc">Emoji del pin (default: ícono de la categoría)</span></div>
+      <div class="field"><span class="field-name">description</span><span class="field-opt">opcional</span><span class="field-desc">Texto descriptivo del flare</span></div>
+      <div class="field"><span class="field-name">dur_min</span><span class="field-opt">opcional</span><span class="field-desc">Duración en minutos (default: 60, max: 720)</span></div>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <input type="file" accept=".csv,text/csv" id="csv-file">
+      <div class="dz-icon">📂</div>
+      <div class="dz-title">Arrastra tu CSV aquí</div>
+      <div class="dz-sub">o toca para seleccionar</div>
+      <div class="dz-file" id="dz-file"></div>
+    </div>
+
+    <div id="preview-wrap">
+      <div class="preview-hdr">Vista previa — <span id="preview-count-lbl"></span></div>
+      <div style="overflow-x:auto">
+        <table class="preview-table" id="preview-table">
+          <thead><tr><th>#</th><th>Título</th><th>Categoría</th><th>Lat</th><th>Lng</th><th>Duración</th></tr></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+      <div class="preview-count" id="preview-count"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-upload" id="upload-btn" disabled>⚡ Publicar flares</button>
+      <button class="btn-clear" id="clear-btn">Limpiar</button>
+    </div>
+
+    <div id="log"></div>
+  </div>
+</div>
+
+<script>
+var adminKey = '';
+var parsedRows = [];
+
+/* ── LOGIN ── */
+document.getElementById('login-btn').addEventListener('click', tryLogin);
+document.getElementById('pwd-inp').addEventListener('keydown', function(e){ if(e.key==='Enter') tryLogin(); });
+
+function tryLogin() {
+  var pwd = document.getElementById('pwd-inp').value.trim();
+  if (!pwd) return;
+  /* Verificamos contra el servidor para no exponer la contraseña en el frontend */
+  fetch('/api/admin/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': pwd },
+    body: JSON.stringify({ rows: [] })
+  }).then(function(r) {
+    if (r.status === 401) {
+      document.getElementById('login-err').style.display = 'block';
+      document.getElementById('pwd-inp').value = '';
+      document.getElementById('pwd-inp').focus();
+    } else {
+      adminKey = pwd;
+      document.getElementById('login-err').style.display = 'none';
+      document.getElementById('login-wrap').style.display = 'none';
+      document.getElementById('admin-wrap').style.display = 'block';
+      loadStats();
+    }
+  }).catch(function() {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('login-err').textContent = 'Error de conexión';
+  });
+}
+
+document.getElementById('logout-btn').addEventListener('click', function() {
+  adminKey = '';
+  parsedRows = [];
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('admin-wrap').style.display = 'none';
+  document.getElementById('pwd-inp').value = '';
+});
+
+/* ── STATS ── */
+function loadStats() {
+  var bbox = '?minLat=0&maxLat=90&minLng=-180&maxLng=0'; // ajustar a tu zona si quieres
+  fetch('/api/flares?minLat=-90&maxLat=90&minLng=-180&maxLng=180')
+    .then(function(r){ return r.json(); })
+    .then(function(rows) {
+      document.getElementById('stat-total').textContent = rows.length;
+      document.getElementById('stat-food').textContent = rows.filter(function(r){ return r.cat==='food'; }).length;
+      document.getElementById('stat-event').textContent = rows.filter(function(r){ return r.cat==='event'; }).length;
+      document.getElementById('stat-incident').textContent = rows.filter(function(r){ return r.cat==='incident'; }).length;
+    })
+    .catch(function(){ document.getElementById('stat-total').textContent = '?'; });
+}
+
+/* ── PURGE ── */
+document.getElementById('purge-btn').addEventListener('click', function() {
+  if (!confirm('¿Borrar TODOS los flares activos? Esta acción no se puede deshacer.')) return;
+  fetch('/api/admin/purge', {
+    method: 'DELETE',
+    headers: { 'x-admin-key': adminKey }
+  }).then(function(r){ return r.json(); })
+    .then(function(d) {
+      alert('✅ ' + d.deleted + ' flares borrados.');
+      loadStats();
+    })
+    .catch(function(){ alert('Error al purgar'); });
+});
+
+/* ── CSV FILE ── */
+var dropzone = document.getElementById('dropzone');
+var fileInput = document.getElementById('csv-file');
+
+dropzone.addEventListener('dragover', function(e){ e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', function(){ dropzone.classList.remove('drag'); });
+dropzone.addEventListener('drop', function(e){
+  e.preventDefault(); dropzone.classList.remove('drag');
+  var file = e.dataTransfer.files[0];
+  if(file) handleFile(file);
+});
+fileInput.addEventListener('change', function(){ if(this.files[0]) handleFile(this.files[0]); });
+
+function handleFile(file) {
+  document.getElementById('dz-file').textContent = '📄 ' + file.name;
+  var reader = new FileReader();
+  reader.onload = function(e) { parseCSV(e.target.result); };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text) {
+  var lines = text.trim().split('\n');
+  if (lines.length < 2) { alert('El CSV está vacío o solo tiene el header.'); return; }
+
+  var headers = lines[0].replace(/\r/g,'').split(',').map(function(h){ return h.trim().toLowerCase(); });
+  parsedRows = [];
+  var errors = 0;
+
+  for (var i = 1; i < lines.length; i++) {
+    var cols = lines[i].replace(/\r/g,'').split(',');
+    var row = {};
+    headers.forEach(function(h, idx){ row[h] = (cols[idx] || '').trim(); });
+    row._line = i + 1;
+    row._valid = row.lat && row.lng && row.title && !isNaN(parseFloat(row.lat)) && !isNaN(parseFloat(row.lng));
+    if (!row._valid) errors++;
+    parsedRows.push(row);
+  }
+
+  renderPreview(errors);
+}
+
+function renderPreview(errors) {
+  var tbody = document.getElementById('preview-body');
+  tbody.innerHTML = '';
+  var show = parsedRows.slice(0, 20); // mostrar primeras 20
+  show.forEach(function(row) {
+    var tr = document.createElement('tr');
+    var catLabels = {food:'🍽️ Comida', sale:'🏷️ Ventas', event:'🎉 Evento', incident:'⚡ Suceso', info:'ℹ️ Info'};
+    tr.innerHTML = '<td class="'+(row._valid?'':'err')+'">'+row._line+'</td>'
+      +'<td class="'+(row._valid?'':'err')+'">'+(row.title||'—')+'</td>'
+      +'<td>'+(catLabels[row.cat]||'ℹ️ Info')+'</td>'
+      +'<td>'+(row.lat||'❌')+'</td>'
+      +'<td>'+(row.lng||'❌')+'</td>'
+      +'<td>'+(row.dur_min||'60')+'m</td>';
+    tbody.appendChild(tr);
+  });
+
+  var valid = parsedRows.filter(function(r){ return r._valid; }).length;
+  document.getElementById('preview-count-lbl').textContent = valid + ' válidos de ' + parsedRows.length + ' filas';
+  document.getElementById('preview-count').textContent = parsedRows.length > 20 ? '(mostrando primeras 20 de '+parsedRows.length+')' : '';
+  if (errors > 0) document.getElementById('preview-count').textContent += ' · ⚠️ '+errors+' con errores (se omitirán)';
+
+  document.getElementById('preview-wrap').style.display = 'block';
+  document.getElementById('upload-btn').disabled = valid === 0;
+}
+
+document.getElementById('clear-btn').addEventListener('click', function() {
+  parsedRows = [];
+  fileInput.value = '';
+  document.getElementById('dz-file').textContent = '';
+  document.getElementById('preview-wrap').style.display = 'none';
+  document.getElementById('upload-btn').disabled = true;
+  document.getElementById('log').style.display = 'none';
+});
+
+/* ── UPLOAD ── */
+document.getElementById('upload-btn').addEventListener('click', function() {
+  var validRows = parsedRows.filter(function(r){ return r._valid; });
+  if (!validRows.length) return;
+
+  var btn = this;
+  btn.disabled = true;
+  btn.textContent = '⏳ Publicando...';
+
+  var log = document.getElementById('log');
+  log.style.display = 'block';
+  log.innerHTML = '<span class="log-info">Enviando ' + validRows.length + ' flares...</span>\n';
+
+  fetch('/api/admin/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+    body: JSON.stringify({ rows: validRows })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    btn.disabled = false;
+    btn.textContent = '⚡ Publicar flares';
+    if (d.error) {
+      log.innerHTML += '<span class="log-err">Error: ' + d.error + '</span>\n';
+      return;
+    }
+    log.innerHTML += '<span class="log-ok">✅ ' + d.inserted + ' flares publicados correctamente</span>\n';
+    if (d.errors > 0) {
+      log.innerHTML += '<span class="log-err">⚠️ ' + d.errors + ' filas con error</span>\n';
+      d.detail.forEach(function(e) {
+        log.innerHTML += '<span class="log-err">  → ' + (e.row.title||'sin título') + ': ' + e.reason + '</span>\n';
+      });
+    }
+    loadStats();
+  })
+  .catch(function(e) {
+    btn.disabled = false;
+    btn.textContent = '⚡ Publicar flares';
+    log.innerHTML += '<span class="log-err">Error de red: ' + e.message + '</span>\n';
+  });
+});
+</script>
+</body>
+</html>
