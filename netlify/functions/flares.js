@@ -5,12 +5,10 @@
 import { neon } from "@neondatabase/serverless";
 
 function getDb() {
-  const sql = neon(process.env.NETLIFY_DATABASE_URL);
-  return sql;
+  return neon(process.env.NETLIFY_DATABASE_URL);
 }
 
 export const handler = async (event) => {
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: cors() };
   }
@@ -26,7 +24,7 @@ export const handler = async (event) => {
       const minLng = parseFloat(p.minLng ?? -180);
       const maxLng = parseFloat(p.maxLng ?? 180);
 
-      // Borra expirados de paso (limpieza liviana)
+      // Limpieza liviana de expirados
       await sql`DELETE FROM flares WHERE expires_at < NOW()`;
 
       const rows = await sql`
@@ -47,17 +45,32 @@ export const handler = async (event) => {
 
     // ── POST ─────────────────────────────────────────
     if (event.httpMethod === "POST") {
-      const d = JSON.parse(event.body || "{}");
+      let d;
+      try {
+        d = JSON.parse(event.body || "{}");
+      } catch (e) {
+        return err(400, "JSON invalido");
+      }
 
-      // Validación básica
-      if (!d.lat || !d.lng || !d.title) {
+      // Validacion — usar == null para no rechazar coordenada 0
+      if (d.lat == null || d.lng == null || !d.title) {
         return err(400, "lat, lng y title son requeridos");
       }
-      if (Math.abs(d.lat) > 90 || Math.abs(d.lng) > 180) {
-        return err(400, "coordenadas inválidas");
+
+      const lat = parseFloat(d.lat);
+      const lng = parseFloat(d.lng);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return err(400, "lat y lng deben ser numeros");
+      }
+      if (Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+        return err(400, "coordenadas invalidas");
+      }
+      if (String(d.title).trim().length === 0) {
+        return err(400, "el titulo no puede estar vacio");
       }
       if (String(d.title).length > 100) {
-        return err(400, "título demasiado largo");
+        return err(400, "titulo demasiado largo");
       }
 
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
@@ -70,12 +83,12 @@ export const handler = async (event) => {
           type, body_text, image_url, video_url, expires_at
         ) VALUES (
           ${id},
-          ${parseFloat(d.lat)},
-          ${parseFloat(d.lng)},
+          ${lat},
+          ${lng},
           ${String(d.title).trim()},
           ${d.emoji || "📍"},
           ${d.cat || "info"},
-          ${d.cat_lbl || "Información"},
+          ${d.cat_lbl || "Informacion"},
           ${d.cat_color || "#00f5a0"},
           ${d.cat_icon || "ℹ️"},
           ${d.type || "text"},
