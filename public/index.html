@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 <style>
 :root {
   --bg:#080b12; --surface:#0f1420; --surface2:#161c2e; --border:#1e2a45;
@@ -299,6 +301,31 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .mk-r{position:absolute;inset:-4px;border-radius:50% 50% 50% 0;border:1px solid rgba(0,245,160,.3);animation:mp 2s infinite}
 @keyframes mp{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.4);opacity:0}}
 
+/* CLUSTERS — estilo Flare */
+.flare-cluster{
+  width:48px!important;height:48px!important;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:13px;
+  border:2px solid var(--neon);color:#000;background:var(--neon);
+  box-shadow:0 0 18px rgba(0,245,160,.45),0 4px 16px rgba(0,0,0,.6);
+  transition:all .2s;cursor:pointer;
+}
+.flare-cluster-medium{
+  width:54px!important;height:54px!important;font-size:14px;
+  border-color:var(--amber);color:#000;background:var(--amber);
+  box-shadow:0 0 18px rgba(255,179,0,.45),0 4px 16px rgba(0,0,0,.6);
+}
+.flare-cluster-large{
+  width:62px!important;height:62px!important;font-size:15px;
+  border-color:var(--neon2);color:#fff;background:var(--neon2);
+  box-shadow:0 0 18px rgba(245,0,160,.45),0 4px 16px rgba(0,0,0,.6);
+}
+/* Toggle cluster btn en header */
+#cluster-toggle{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;user-select:none}
+#cluster-toggle.on{border-color:rgba(0,245,160,.4);color:var(--neon)}
+#cluster-toggle .ct-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:background .2s}
+#cluster-toggle.on .ct-dot{background:var(--neon)}
+
 /* RICH TEXT */
 .rich-link{color:var(--neon);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;font-size:11px;background:rgba(0,245,160,.07);border:1px solid rgba(0,245,160,.2);border-radius:5px;padding:2px 7px;margin:1px 0}
 a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);background:rgba(245,0,160,.07)}
@@ -320,6 +347,7 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
   <div class="hdr-r">
     <div class="spill"><div class="dot"></div><span id="cnt">0</span>&nbsp;flares activos</div>
     <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
+    <div id="cluster-toggle" class="on" title="Agrupar flares en clusters"><div class="ct-dot"></div><span id="ct-txt">Clusters</span></div>
     <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
   </div>
 </header>
@@ -467,6 +495,8 @@ var panelOpen = false, activeCat = null, expandedId = null;
 var vigFilter = 'all';
 var map;
 var pollTimer = null;
+var clusterGroup = null;   /* L.markerClusterGroup instance */
+var clusterEnabled = true; /* toggle state */
 
 /* ── User identity (anónima por dispositivo) ── */
 var MY_ID = localStorage.getItem('flare_uid');
@@ -604,7 +634,7 @@ function reconcilePins(rows) {
   /* Remove pins no longer on server */
   Object.keys(pins).forEach(function(id) {
     if (!serverIds[id]) {
-      map.removeLayer(pins[id].marker);
+      clusterGroup.removeLayer(pins[id].marker);
       delete pins[id];
     }
   });
@@ -666,8 +696,11 @@ function mkHTML(pin, dying){
 function makeMarker(pin){
   var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
   var ico = L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]});
-  var m = L.marker([pin.lat, pin.lng], {icon:ico}).addTo(map).bindPopup(popHTML(pin), {maxWidth:300});
+  var m = L.marker([pin.lat, pin.lng], {icon:ico});
+  m.bindPopup(popHTML(pin), {maxWidth:300});
   m.on('popupopen', function(){ refreshPop(pin); });
+  /* Add to clusterGroup (which is always on the map) */
+  clusterGroup.addLayer(m);
   return m;
 }
 function refreshMk(pin){
@@ -833,8 +866,17 @@ function renderPanel(){
 function flyToPin(id){
   var pin = pins[id];
   if(!pin) return;
-  map.flyTo([pin.lat, pin.lng], 16, {duration:.8});
-  setTimeout(function(){ pin.marker.openPopup(); }, 900);
+  map.flyTo([pin.lat, pin.lng], 17, {duration:.8});
+  setTimeout(function(){
+    /* If clustering is on, the marker may be inside a cluster — zoomToShowLayer reveals it */
+    if(clusterEnabled && clusterGroup.zoomToShowLayer){
+      clusterGroup.zoomToShowLayer(pin.marker, function(){
+        pin.marker.openPopup();
+      });
+    } else {
+      pin.marker.openPopup();
+    }
+  }, 900);
 }
 
 /* ── FAB menu ── */
@@ -976,11 +1018,12 @@ document.getElementById('bsub').addEventListener('click', function(){
 
 /* ── vigencia filter ── */
 function applyVigFilter(){
+  /* With clustering: remove all, re-add only matching ones */
+  clusterGroup.clearLayers();
   Object.values(pins).forEach(function(pin){
     if(!pin.marker) return;
     var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
-    var el = pin.marker.getElement();
-    if(el) el.style.display = show ? '' : 'none';
+    if(show) clusterGroup.addLayer(pin.marker);
   });
   ['nuevo','maduro','expirando','all'].forEach(function(f){
     var row = document.getElementById('leg-'+(f==='all'?'all':f));
@@ -994,6 +1037,62 @@ function applyVigFilter(){
   });
   refreshBadge();
   if(panelOpen){ buildChips(); renderPanel(); }
+}
+
+/* ── cluster toggle ── */
+document.getElementById('cluster-toggle').addEventListener('click', function(){
+  clusterEnabled = !clusterEnabled;
+  this.classList.toggle('on', clusterEnabled);
+  document.getElementById('ct-txt').textContent = clusterEnabled ? 'Clusters' : 'Clusters';
+
+  /* Rebuild: swap between clusterGroup and raw map layer */
+  clusterGroup.clearLayers();
+  map.removeLayer(clusterGroup);
+
+  if(clusterEnabled){
+    /* Re-enable clustering */
+    clusterGroup = buildClusterGroup();
+    map.addLayer(clusterGroup);
+    Object.values(pins).forEach(function(pin){
+      var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
+      if(show && pin.marker) clusterGroup.addLayer(pin.marker);
+    });
+    notif('🔵 Clusters activados');
+  } else {
+    /* Clustering off: add markers directly to map */
+    clusterGroup = L.layerGroup().addTo(map);
+    Object.values(pins).forEach(function(pin){
+      var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
+      if(show && pin.marker) pin.marker.addTo(clusterGroup);
+    });
+    notif('📍 Flares individuales');
+  }
+});
+
+function buildClusterGroup(){
+  return L.markerClusterGroup({
+    chunkedLoading: true,        /* process in chunks → no UI freeze */
+    chunkInterval: 200,
+    chunkDelay: 50,
+    maxClusterRadius: 60,        /* px antes de agrupar */
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    disableClusteringAtZoom: 17, /* zoom 17+ = pins individuales */
+    iconCreateFunction: function(cluster){
+      var count = cluster.getChildCount();
+      var cls = count < 10 ? 'flare-cluster'
+              : count < 50 ? 'flare-cluster flare-cluster-medium'
+              : 'flare-cluster flare-cluster-large';
+      var size = count < 10 ? 48 : count < 50 ? 54 : 62;
+      return L.divIcon({
+        html: '<div class="'+cls+'">'+count+'</div>',
+        className: '',
+        iconSize: L.point(size, size),
+        iconAnchor: L.point(size/2, size/2)
+      });
+    }
+  });
 }
 
 document.getElementById('leg-hdr').addEventListener('click', function(){
@@ -1133,39 +1232,58 @@ function loadManual() {
 /* ── LEAFLET BOOT ── */
 function loadLeaflet(cb){ if(window.L){cb();return} var s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=cb;s.onerror=function(){alert('Error cargando el mapa.')};document.head.appendChild(s); }
 
+function loadMarkerCluster(cb){
+  if(window.L && L.MarkerClusterGroup){cb();return;}
+  var s=document.createElement('script');
+  s.src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+  s.onload=cb;
+  s.onerror=function(){ console.warn('MarkerCluster no disponible, usando modo individual'); cb(); };
+  document.head.appendChild(s);
+}
+
 loadLeaflet(function(){
-  map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''}).addTo(map);
-  L.control.zoom({position:'bottomright'}).addTo(map);
+  loadMarkerCluster(function(){
+    map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''}).addTo(map);
+    L.control.zoom({position:'bottomright'}).addTo(map);
 
-  map.on('moveend zoomend', function(){
-    refreshBadge();
-    if(panelOpen){ buildChips(); renderPanel(); }
-    /* fetch new area when user moves map */
-    clearTimeout(pollTimer);
-    pollTimer = setTimeout(fetchFlares, 500);
+    /* Init cluster group */
+    if(L.MarkerClusterGroup){
+      clusterGroup = buildClusterGroup();
+    } else {
+      /* Fallback si MarkerCluster no cargó */
+      clusterEnabled = false;
+      clusterGroup = L.layerGroup();
+      document.getElementById('cluster-toggle').style.display = 'none';
+    }
+    map.addLayer(clusterGroup);
+
+    map.on('moveend zoomend', function(){
+      refreshBadge();
+      if(panelOpen){ buildChips(); renderPanel(); }
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(fetchFlares, 500);
+    });
+
+    map.on('click', function(e){
+      if(!placing) return;
+      stopPlace();
+      setPending(e.latlng.lat, e.latlng.lng);
+      openModal();
+    });
+
+    if(navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, {duration:1.5});
+        },
+        function() {},
+        {enableHighAccuracy:false, timeout:5000}
+      );
+    }
+
+    startPoll();
   });
-
-  map.on('click', function(e){
-    if(!placing) return;
-    stopPlace();
-    setPending(e.latlng.lat, e.latlng.lng);
-    openModal();
-  });
-
-  /* Centrar en la ubicación del usuario al cargar */
-  if(navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-        map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, {duration:1.5});
-      },
-      function() { /* si niega el permiso, se queda en Tecate por defecto */ },
-      {enableHighAccuracy:false, timeout:5000}
-    );
-  }
-
-  /* Start polling */
-  startPoll();
 });
 </script>
 </body>
