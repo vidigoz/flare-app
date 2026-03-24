@@ -6,16 +6,16 @@
   node_bundler = "esbuild"
 
 [[redirects]]
-  from = "/api/flares"
-  to = "/.netlify/functions/flares"
+  from = "/api/admin/upload"
+  to = "/.netlify/functions/admin-upload"
   status = 200
 
 [[redirects]]
-  from = "/api/like"
-  to = "/.netlify/functions/like"
+  from = "/api/admin/purge"
+  to = "/.netlify/functions/admin-purge"
   status = 200
 
-[[headers]]
+
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
