@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flare — Mapa en vivo</title>
+<title>Flare — El mapa que respira</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -236,7 +236,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:10px 14px;displa
 .pd-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
 .pd-map{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--dim);cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .pd-map:active{border-color:var(--neon);color:var(--neon)}
-.pd-gmaps{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.pd-gmaps{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .pd-gmaps:active{border-color:var(--amber);color:var(--amber)}
 .pempty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:12px;color:var(--dim);font-family:'Space Mono',monospace;font-size:12px;padding:40px;text-align:center;line-height:1.7}
 .pe-ico{font-size:38px;opacity:.3}
@@ -290,7 +290,7 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .pop-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
 .tbdg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 7px;font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);display:flex;align-items:center;gap:3px;white-space:nowrap}
 .pop-like-hint{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);text-align:center;padding:6px 0 2px;opacity:.8}
-.pop-gmaps{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.pop-gmaps{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 
 /* MARKER */
 .mk{display:flex;flex-direction:column;align-items:center;cursor:pointer}
@@ -504,9 +504,18 @@ function richText(raw) {
 }
 
 function mapsUrl(lat, lng) {
-  /* En iOS abre Apple Maps o Google Maps según lo que tenga instalado.
-     En Android abre Google Maps. En desktop abre Google Maps en browser. */
-  return 'https://maps.google.com/?q='+lat+','+lng+'&ll='+lat+','+lng+'&z=17';
+  return 'https://maps.google.com/?q='+lat+','+lng;
+}
+function openMaps(lat, lng) {
+  var url = 'https://maps.google.com/?q='+lat+','+lng;
+  /* En iOS intenta abrir Apple Maps nativo primero, luego Google Maps */
+  var a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');n.textContent=msg;c.appendChild(n);setTimeout(function(){n.remove()},3500)}
 function setSyncState(state, txt) {
@@ -679,7 +688,7 @@ function popHTML(pin){
     +'<div class="pop-foot">'
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
-    +'<a class="pop-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'" title="Ver en Maps">🗺️</a>'
+    +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
     +'</div>'
     +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
     +'</div>';
@@ -797,7 +806,7 @@ function renderPanel(){
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">❤️ '+(pin.likes>0?'+'+pin.likes+' Me gusta':'Me gusta')+'</button>'
       +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
-      +'<a class="pd-gmaps" href="'+mapsUrl(pin.lat,pin.lng)+'">🗺️ Cómo llegar</a>'
+      +'<button class="pd-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')">🗺️ Cómo llegar</button>'
       +'</div>'
       +'</div>';
     html += html_detail;
