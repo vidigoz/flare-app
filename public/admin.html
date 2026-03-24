@@ -100,10 +100,10 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
     <div class="login-title">Flare <span>Admin</span></div>
   </div>
   <div class="login-card">
-    <label class="login-label">Contraseña de acceso</label>
-    <input class="login-inp" type="password" id="pwd-inp" placeholder="••••••••" autocomplete="current-password">
-    <button class="login-btn" id="login-btn">Entrar →</button>
-    <div class="login-err" id="login-err">Contraseña incorrecta</div>
+    <label class="login-label">ContraseÃ±a de acceso</label>
+    <input class="login-inp" type="password" id="pwd-inp" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="current-password">
+    <button class="login-btn" id="login-btn">Entrar â†’</button>
+    <div class="login-err" id="login-err">ContraseÃ±a incorrecta</div>
   </div>
 </div>
 
@@ -111,7 +111,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 <div id="admin-wrap">
   <div class="admin-header">
     <div class="admin-title">Flare <span>Admin</span></div>
-    <button class="logout-btn" id="logout-btn">Salir ×</button>
+    <button class="logout-btn" id="logout-btn">Salir Ã—</button>
   </div>
 
   <!-- Stats -->
@@ -119,47 +119,47 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
     <div class="sec-title">Estado del <span>Mapa</span></div>
     <div class="sec-sub">Flares activos en la base de datos ahora mismo.</div>
     <div class="stats">
-      <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Flares activos</div></div>
-      <div class="stat"><div class="stat-val" id="stat-food">—</div><div class="stat-lbl">Comida</div></div>
-      <div class="stat"><div class="stat-val" id="stat-event">—</div><div class="stat-lbl">Eventos</div></div>
-      <div class="stat"><div class="stat-val" id="stat-incident">—</div><div class="stat-lbl">Sucesos</div></div>
+      <div class="stat"><div class="stat-val" id="stat-total">â€”</div><div class="stat-lbl">Flares activos</div></div>
+      <div class="stat"><div class="stat-val" id="stat-food">â€”</div><div class="stat-lbl">Comida</div></div>
+      <div class="stat"><div class="stat-val" id="stat-event">â€”</div><div class="stat-lbl">Eventos</div></div>
+      <div class="stat"><div class="stat-val" id="stat-incident">â€”</div><div class="stat-lbl">Sucesos</div></div>
     </div>
-    <button class="btn-purge" id="purge-btn">🗑️ Borrar todos los flares activos</button>
+    <button class="btn-purge" id="purge-btn">ðŸ—‘ï¸ Borrar todos los flares activos</button>
   </div>
 
   <!-- Upload CSV -->
   <div class="section">
     <div class="sec-title">Carga Masiva de <span>Flares</span></div>
-    <div class="sec-sub">Sube un archivo CSV para crear múltiples flares de una vez. Máximo 500 por carga.</div>
+    <div class="sec-sub">Sube un archivo CSV para crear mÃºltiples flares de una vez. MÃ¡ximo 500 por carga.</div>
 
     <div class="csv-example">lat,lng,title,cat,emoji,description,dur_min
-32.5210,-116.9430,Tacos El Güero,food,🌮,Carne asada y adobada,120
-32.5180,-116.9380,Retén Km 3,incident,🚧,Alcoholímetro ambos lados,60
-32.5250,-116.9410,Feria del Empleo,event,🎉,CV en mano al parque,180</div>
+32.5210,-116.9430,Tacos El GÃ¼ero,food,ðŸŒ®,Carne asada y adobada,120
+32.5180,-116.9380,RetÃ©n Km 3,incident,ðŸš§,AlcoholÃ­metro ambos lados,60
+32.5250,-116.9410,Feria del Empleo,event,ðŸŽ‰,CV en mano al parque,180</div>
 
     <div class="field-list">
       <div class="field"><span class="field-name">lat</span><span class="field-req">requerido</span><span class="field-desc">Latitud (ej: 32.5210)</span></div>
       <div class="field"><span class="field-name">lng</span><span class="field-req">requerido</span><span class="field-desc">Longitud (ej: -116.9430)</span></div>
-      <div class="field"><span class="field-name">title</span><span class="field-req">requerido</span><span class="field-desc">Título del flare (máx 100 chars)</span></div>
-      <div class="field"><span class="field-name">cat</span><span class="field-opt">opcional</span><span class="field-desc">food · sale · event · incident · info (default: info)</span></div>
-      <div class="field"><span class="field-name">emoji</span><span class="field-opt">opcional</span><span class="field-desc">Emoji del pin (default: ícono de la categoría)</span></div>
+      <div class="field"><span class="field-name">title</span><span class="field-req">requerido</span><span class="field-desc">TÃ­tulo del flare (mÃ¡x 100 chars)</span></div>
+      <div class="field"><span class="field-name">cat</span><span class="field-opt">opcional</span><span class="field-desc">food Â· sale Â· event Â· incident Â· info (default: info)</span></div>
+      <div class="field"><span class="field-name">emoji</span><span class="field-opt">opcional</span><span class="field-desc">Emoji del pin (default: Ã­cono de la categorÃ­a)</span></div>
       <div class="field"><span class="field-name">description</span><span class="field-opt">opcional</span><span class="field-desc">Texto descriptivo del flare</span></div>
-      <div class="field"><span class="field-name">dur_min</span><span class="field-opt">opcional</span><span class="field-desc">Duración en minutos (default: 60, max: 720)</span></div>
+      <div class="field"><span class="field-name">dur_min</span><span class="field-opt">opcional</span><span class="field-desc">DuraciÃ³n en minutos (default: 60, max: 720)</span></div>
     </div>
 
     <div class="dropzone" id="dropzone">
       <input type="file" accept=".csv,text/csv" id="csv-file">
-      <div class="dz-icon">📂</div>
-      <div class="dz-title">Arrastra tu CSV aquí</div>
+      <div class="dz-icon">ðŸ“‚</div>
+      <div class="dz-title">Arrastra tu CSV aquÃ­</div>
       <div class="dz-sub">o toca para seleccionar</div>
       <div class="dz-file" id="dz-file"></div>
     </div>
 
     <div id="preview-wrap">
-      <div class="preview-hdr">Vista previa — <span id="preview-count-lbl"></span></div>
+      <div class="preview-hdr">Vista previa â€” <span id="preview-count-lbl"></span></div>
       <div style="overflow-x:auto">
         <table class="preview-table" id="preview-table">
-          <thead><tr><th>#</th><th>Título</th><th>Categoría</th><th>Lat</th><th>Lng</th><th>Duración</th></tr></thead>
+          <thead><tr><th>#</th><th>TÃ­tulo</th><th>CategorÃ­a</th><th>Lat</th><th>Lng</th><th>DuraciÃ³n</th></tr></thead>
           <tbody id="preview-body"></tbody>
         </table>
       </div>
@@ -167,7 +167,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
     </div>
 
     <div class="actions">
-      <button class="btn-upload" id="upload-btn" disabled>⚡ Publicar flares</button>
+      <button class="btn-upload" id="upload-btn" disabled>âš¡ Publicar flares</button>
       <button class="btn-clear" id="clear-btn">Limpiar</button>
     </div>
 
@@ -179,14 +179,14 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 var adminKey = '';
 var parsedRows = [];
 
-/* ── LOGIN ── */
+/* â”€â”€ LOGIN â”€â”€ */
 document.getElementById('login-btn').addEventListener('click', tryLogin);
 document.getElementById('pwd-inp').addEventListener('keydown', function(e){ if(e.key==='Enter') tryLogin(); });
 
 function tryLogin() {
   var pwd = document.getElementById('pwd-inp').value.trim();
   if (!pwd) return;
-  /* Verificamos contra el servidor para no exponer la contraseña en el frontend */
+  /* Verificamos contra el servidor para no exponer la contraseÃ±a en el frontend */
   fetch('/api/admin/upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-key': pwd },
@@ -205,7 +205,7 @@ function tryLogin() {
     }
   }).catch(function() {
     document.getElementById('login-err').style.display = 'block';
-    document.getElementById('login-err').textContent = 'Error de conexión';
+    document.getElementById('login-err').textContent = 'Error de conexiÃ³n';
   });
 }
 
@@ -217,7 +217,7 @@ document.getElementById('logout-btn').addEventListener('click', function() {
   document.getElementById('pwd-inp').value = '';
 });
 
-/* ── STATS ── */
+/* â”€â”€ STATS â”€â”€ */
 function loadStats() {
   var bbox = '?minLat=0&maxLat=90&minLng=-180&maxLng=0'; // ajustar a tu zona si quieres
   fetch('/api/flares?minLat=-90&maxLat=90&minLng=-180&maxLng=180')
@@ -231,21 +231,21 @@ function loadStats() {
     .catch(function(){ document.getElementById('stat-total').textContent = '?'; });
 }
 
-/* ── PURGE ── */
+/* â”€â”€ PURGE â”€â”€ */
 document.getElementById('purge-btn').addEventListener('click', function() {
-  if (!confirm('¿Borrar TODOS los flares activos? Esta acción no se puede deshacer.')) return;
+  if (!confirm('Â¿Borrar TODOS los flares activos? Esta acciÃ³n no se puede deshacer.')) return;
   fetch('/api/admin/purge', {
     method: 'DELETE',
     headers: { 'x-admin-key': adminKey }
   }).then(function(r){ return r.json(); })
     .then(function(d) {
-      alert('✅ ' + d.deleted + ' flares borrados.');
+      alert('âœ… ' + d.deleted + ' flares borrados.');
       loadStats();
     })
     .catch(function(){ alert('Error al purgar'); });
 });
 
-/* ── CSV FILE ── */
+/* â”€â”€ CSV FILE â”€â”€ */
 var dropzone = document.getElementById('dropzone');
 var fileInput = document.getElementById('csv-file');
 
@@ -259,7 +259,7 @@ dropzone.addEventListener('drop', function(e){
 fileInput.addEventListener('change', function(){ if(this.files[0]) handleFile(this.files[0]); });
 
 function handleFile(file) {
-  document.getElementById('dz-file').textContent = '📄 ' + file.name;
+  document.getElementById('dz-file').textContent = 'ðŸ“„ ' + file.name;
   var reader = new FileReader();
   reader.onload = function(e) { parseCSV(e.target.result); };
   reader.readAsText(file, 'UTF-8');
@@ -267,7 +267,7 @@ function handleFile(file) {
 
 function parseCSV(text) {
   var lines = text.trim().split('\n');
-  if (lines.length < 2) { alert('El CSV está vacío o solo tiene el header.'); return; }
+  if (lines.length < 2) { alert('El CSV estÃ¡ vacÃ­o o solo tiene el header.'); return; }
 
   var headers = lines[0].replace(/\r/g,'').split(',').map(function(h){ return h.trim().toLowerCase(); });
   parsedRows = [];
@@ -292,20 +292,20 @@ function renderPreview(errors) {
   var show = parsedRows.slice(0, 20); // mostrar primeras 20
   show.forEach(function(row) {
     var tr = document.createElement('tr');
-    var catLabels = {food:'🍽️ Comida', sale:'🏷️ Ventas', event:'🎉 Evento', incident:'⚡ Suceso', info:'ℹ️ Info'};
+    var catLabels = {food:'ðŸ½ï¸ Comida', sale:'ðŸ·ï¸ Ventas', event:'ðŸŽ‰ Evento', incident:'âš¡ Suceso', info:'â„¹ï¸ Info'};
     tr.innerHTML = '<td class="'+(row._valid?'':'err')+'">'+row._line+'</td>'
-      +'<td class="'+(row._valid?'':'err')+'">'+(row.title||'—')+'</td>'
-      +'<td>'+(catLabels[row.cat]||'ℹ️ Info')+'</td>'
-      +'<td>'+(row.lat||'❌')+'</td>'
-      +'<td>'+(row.lng||'❌')+'</td>'
+      +'<td class="'+(row._valid?'':'err')+'">'+(row.title||'â€”')+'</td>'
+      +'<td>'+(catLabels[row.cat]||'â„¹ï¸ Info')+'</td>'
+      +'<td>'+(row.lat||'âŒ')+'</td>'
+      +'<td>'+(row.lng||'âŒ')+'</td>'
       +'<td>'+(row.dur_min||'60')+'m</td>';
     tbody.appendChild(tr);
   });
 
   var valid = parsedRows.filter(function(r){ return r._valid; }).length;
-  document.getElementById('preview-count-lbl').textContent = valid + ' válidos de ' + parsedRows.length + ' filas';
+  document.getElementById('preview-count-lbl').textContent = valid + ' vÃ¡lidos de ' + parsedRows.length + ' filas';
   document.getElementById('preview-count').textContent = parsedRows.length > 20 ? '(mostrando primeras 20 de '+parsedRows.length+')' : '';
-  if (errors > 0) document.getElementById('preview-count').textContent += ' · ⚠️ '+errors+' con errores (se omitirán)';
+  if (errors > 0) document.getElementById('preview-count').textContent += ' Â· âš ï¸ '+errors+' con errores (se omitirÃ¡n)';
 
   document.getElementById('preview-wrap').style.display = 'block';
   document.getElementById('upload-btn').disabled = valid === 0;
@@ -320,14 +320,14 @@ document.getElementById('clear-btn').addEventListener('click', function() {
   document.getElementById('log').style.display = 'none';
 });
 
-/* ── UPLOAD ── */
+/* â”€â”€ UPLOAD â”€â”€ */
 document.getElementById('upload-btn').addEventListener('click', function() {
   var validRows = parsedRows.filter(function(r){ return r._valid; });
   if (!validRows.length) return;
 
   var btn = this;
   btn.disabled = true;
-  btn.textContent = '⏳ Publicando...';
+  btn.textContent = 'â³ Publicando...';
 
   var log = document.getElementById('log');
   log.style.display = 'block';
@@ -341,23 +341,23 @@ document.getElementById('upload-btn').addEventListener('click', function() {
   .then(function(r){ return r.json(); })
   .then(function(d) {
     btn.disabled = false;
-    btn.textContent = '⚡ Publicar flares';
+    btn.textContent = 'âš¡ Publicar flares';
     if (d.error) {
       log.innerHTML += '<span class="log-err">Error: ' + d.error + '</span>\n';
       return;
     }
-    log.innerHTML += '<span class="log-ok">✅ ' + d.inserted + ' flares publicados correctamente</span>\n';
+    log.innerHTML += '<span class="log-ok">âœ… ' + d.inserted + ' flares publicados correctamente</span>\n';
     if (d.errors > 0) {
-      log.innerHTML += '<span class="log-err">⚠️ ' + d.errors + ' filas con error</span>\n';
+      log.innerHTML += '<span class="log-err">âš ï¸ ' + d.errors + ' filas con error</span>\n';
       d.detail.forEach(function(e) {
-        log.innerHTML += '<span class="log-err">  → ' + (e.row.title||'sin título') + ': ' + e.reason + '</span>\n';
+        log.innerHTML += '<span class="log-err">  â†’ ' + (e.row.title||'sin tÃ­tulo') + ': ' + e.reason + '</span>\n';
       });
     }
     loadStats();
   })
   .catch(function(e) {
     btn.disabled = false;
-    btn.textContent = '⚡ Publicar flares';
+    btn.textContent = 'âš¡ Publicar flares';
     log.innerHTML += '<span class="log-err">Error de red: ' + e.message + '</span>\n';
   });
 });
