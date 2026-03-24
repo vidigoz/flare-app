@@ -138,6 +138,64 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:10px 14px;displa
 .ph-sub{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:2px}
 .ph-x{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .ph-x:active{color:var(--text);border-color:var(--danger)}
+.ph-help{background:var(--surface2);border:1px solid var(--border);color:var(--neon);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:700;font-family:'Space Mono',monospace;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.ph-help:active{background:rgba(0,245,160,.15);border-color:var(--neon)}
+.ph-help.active{background:rgba(0,245,160,.15);border-color:var(--neon)}
+#panel-flares{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+
+/* MANUAL dentro del panel */
+#panel-manual{font-size:13px}
+#panel-manual h1{font-size:20px;font-weight:800;letter-spacing:-1px;padding:20px 16px 4px;color:var(--text)}
+#panel-manual h1 span{color:var(--neon)}
+#panel-manual .m-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);padding:0 16px 16px;border-bottom:1px solid var(--border)}
+#panel-manual .m-nav{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);padding:0 4px}
+#panel-manual .m-nav::-webkit-scrollbar{display:none}
+#panel-manual .m-nav a{padding:10px 12px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;text-decoration:none;display:block}
+#panel-manual .m-nav a:active{color:var(--text)}
+#panel-manual .m-nav a.active{color:var(--neon);border-bottom-color:var(--neon)}
+#panel-manual .m-body{padding:16px}
+#panel-manual .m-section{margin-bottom:28px;scroll-margin-top:10px}
+#panel-manual .m-sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+#panel-manual .m-sec-num{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--neon);background:rgba(0,245,160,.08);border:1px solid rgba(0,245,160,.2);border-radius:4px;padding:2px 7px}
+#panel-manual .m-sec-title{font-size:15px;font-weight:800}
+#panel-manual .m-sec-title .hl{color:var(--neon)}
+#panel-manual .m-sec-title .hl2{color:var(--neon2)}
+#panel-manual .m-sec-title .hl3{color:var(--amber)}
+#panel-manual .m-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
+#panel-manual .m-card-icon{font-size:24px;margin-bottom:8px;display:block}
+#panel-manual .m-card-title{font-size:13px;font-weight:700;margin-bottom:5px}
+#panel-manual .m-card-desc{font-size:11px;color:#9aa3b8;line-height:1.6;font-family:'Space Mono',monospace}
+#panel-manual .m-step{display:grid;grid-template-columns:38px 1fr;gap:12px;margin-bottom:16px}
+#panel-manual .m-step-num{width:38px;height:38px;background:var(--surface2);border:2px solid var(--neon);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--neon);font-family:'Space Mono',monospace;flex-shrink:0}
+#panel-manual .m-step-body{}
+#panel-manual .m-step-title{font-size:13px;font-weight:700;margin-bottom:4px;padding-top:8px}
+#panel-manual .m-step-desc{font-size:11px;color:#9aa3b8;line-height:1.6;font-family:'Space Mono',monospace}
+#panel-manual .m-tip{display:flex;align-items:flex-start;gap:6px;background:rgba(0,245,160,.06);border:1px solid rgba(0,245,160,.15);border-radius:6px;padding:8px 10px;font-size:10px;font-family:'Space Mono',monospace;color:var(--neon);margin-top:8px;line-height:1.5}
+#panel-manual .m-callout{display:flex;gap:10px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--neon);border-radius:8px;padding:12px;margin-bottom:10px}
+#panel-manual .m-callout.warn{border-left-color:var(--amber)}
+#panel-manual .m-callout.hot{border-left-color:var(--neon2)}
+#panel-manual .m-callout-icon{font-size:18px;flex-shrink:0}
+#panel-manual .m-callout-body{font-size:11px;color:#9aa3b8;line-height:1.7;font-family:'Space Mono',monospace}
+#panel-manual .m-callout-body strong{color:var(--text);font-family:'Syne',sans-serif}
+#panel-manual .m-cat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+#panel-manual .m-cat-icon{font-size:20px;flex-shrink:0}
+#panel-manual .m-cat-info{flex:1;min-width:0}
+#panel-manual .m-cat-name{font-size:12px;font-weight:700;margin-bottom:2px}
+#panel-manual .m-cat-desc{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace}
+#panel-manual .m-cat-emojis{font-size:11px;color:var(--dim);margin-top:2px}
+#panel-manual .m-vig-row{border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+#panel-manual .m-vig-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+#panel-manual .m-vig-info{flex:1}
+#panel-manual .m-vig-label{font-size:12px;font-weight:700;margin-bottom:2px}
+#panel-manual .m-vig-desc{font-size:10px;color:#9aa3b8;font-family:'Space Mono',monospace}
+#panel-manual .m-vig-time{font-size:10px;font-family:'Space Mono',monospace;white-space:nowrap}
+#panel-manual .m-sk{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:10px}
+#panel-manual .m-sk-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+#panel-manual .m-sk-row:last-child{border-bottom:none}
+#panel-manual .m-sk-key{background:var(--surface2);padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--neon)}
+#panel-manual .m-sk-desc{padding:8px 10px;font-size:10px;color:#9aa3b8;font-family:'Space Mono',monospace}
+#panel-manual .m-footer{text-align:center;padding:20px 16px;font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);border-top:1px solid var(--border)}
+#panel-manual .m-footer span{color:var(--neon)}
 .psrch{padding:10px 14px 0;flex-shrink:0}
 .psrch input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:10px 12px 10px 32px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%237a8499' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
 .psrch input:focus{border-color:var(--neon)}
@@ -317,30 +375,41 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 <div id="panel">
   <div class="ph">
     <div>
-      <div class="ph-ttl">Flares en <span>Vista</span></div>
+      <div class="ph-ttl" id="ph-ttl">Flares en <span>Vista</span></div>
       <div class="ph-sub" id="ph-sub">0 flares en el área visible</div>
     </div>
-    <button class="ph-x" id="panel-close">✕</button>
-  </div>
-  <div class="pgeo">
-    <div class="pgeo-label">🔍 Buscar lugar en el mapa</div>
-    <div class="pgeo-wrap">
-      <input class="pgeo-inp" id="pgeo-inp" type="text" placeholder="Tijuana, Roma Norte, CDMX..." autocomplete="off" spellcheck="false">
-      <div class="pgeo-res" id="pgeo-res"></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="ph-help" id="ph-help" title="Manual de uso">?</button>
+      <button class="ph-x" id="panel-close">✕</button>
     </div>
   </div>
-  <div class="psrch"><input type="text" id="srch" placeholder="🔍  Buscar flare..."></div>
-  <div class="pvig" id="pvig">
-    <div class="pvig-lbl">Vigencia:</div>
-    <div class="pvig-opts">
-      <div class="pvig-opt on" id="pvig-all"   data-vf="all">Todos</div>
-      <div class="pvig-opt"   id="pvig-nuevo"  data-vf="nuevo"><span class="pvig-dot" style="background:var(--neon)"></span>Nuevo</div>
-      <div class="pvig-opt"   id="pvig-maduro" data-vf="maduro"><span class="pvig-dot" style="background:var(--amber)"></span>Maduro</div>
-      <div class="pvig-opt"   id="pvig-exp"    data-vf="expirando"><span class="pvig-dot" style="background:var(--danger)"></span>Expirando</div>
+
+  <!-- Vista: Flares -->
+  <div id="panel-flares">
+    <div class="pgeo">
+      <div class="pgeo-label">🔍 Buscar lugar en el mapa</div>
+      <div class="pgeo-wrap">
+        <input class="pgeo-inp" id="pgeo-inp" type="text" placeholder="Tijuana, Roma Norte, CDMX..." autocomplete="off" spellcheck="false">
+        <div class="pgeo-res" id="pgeo-res"></div>
+      </div>
     </div>
+    <div class="psrch"><input type="text" id="srch" placeholder="🔍  Buscar flare..."></div>
+    <div class="pvig" id="pvig">
+      <div class="pvig-lbl">Vigencia:</div>
+      <div class="pvig-opts">
+        <div class="pvig-opt on" id="pvig-all"   data-vf="all">Todos</div>
+        <div class="pvig-opt"   id="pvig-nuevo"  data-vf="nuevo"><span class="pvig-dot" style="background:var(--neon)"></span>Nuevo</div>
+        <div class="pvig-opt"   id="pvig-maduro" data-vf="maduro"><span class="pvig-dot" style="background:var(--amber)"></span>Maduro</div>
+        <div class="pvig-opt"   id="pvig-exp"    data-vf="expirando"><span class="pvig-dot" style="background:var(--danger)"></span>Expirando</div>
+      </div>
+    </div>
+    <div class="pchips" id="chips"></div>
+    <div class="plist" id="plist"></div>
   </div>
-  <div class="pchips" id="chips"></div>
-  <div class="plist" id="plist"></div>
+
+  <!-- Vista: Manual -->
+  <div id="panel-manual" style="display:none;flex:1;overflow-y:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))">
+  </div>
 </div>
 
 <!-- Main Modal -->
@@ -935,6 +1004,112 @@ document.getElementById('pbtn').addEventListener('click', function(){ togglePane
 document.getElementById('pov').addEventListener('click', function(){ closePanel(); });
 document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
 document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
+
+/* ── Manual toggle ── */
+var manualOpen = false;
+document.getElementById('ph-help').addEventListener('click', function(){
+  manualOpen = !manualOpen;
+  this.classList.toggle('active', manualOpen);
+  document.getElementById('panel-flares').style.display = manualOpen ? 'none' : 'flex';
+  document.getElementById('panel-manual').style.display = manualOpen ? 'block' : 'none';
+  document.getElementById('ph-ttl').innerHTML = manualOpen
+    ? 'Manual de <span>Uso</span>'
+    : 'Flares en <span>Vista</span>';
+  document.getElementById('ph-sub').textContent = manualOpen
+    ? 'Guía completa de Flare'
+    : (Object.keys(pins).length + ' flares activos');
+  if(manualOpen && !document.getElementById('panel-manual').dataset.loaded) {
+    loadManual();
+    document.getElementById('panel-manual').dataset.loaded = '1';
+  }
+});
+
+function loadManual() {
+  document.getElementById('panel-manual').innerHTML = `
+<h1>Manual de <span>Flare</span></h1>
+<div class="m-sub">Guía completa · Versión 1.0 · El mapa que respira</div>
+<nav class="m-nav">
+  <a href="#m-overview" class="active">¿Qué es?</a>
+  <a href="#m-crear">Crear</a>
+  <a href="#m-categorias">Categorías</a>
+  <a href="#m-vigencia">Vigencia</a>
+  <a href="#m-panel">Panel</a>
+  <a href="#m-tips">Tips</a>
+</nav>
+<div class="m-body" id="m-body">
+
+<div class="m-section" id="m-overview">
+  <div class="m-sec-hdr"><div class="m-sec-num">01</div><div class="m-sec-title">¿Qué es <span class="hl">Flare</span>?</div></div>
+  <div class="m-card"><span class="m-card-icon">📍</span><div class="m-card-title">Mapa en Vivo</div><div class="m-card-desc">Coloca marcadores geolocalizados en cualquier parte del mapa con un solo toque.</div></div>
+  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Eventos Efímeros</div><div class="m-card-desc">Cada flare dura 1 hora y desaparece solo. El mapa siempre está fresco y relevante.</div></div>
+  <div class="m-card"><span class="m-card-icon">❤️</span><div class="m-card-title">Likes = Tiempo</div><div class="m-card-desc">Cada like suma +5 minutos de vida al flare. Máximo 12 horas en total.</div></div>
+  <div class="m-card"><span class="m-card-icon">🔗</span><div class="m-card-title">Links y Teléfonos</div><div class="m-card-desc">Los números y URLs en el texto se convierten automáticamente en hipervínculos para llamar o visitar.</div></div>
+</div>
+
+<div class="m-section" id="m-crear">
+  <div class="m-sec-hdr"><div class="m-sec-num">02</div><div class="m-sec-title">Cómo <span class="hl">Crear</span> un Flare</div></div>
+  <div class="m-step"><div class="m-step-num">1</div><div class="m-step-body"><div class="m-step-title">Presiona "＋ Crear Flare"</div><div class="m-step-desc">Aparece un menú con dos opciones: usar tu ubicación actual o elegir en el mapa.</div></div></div>
+  <div class="m-step"><div class="m-step-num">2</div><div class="m-step-body"><div class="m-step-title">📍 Mi ubicación — o — 🗺️ Elegir en mapa</div><div class="m-step-desc">GPS automático o toca el punto exacto en el mapa con el crosshair rosa.</div><div class="m-tip">💡 GPS es la opción más rápida cuando estás en el lugar</div></div></div>
+  <div class="m-step"><div class="m-step-num">3</div><div class="m-step-body"><div class="m-step-title">Elige categoría e ícono</div><div class="m-step-desc">5 categorías disponibles, cada una con 10 emojis específicos.</div></div></div>
+  <div class="m-step"><div class="m-step-num">4</div><div class="m-step-body"><div class="m-step-title">Escribe título y descripción</div><div class="m-step-desc">Título obligatorio (máx. 60 caracteres). En la descripción puedes poner tu número de teléfono o un link y se vuelve clicable automáticamente.</div><div class="m-tip">📞 Escribe tu número para que te contacten directo</div></div></div>
+  <div class="m-step"><div class="m-step-num">5</div><div class="m-step-body"><div class="m-step-title">⚡ Publicar Flare</div><div class="m-step-desc">El flare aparece en el mapa con 1 hora de vigencia. El mapa hace zoom automático a tu flare.</div></div></div>
+</div>
+
+<div class="m-section" id="m-categorias">
+  <div class="m-sec-hdr"><div class="m-sec-num">03</div><div class="m-sec-title"><span class="hl">Categorías</span></div></div>
+  <div class="m-cat" style="border-color:rgba(255,149,0,.3)"><div class="m-cat-icon">🍽️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff9500">Comida y Bebida</div><div class="m-cat-desc">Tacos, food trucks, restaurantes, pop-ups</div><div class="m-cat-emojis">🍕🌮🍔🍜🥗🍺☕🍦🥩🍣</div></div></div>
+  <div class="m-cat" style="border-color:rgba(0,194,255,.3)"><div class="m-cat-icon">🏷️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#00c2ff">Ventas</div><div class="m-cat-desc">Garage sales, liquidaciones, ropa de paca</div><div class="m-cat-emojis">🏷️💸🛒🎁💰🛍️🤑💎🔖📦</div></div></div>
+  <div class="m-cat" style="border-color:rgba(160,0,245,.3)"><div class="m-cat-icon">🎉</div><div class="m-cat-info"><div class="m-cat-name" style="color:#a000f5">Evento</div><div class="m-cat-desc">Conciertos, torneos, festivales, carreras</div><div class="m-cat-emojis">🎉🎵🎸🎭🎪🏆🎤🎬🎊🕺</div></div></div>
+  <div class="m-cat" style="border-color:rgba(255,64,96,.3)"><div class="m-cat-icon">⚡</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff4060">Suceso</div><div class="m-cat-desc">Accidentes, retenes, bloqueos, alertas</div><div class="m-cat-emojis">⚡🚨🚧💥🔥🚑⚠️🌊🌪️🆘</div></div></div>
+  <div class="m-cat" style="border-color:rgba(0,245,160,.3)"><div class="m-cat-icon">ℹ️</div><div class="m-cat-info"><div class="m-cat-name" style="color:var(--neon)">Información</div><div class="m-cat-desc">Avisos, cortes de agua/luz, ferias de empleo</div><div class="m-cat-emojis">ℹ️📍💡📢🗺️🔍📌📣🌐✅</div></div></div>
+</div>
+
+<div class="m-section" id="m-vigencia">
+  <div class="m-sec-hdr"><div class="m-sec-num">04</div><div class="m-sec-title">Sistema de <span class="hl3">Vigencia</span></div></div>
+  <div class="m-vig-row" style="background:rgba(0,245,160,.04)"><div class="m-vig-dot" style="background:var(--neon);box-shadow:0 0 6px var(--neon)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--neon)">Nuevo</div><div class="m-vig-desc">Flare recién publicado. Brilla en verde.</div></div><div class="m-vig-time" style="color:var(--neon)">&gt; 30 min</div></div>
+  <div class="m-vig-row" style="background:rgba(255,179,0,.04)"><div class="m-vig-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--amber)">Maduro</div><div class="m-vig-desc">Flare en su fase media.</div></div><div class="m-vig-time" style="color:var(--amber)">10–30 min</div></div>
+  <div class="m-vig-row" style="background:rgba(255,64,96,.04)"><div class="m-vig-dot" style="background:var(--danger);box-shadow:0 0 6px var(--danger)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--danger)">Expirando</div><div class="m-vig-desc">Últimos minutos. Marcador rojo.</div></div><div class="m-vig-time" style="color:var(--danger)">&lt; 10 min</div></div>
+  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">❤️</div><div class="m-callout-body"><strong>Likes extienden la vida</strong><br>Cada ❤️ suma <strong style="color:var(--neon)">+5 minutos</strong>. Máximo <strong style="color:var(--amber)">12 horas</strong>. Solo un like por flare.</div></div>
+</div>
+
+<div class="m-section" id="m-panel">
+  <div class="m-sec-hdr"><div class="m-sec-num">05</div><div class="m-sec-title">El <span class="hl">Panel</span></div></div>
+  <div class="m-card"><span class="m-card-icon">🔍</span><div class="m-card-title">Buscar lugar en el mapa</div><div class="m-card-desc">Escribe cualquier ciudad o dirección. El mapa vuela automáticamente a ese punto.</div></div>
+  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Filtro de Vigencia</div><div class="m-card-desc">Filtra por Todos · Nuevo · Maduro · Expirando. También aplica a los marcadores del mapa.</div></div>
+  <div class="m-card"><span class="m-card-icon">🏷️</span><div class="m-card-title">Chips de Categoría</div><div class="m-card-desc">Filtra por categoría. Combina con filtro de vigencia para búsquedas precisas.</div></div>
+  <div class="m-callout hot"><div class="m-callout-icon">💡</div><div class="m-callout-body"><strong>Solo muestra flares del área visible</strong><br>Mueve o haz zoom en el mapa y el panel se actualiza automáticamente.</div></div>
+</div>
+
+<div class="m-section" id="m-tips">
+  <div class="m-sec-hdr"><div class="m-sec-num">06</div><div class="m-sec-title">Tips y <span class="hl2">Trucos</span></div></div>
+  <div class="m-card"><span class="m-card-icon">🎯</span><div class="m-card-title">Títulos específicos ganan más likes</div><div class="m-card-desc">"Tacos de carne asada con tortilla hecha a mano" > "Hay tacos aquí"</div></div>
+  <div class="m-card"><span class="m-card-icon">🚧</span><div class="m-card-title">Retenes de alcoholímetro</div><div class="m-card-desc">Usa emoji 🚧 + categoría Suceso. La comunidad lo agradece y le da likes para mantenerlo vigente.</div></div>
+  <div class="m-card"><span class="m-card-icon">📞</span><div class="m-card-title">Incluye tu número si vendes</div><div class="m-card-desc">Escribe tu número en la descripción. Se convierte en link para llamar con un toque desde el celular.</div></div>
+  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Dale vida a los mejores flares</div><div class="m-card-desc">Si ves un flare útil expirando, dale ❤️ para extenderle 5 minutos más.</div></div>
+  <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Gestos</div>
+  <div class="m-sk">
+    <div class="m-sk-row"><div class="m-sk-key">Toque en marcador</div><div class="m-sk-desc">Abre popup del flare</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">Toque emoji en panel</div><div class="m-sk-desc">Vuela al flare en el mapa</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">Toque fila en panel</div><div class="m-sk-desc">Expande / colapsa detalle</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">Scroll / pinch mapa</div><div class="m-sk-desc">Zoom · Panel se actualiza</div></div>
+  </div>
+</div>
+
+</div>
+<div class="m-footer">Hecho con <span>❤️</span> para la comunidad · <span>Flare</span></div>
+`;
+
+  /* Nav activo al hacer scroll dentro del manual */
+  var manualEl = document.getElementById('panel-manual');
+  var mNavLinks = manualEl.querySelectorAll('.m-nav a');
+  mNavLinks.forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var target = manualEl.querySelector(a.getAttribute('href'));
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
 
 /* ── GEOCODER ── */
 (function(){
