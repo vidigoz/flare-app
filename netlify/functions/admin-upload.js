@@ -1,5 +1,5 @@
 // netlify/functions/admin-upload.js
-// POST /api/admin/upload  — carga flares en masa desde CSV
+// POST /api/admin/upload  â€” carga flares en masa desde CSV
 // Requiere header: x-admin-key: <ADMIN_SECRET>
 
 import { neon } from "@neondatabase/serverless";
@@ -12,22 +12,37 @@ export const handler = async (event) => {
     return err(405, "Method not allowed");
   }
 
-  /* ── Verificar contraseña ── */
+  /* â”€â”€ Verificar contraseÃ±a PRIMERO (antes de validar rows) â”€â”€ */
   const secret = process.env.ADMIN_SECRET;
   const provided = event.headers["x-admin-key"];
   if (!secret || provided !== secret) {
     return err(401, "No autorizado");
   }
 
+  /* â”€â”€ Si rows estÃ¡ vacÃ­o, es solo un ping de login â€” responder OK â”€â”€ */
+  let body;
   try {
-    const { rows } = JSON.parse(event.body || "{}");
-    if (!Array.isArray(rows) || rows.length === 0) {
-      return err(400, "rows vacío o inválido");
-    }
-    if (rows.length > 500) {
-      return err(400, "Máximo 500 flares por carga");
-    }
+    body = JSON.parse(event.body || "{}");
+  } catch (e) {
+    return err(400, "JSON invÃ¡lido");
+  }
 
+  const { rows } = body;
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    // Login check â€” solo confirmar que la clave es vÃ¡lida
+    return {
+      statusCode: 200,
+      headers: { ...cors(), "Content-Type": "application/json" },
+      body: JSON.stringify({ ok: true, inserted: 0, errors: 0, detail: [] }),
+    };
+  }
+
+  if (rows.length > 500) {
+    return err(400, "MÃ¡ximo 500 flares por carga");
+  }
+
+  try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
     const inserted = [];
     const errors = [];
@@ -45,13 +60,12 @@ export const handler = async (event) => {
         const durMin = Math.min(Math.max(parseInt(row.dur_min) || 60, 1), 720);
         const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
 
-        // Mapear categoría
         const CATS = {
-          food:     { lbl: "Comida y Bebida", color: "#ff9500", icon: "🍽️" },
-          sale:     { lbl: "Ventas",          color: "#00c2ff", icon: "🏷️" },
-          event:    { lbl: "Evento",          color: "#a000f5", icon: "🎉" },
-          incident: { lbl: "Suceso",          color: "#ff4060", icon: "⚡"  },
-          info:     { lbl: "Información",     color: "#00f5a0", icon: "ℹ️"  },
+          food:     { lbl: "Comida y Bebida", color: "#ff9500", icon: "ðŸ½ï¸" },
+          sale:     { lbl: "Ventas",          color: "#00c2ff", icon: "ðŸ·ï¸" },
+          event:    { lbl: "Evento",          color: "#a000f5", icon: "ðŸŽ‰" },
+          incident: { lbl: "Suceso",          color: "#ff4060", icon: "âš¡"  },
+          info:     { lbl: "InformaciÃ³n",     color: "#00f5a0", icon: "â„¹ï¸"  },
         };
         const cat = CATS[row.cat] ? row.cat : "info";
         const catData = CATS[cat];
@@ -92,10 +106,6 @@ export const handler = async (event) => {
   }
 };
 
-/* ── También soporta DELETE para borrar todos los flares de prueba ── */
-// DELETE /api/admin/upload?purge=1  borra todos los flares activos
-// (útil para limpiar después de probar)
-
 function cors() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -110,3 +120,4 @@ function err(code, msg) {
     body: JSON.stringify({ error: msg }),
   };
 }
+
