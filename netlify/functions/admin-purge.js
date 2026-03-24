@@ -1,5 +1,5 @@
 // netlify/functions/admin-purge.js
-// DELETE /api/admin/purge  — borra todos los flares (para limpiar datos de prueba)
+// DELETE /api/admin/purge  â€” borra todos los flares (para limpiar datos de prueba)
 // Requiere header: x-admin-key: <ADMIN_SECRET>
 
 import { neon } from "@neondatabase/serverless";
