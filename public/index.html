@@ -592,6 +592,7 @@ function fetchFlares() {
     maxLat: b.getNorth().toFixed(6),
     minLng: b.getWest().toFixed(6),
     maxLng: b.getEast().toFixed(6),
+    zoom:   Math.round(map.getZoom()),
   });
   setSyncState('loading', 'actualizando...');
   apiFetch('/api/flares?' + params)
