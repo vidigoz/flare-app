@@ -372,6 +372,10 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
     <div class="hdr-chip hdr-cat" id="hf-event"    data-cat="event"   >🎉</div>
     <div class="hdr-chip hdr-cat" id="hf-incident" data-cat="incident">⚡</div>
     <div class="hdr-chip hdr-cat" id="hf-info"     data-cat="info"    >ℹ️</div>
+    <!-- Separador -->
+    <div class="hf-sep"></div>
+    <!-- Clusters -->
+    <div class="hdr-chip on" id="cluster-toggle" title="Agrupar flares en clusters">⬡ <span class="hf-lbl">Clusters</span></div>
   </div>
   <div class="hdr-r">
     <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
@@ -667,7 +671,7 @@ function reconcilePins(rows) {
     }
   });
 
-  document.getElementById('cnt').textContent = Object.keys(pins).length;
+  
   applyVigFilter();
   refreshBadge();
   if (panelOpen) { buildChips(); renderPanel(); }
@@ -1031,7 +1035,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       var pin = rowToPin(row);
       pin.marker = makeMarker(pin);
       pins[pin.id] = pin;
-      document.getElementById('cnt').textContent = Object.keys(pins).length;
+      
       closeModal();
       map.flyTo([pin.lat, pin.lng], 15, {duration:1});
       notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');
@@ -1051,7 +1055,10 @@ function applyVigFilter(){
     if(!pin.marker) return;
     var vigOk = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
     var catOk = (activeCat===null) || (pin.cat===activeCat);
-    if(vigOk && catOk) clusterGroup.addLayer(pin.marker);
+    if(vigOk && catOk){
+      if(clusterEnabled) clusterGroup.addLayer(pin.marker);
+      else pin.marker.addTo(clusterGroup);
+    }
   });
 
   /* Sync leyenda lateral */
@@ -1086,35 +1093,6 @@ function applyVigFilter(){
   if(panelOpen){ buildChips(); renderPanel(); }
 }
 
-/* ── cluster toggle ── */
-document.getElementById('cluster-toggle').addEventListener('click', function(){
-  clusterEnabled = !clusterEnabled;
-  this.classList.toggle('on', clusterEnabled);
-  document.getElementById('ct-txt').textContent = clusterEnabled ? 'Clusters' : 'Clusters';
-
-  /* Rebuild: swap between clusterGroup and raw map layer */
-  clusterGroup.clearLayers();
-  map.removeLayer(clusterGroup);
-
-  if(clusterEnabled){
-    /* Re-enable clustering */
-    clusterGroup = buildClusterGroup();
-    map.addLayer(clusterGroup);
-    Object.values(pins).forEach(function(pin){
-      var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
-      if(show && pin.marker) clusterGroup.addLayer(pin.marker);
-    });
-    notif('🔵 Clusters activados');
-  } else {
-    /* Clustering off: add markers directly to map */
-    clusterGroup = L.layerGroup().addTo(map);
-    Object.values(pins).forEach(function(pin){
-      var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
-      if(show && pin.marker) pin.marker.addTo(clusterGroup);
-    });
-    notif('📍 Flares individuales');
-  }
-});
 
 function buildClusterGroup(){
   return L.markerClusterGroup({
@@ -1167,6 +1145,24 @@ document.querySelectorAll('.hdr-cat').forEach(function(btn){
     activeCat = (activeCat === cat) ? null : cat;
     applyVigFilter();
   });
+});
+
+/* ── Cluster toggle ── */
+document.getElementById('cluster-toggle').addEventListener('click', function(){
+  clusterEnabled = !clusterEnabled;
+  this.classList.toggle('on', clusterEnabled);
+  clusterGroup.clearLayers();
+  map.removeLayer(clusterGroup);
+  if(clusterEnabled){
+    clusterGroup = buildClusterGroup();
+    map.addLayer(clusterGroup);
+    applyVigFilter();
+    notif('⬡ Clusters activados');
+  } else {
+    clusterGroup = L.layerGroup().addTo(map);
+    applyVigFilter();
+    notif('📍 Flares individuales');
+  }
 });
 
 /* ── panel buttons ── */
@@ -1316,7 +1312,7 @@ loadLeaflet(function(){
       /* Fallback si MarkerCluster no cargó */
       clusterEnabled = false;
       clusterGroup = L.layerGroup();
-      document.getElementById('cluster-toggle').style.display = 'none';
+      
     }
     map.addLayer(clusterGroup);
 
