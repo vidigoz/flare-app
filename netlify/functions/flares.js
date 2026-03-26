@@ -23,18 +23,38 @@ export const handler = async (event) => {
       const maxLat = parseFloat(p.maxLat ?? 90);
       const minLng = parseFloat(p.minLng ?? -180);
       const maxLng = parseFloat(p.maxLng ?? 180);
+      const zoom   = parseInt(p.zoom) || 13;
+
+      /* Límite dinámico según zoom — más zoom = área chica = más detalle */
+      const limit = zoom >= 16 ? 5000   /* calle/manzana — bbox chico, traer todo */
+                  : zoom >= 14 ? 1000   /* colonia/barrio */
+                  : zoom >= 12 ? 300    /* ciudad */
+                  : zoom >= 10 ? 100    /* región/estado */
+                  : 50;                 /* país/mundo — solo top por likes */
+
+      /* Ordenar por likes desc en zoom lejano para mostrar los más relevantes */
+      const orderByLikes = zoom < 12;
 
       // Limpieza liviana de expirados
       await sql`DELETE FROM flares WHERE expires_at < NOW()`;
 
-      const rows = await sql`
-        SELECT * FROM flares
-        WHERE expires_at > NOW()
-          AND lat BETWEEN ${minLat} AND ${maxLat}
-          AND lng BETWEEN ${minLng} AND ${maxLng}
-        ORDER BY expires_at DESC
-        LIMIT 300
-      `;
+      const rows = orderByLikes
+        ? await sql`
+            SELECT * FROM flares
+            WHERE expires_at > NOW()
+              AND lat BETWEEN ${minLat} AND ${maxLat}
+              AND lng BETWEEN ${minLng} AND ${maxLng}
+            ORDER BY likes DESC, expires_at DESC
+            LIMIT ${limit}
+          `
+        : await sql`
+            SELECT * FROM flares
+            WHERE expires_at > NOW()
+              AND lat BETWEEN ${minLat} AND ${maxLat}
+              AND lng BETWEEN ${minLng} AND ${maxLng}
+            ORDER BY expires_at DESC
+            LIMIT ${limit}
+          `;
 
       return {
         statusCode: 200,
