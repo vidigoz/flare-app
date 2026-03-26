@@ -38,8 +38,8 @@ export const handler = async (event) => {
     };
   }
 
-  if (rows.length > 500) {
-    return err(400, "Maximo 500 flares por carga");
+  if (rows.length > 5000) {
+    return err(400, "Maximo 5000 flares por carga");
   }
 
   try {
