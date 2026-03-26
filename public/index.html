@@ -24,13 +24,27 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height
 .leaflet-tile-pane{filter:hue-rotate(200deg) brightness(.45) saturate(1.3)}
 
 /* HEADER — compacto en móvil */
-header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(8,11,18,.97) 0%,transparent 100%)}
-.logo{display:flex;align-items:center;gap:8px}
-.logo-pin{width:24px;height:24px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
-.logo-pin::after{content:'';position:absolute;width:8px;height:8px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-.logo-text{font-size:18px;font-weight:800;letter-spacing:-.5px}
+header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display:flex;align-items:center;gap:8px;justify-content:space-between;background:linear-gradient(180deg,rgba(8,11,18,.98) 0%,transparent 100%)}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-pin{width:22px;height:22px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
+.logo-pin::after{content:'';position:absolute;width:7px;height:7px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.logo-text{font-size:17px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
 .logo-text span{color:var(--neon)}
-.hdr-r{display:flex;gap:6px;align-items:center}
+
+/* FILTROS EN HEADER */
+.hdr-filters{display:flex;align-items:center;gap:5px;flex:1;overflow-x:auto;scrollbar-width:none;padding:0 4px;min-width:0}
+.hdr-filters::-webkit-scrollbar{display:none}
+.hdr-chip{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:rgba(15,20,32,.8);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px)}
+.hdr-chip:active{transform:scale(.95)}
+.hdr-chip.on{border-color:var(--neon);color:var(--neon);background:rgba(0,245,160,.1)}
+.hdr-cat{padding:5px 8px;font-size:14px}
+.hdr-cat.on{border-color:var(--neon2);background:rgba(245,0,160,.1)}
+.hf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.hf-lbl{display:none}
+@media(min-width:500px){.hf-lbl{display:inline}}
+.hf-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px}
+
+.hdr-r{display:flex;gap:6px;align-items:center;flex-shrink:0}
 .spill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
@@ -344,10 +358,23 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
     <div class="logo-pin"></div>
     <div class="logo-text">Fl<span>are</span></div>
   </div>
+  <div class="hdr-filters">
+    <!-- Vigencia -->
+    <div class="hdr-chip hdr-vig on" id="hf-all" data-vf="all">Todos</div>
+    <div class="hdr-chip hdr-vig" id="hf-nuevo" data-vf="nuevo"><span class="hf-dot" style="background:var(--neon)"></span><span class="hf-lbl">Nuevo</span></div>
+    <div class="hdr-chip hdr-vig" id="hf-maduro" data-vf="maduro"><span class="hf-dot" style="background:var(--amber)"></span><span class="hf-lbl">Maduro</span></div>
+    <div class="hdr-chip hdr-vig" id="hf-exp" data-vf="expirando"><span class="hf-dot" style="background:var(--danger)"></span><span class="hf-lbl">Expirando</span></div>
+    <!-- Separador -->
+    <div class="hf-sep"></div>
+    <!-- Categorías -->
+    <div class="hdr-chip hdr-cat" id="hf-food"     data-cat="food"    >🍽️</div>
+    <div class="hdr-chip hdr-cat" id="hf-sale"     data-cat="sale"    >🏷️</div>
+    <div class="hdr-chip hdr-cat" id="hf-event"    data-cat="event"   >🎉</div>
+    <div class="hdr-chip hdr-cat" id="hf-incident" data-cat="incident">⚡</div>
+    <div class="hdr-chip hdr-cat" id="hf-info"     data-cat="info"    >ℹ️</div>
+  </div>
   <div class="hdr-r">
-    <div class="spill"><div class="dot"></div><span id="cnt">0</span>&nbsp;flares activos</div>
     <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
-    <div id="cluster-toggle" class="on" title="Agrupar flares en clusters"><div class="ct-dot"></div><span id="ct-txt">Clusters</span></div>
     <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
   </div>
 </header>
@@ -1017,25 +1044,44 @@ document.getElementById('bsub').addEventListener('click', function(){
     });
 });
 
-/* ── vigencia filter ── */
+/* ── vigencia + cat filter ── */
 function applyVigFilter(){
-  /* With clustering: remove all, re-add only matching ones */
   clusterGroup.clearLayers();
   Object.values(pins).forEach(function(pin){
     if(!pin.marker) return;
-    var show = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
-    if(show) clusterGroup.addLayer(pin.marker);
+    var vigOk = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
+    var catOk = (activeCat===null) || (pin.cat===activeCat);
+    if(vigOk && catOk) clusterGroup.addLayer(pin.marker);
   });
+
+  /* Sync leyenda lateral */
   ['nuevo','maduro','expirando','all'].forEach(function(f){
     var row = document.getElementById('leg-'+(f==='all'?'all':f));
     if(row) row.classList.toggle('active', vigFilter===f);
   });
+
+  /* Sync filtros panel */
   ['all','nuevo','maduro','exp'].forEach(function(k){
     var el = document.getElementById('pvig-'+k);
     if(!el) return;
     var fval = k==='exp'?'expirando':k;
     el.classList.toggle('on', vigFilter===fval);
   });
+
+  /* Sync chips de vigencia en header */
+  ['all','nuevo','maduro','exp'].forEach(function(k){
+    var el = document.getElementById('hf-'+k);
+    if(!el) return;
+    var fval = k==='exp'?'expirando':k;
+    el.classList.toggle('on', vigFilter===fval);
+  });
+
+  /* Sync chips de categoría en header */
+  ['food','sale','event','incident','info'].forEach(function(c){
+    var el = document.getElementById('hf-'+c);
+    if(el) el.classList.toggle('on', activeCat===c);
+  });
+
   refreshBadge();
   if(panelOpen){ buildChips(); renderPanel(); }
 }
@@ -1106,6 +1152,21 @@ document.getElementById('leg-hdr').addEventListener('click', function(){
 });
 document.querySelectorAll('.pvig-opt').forEach(function(btn){
   btn.addEventListener('click', function(){ vigFilter=btn.dataset.vf; applyVigFilter(); });
+});
+
+/* ── Header filter chips ── */
+document.querySelectorAll('.hdr-vig').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    vigFilter = btn.dataset.vf;
+    applyVigFilter();
+  });
+});
+document.querySelectorAll('.hdr-cat').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var cat = btn.dataset.cat;
+    activeCat = (activeCat === cat) ? null : cat;
+    applyVigFilter();
+  });
 });
 
 /* ── panel buttons ── */
