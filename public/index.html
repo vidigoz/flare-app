@@ -317,7 +317,32 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .mk-r{position:absolute;inset:-4px;border-radius:50% 50% 50% 0;border:1px solid rgba(0,245,160,.3);animation:mp 2s infinite}
 @keyframes mp{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.4);opacity:0}}
 
-/* CLUSTERS — estilo Flare */
+/* RESCUE ANIMATIONS */
+@keyframes pulse-danger{
+  0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px var(--danger))}
+  50%{transform:scale(1.18);filter:drop-shadow(0 0 18px var(--danger))}
+}
+@keyframes revive-flash{
+  0%{filter:drop-shadow(0 0 0px var(--neon));transform:scale(1)}
+  30%{filter:drop-shadow(0 0 24px var(--neon));transform:scale(1.25)}
+  60%{filter:drop-shadow(0 0 12px var(--neon));transform:scale(1.1)}
+  100%{filter:drop-shadow(0 0 4px var(--neon));transform:scale(1)}
+}
+@keyframes pulse-row{
+  0%,100%{box-shadow:none}
+  50%{box-shadow:inset 3px 0 0 var(--danger),0 0 12px rgba(255,64,96,.15)}
+}
+@keyframes revive-row{
+  0%{background:rgba(0,245,160,.0)}
+  30%{background:rgba(0,245,160,.18)}
+  100%{background:rgba(0,245,160,.0)}
+}
+.mk-dying .mk-b{animation:pulse-danger .9s ease-in-out infinite}
+.mk-dying .mk-r{animation:mp 2s infinite,pulse-danger .9s ease-in-out infinite}
+.mk-revived .mk-b{animation:revive-flash .8s ease-out forwards}
+.prow-dying{animation:pulse-row 1.2s ease-in-out infinite}
+.prow-revived{animation:revive-row .8s ease-out forwards}
+.rescue-msg{display:flex;align-items:center;gap:6px;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--danger);line-height:1.5;animation:pulse-row 1.5s ease-in-out infinite}
 .flare-cluster{
   width:48px!important;height:48px!important;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -652,11 +677,16 @@ function reconcilePins(rows) {
     if (pins[row.id]) {
       /* Update existing pin data (likes, expires_at may have changed) */
       var pin = pins[row.id];
+      var wasDying = getPinState(pin) === 'dying';
       pin.expires_at = row.expires_at;
       pin.likes = row.likes;
       pin.liked = hasLiked(row.id);
-      refreshMk(pin);
+      var nowDying = getPinState(pin) === 'dying';
+      /* Detectar revivido: estaba muriendo y ahora no */
+      var revived = wasDying && !nowDying;
+      refreshMk(pin, revived);
       refreshPop(pin);
+      if(revived) notif('💚 "'+pin.title+'" fue salvado!','like');
     } else {
       /* New pin from server */
       var pin = rowToPin(row);
@@ -723,23 +753,33 @@ function startPoll() {
 }
 
 /* ── marker ── */
-function mkHTML(pin, dying){
+function mkHTML(pin, state){
+  /* state: 'dying' | 'revived' | 'normal' */
+  var dying = state === 'dying';
   var c = dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
-  return '<div class="mk"><div class="mk-b" style="border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
+  var cls = 'mk' + (dying ? ' mk-dying' : state === 'revived' ? ' mk-revived' : '');
+  return '<div class="'+cls+'"><div class="mk-b" style="border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
+}
+function getPinState(pin){
+  var r = new Date(pin.expires_at).getTime() - Date.now();
+  return r < 10*60*1000 ? 'dying' : 'normal';
 }
 function makeMarker(pin){
-  var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
-  var ico = L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]});
+  var state = getPinState(pin);
+  var ico = L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[44,52],iconAnchor:[22,52]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
   m.bindPopup(popHTML(pin), {maxWidth:300});
   m.on('popupopen', function(){ refreshPop(pin); });
-  /* Add to clusterGroup (which is always on the map) */
   clusterGroup.addLayer(m);
   return m;
 }
-function refreshMk(pin){
-  var dying = (new Date(pin.expires_at).getTime() - Date.now()) < 10*60*1000;
-  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, dying),iconSize:[44,52],iconAnchor:[22,52]}));
+function refreshMk(pin, revived){
+  var state = revived ? 'revived' : getPinState(pin);
+  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[44,52],iconAnchor:[22,52]}));
+  /* Si revivió, después de la animación volver al estado normal */
+  if(revived){
+    setTimeout(function(){ refreshMk(pin, false); }, 900);
+  }
 }
 
 /* ── popup ── */
@@ -752,6 +792,7 @@ function popHTML(pin){
     +'<div><div class="pop-name">'+esc(pin.title)+'</div><div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
+    +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
     +'<div class="pop-foot">'
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
@@ -767,11 +808,18 @@ function doLike(id){
   var pin = pins[id];
   if(!pin) return;
   if(pin.liked){ notif('Ya le diste ❤️ a este flare 😉','err'); return; }
+  var wasDying = getPinState(pin) === 'dying';
   /* Optimistic UI */
   pin.liked = true;
   pin.likes++;
+  pin.expires_at = new Date(new Date(pin.expires_at).getTime() + 5*60*1000).toISOString();
   markLiked(id);
   notif('❤️ +5 min al flare "'+pin.title+'"','like');
+  /* Detectar revivido instantáneamente */
+  var nowDying = getPinState(pin) === 'dying';
+  var revived = wasDying && !nowDying;
+  refreshMk(pin, revived);
+  if(revived) notif('💚 "'+pin.title+'" fue salvado!','like');
   refreshPop(pin);
   if(panelOpen) renderPanel();
   /* Persist to server */
@@ -851,7 +899,8 @@ function renderPanel(){
     var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[4];
     var isOpen = (pin.id===expandedId);
 
-    html += '<div class="prow'+(isOpen?' open':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
+    var isDying = getPinState(pin) === 'dying';
+    html += '<div class="prow'+(isOpen?' open':'')+(isDying?' prow-dying':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
       +'<div class="prow-hdr">'
       +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
       +'<div class="prow-body">'
@@ -869,6 +918,7 @@ function renderPanel(){
       +'</div>';
 
     var html_detail = '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
+      +(isDying?'<div class="rescue-msg">🔴 Este flare está por expirar — ¡dale like para salvarlo!</div>':'')
       +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
