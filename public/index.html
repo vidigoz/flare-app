@@ -239,7 +239,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .ptag{font-size:9px;font-family:'Space Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--dim);white-space:nowrap}
 .ptag.cat{font-weight:700}
 .ptime{font-size:10px;font-family:'Space Mono',monospace}
-.plikes{font-size:10px;font-family:'Space Mono',monospace;color:var(--neon2)}
+.plikes{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);opacity:.5}
+.plikes.plikes-active{color:var(--neon2);opacity:1;font-weight:700}
+.pop-like-count,.pd-like-count{background:rgba(255,255,255,.12);border-radius:10px;padding:1px 6px;font-size:11px;font-weight:700;font-family:'Space Mono',monospace;min-width:20px;text-align:center;display:inline-block}
 .prow-bar{height:2px;background:var(--border);border-radius:1px;margin-top:6px;overflow:hidden}
 .prow-fill{height:100%;border-radius:1px;transition:width .3s}
 .prow-arrow{font-size:11px;color:var(--dim);transition:transform .2s;flex-shrink:0;margin-left:2px}
@@ -751,7 +753,7 @@ function popHTML(pin){
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
     +'<div class="pop-foot">'
-    +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">❤️ '+(pin.likes>0?'+'+pin.likes:'Me gusta')+'</button>'
+    +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
     +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
     +'</div>'
@@ -858,7 +860,7 @@ function renderPanel(){
       +'<span class="ptag cat" style="border-color:'+cat.color+'55;color:'+cat.color+'">'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span>'
       +'<span class="ptag">'+tl[pin.type]+'</span>'
       +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
-      +(pin.likes>0?'<span class="plikes">❤️ '+pin.likes+'</span>':'')
+      +'<span class="plikes'+(pin.likes>0?' plikes-active':'')+'">❤️ '+pin.likes+'</span>'
       +'</div>'
       +'<div class="prow-bar"><div class="prow-fill" style="width:'+pct+'%;background:'+bc+'"></div></div>'
       +'</div>'
@@ -869,7 +871,10 @@ function renderPanel(){
     var html_detail = '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
       +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
       +'<div class="pd-acts">'
-      +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">❤️ '+(pin.likes>0?'+'+pin.likes+' Me gusta':'Me gusta')+'</button>'
+      +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
+      +(pin.liked?'❤️':'🤍')+' <span class="pd-like-count">'+pin.likes+'</span>'
+      +(pin.liked?' Liked':' Me gusta')
+      +'</button>'
       +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
       +'<button class="pd-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')">🗺️ Cómo llegar</button>'
       +'</div>'
