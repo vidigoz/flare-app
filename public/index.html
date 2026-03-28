@@ -396,6 +396,10 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 @keyframes ob-pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 .ob-progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:16px}
 .ob-progress-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--neon2));border-radius:2px;width:0%;transition:width 4s linear}
+.ob-toast{position:fixed;bottom:max(110px,env(safe-area-inset-bottom));left:16px;background:rgba(15,20,32,.95);border:1px solid rgba(0,245,160,.3);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 20px rgba(0,245,160,.1);backdrop-filter:blur(12px);max-width:220px;pointer-events:all;animation:ob-card-in .4s cubic-bezier(.16,1,.3,1)}
+.ob-toast-txt{font-size:12px;font-family:'Space Mono',monospace;color:var(--text);line-height:1.5;flex:1}
+.ob-toast-txt span{color:var(--neon);font-weight:700}
+.ob-toast .ob-btn-skip{padding:6px 12px;font-size:10px;white-space:nowrap;flex-shrink:0}
 #fab-wrap.ob-spotlight{position:fixed;z-index:9500}
 #fab-wrap.ob-spotlight #fab{animation:ob-fab-pulse 1s ease-in-out infinite;box-shadow:var(--glow),0 0 40px rgba(0,245,160,.5),0 8px 32px rgba(0,0,0,.6)}
 @keyframes ob-fab-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
@@ -605,14 +609,9 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 
   <!-- Step 3: Tu turno -->
   <div class="ob-step" id="ob-3" style="display:none">
-    <div class="ob-card ob-card-sm ob-card-bottom">
-      <div class="ob-step-num">03</div>
-      <div class="ob-title">¿Ves algo interesante? <span>¡Compártelo!</span></div>
-      <div class="ob-desc">Toca el botón de abajo y lanza tu primer flare. Dura 1 hora y la comunidad puede extenderlo con likes.</div>
-      <div class="ob-fab-hint">👇 Toca aquí</div>
-      <div class="ob-actions">
-        <button class="ob-btn-skip" data-step="3">Saltar</button>
-      </div>
+    <div class="ob-toast">
+      <div class="ob-toast-txt">¿Ves algo interesante? <span>¡Compártelo!</span> 👇</div>
+      <button class="ob-btn-skip" data-step="3">Saltar</button>
     </div>
   </div>
 
