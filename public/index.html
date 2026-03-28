@@ -367,6 +367,43 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 #cluster-toggle .ct-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:background .2s}
 #cluster-toggle.on .ct-dot{background:var(--neon)}
 
+/* ══ ONBOARDING ══════════════════════════════════════ */
+#ob-wrap{display:none;position:fixed;inset:0;z-index:9000;pointer-events:none}
+#ob-wrap.active{pointer-events:all}
+.ob-step{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,11,18,.85);backdrop-filter:blur(6px);animation:ob-in .4s cubic-bezier(.16,1,.3,1)}
+@keyframes ob-in{from{opacity:0}to{opacity:1}}
+.ob-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:36px 28px;max-width:360px;width:calc(100% - 40px);text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.8);position:relative;animation:ob-card-in .5s cubic-bezier(.16,1,.3,1)}
+@keyframes ob-card-in{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ob-card-sm{max-width:320px}
+.ob-card-bottom{position:absolute;bottom:max(100px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%)}
+.ob-card-celebrate{border-color:rgba(0,245,160,.3);box-shadow:0 0 60px rgba(0,245,160,.15),0 24px 80px rgba(0,0,0,.8)}
+.ob-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
+.ob-pin{width:28px;height:28px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);flex-shrink:0}
+.ob-logo-txt{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.ob-logo-txt span{color:var(--neon)}
+.ob-step-num{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--neon);background:rgba(0,245,160,.08);border:1px solid rgba(0,245,160,.2);border-radius:6px;padding:3px 10px;display:inline-block;margin-bottom:16px}
+.ob-title{font-size:22px;font-weight:800;line-height:1.2;margin-bottom:12px;letter-spacing:-.5px}
+.ob-title span{color:var(--neon)}
+.ob-desc{font-size:14px;color:#9aa3b8;line-height:1.65;font-family:'Space Mono',monospace;margin-bottom:24px}
+.ob-actions{display:flex;gap:10px;justify-content:center}
+.ob-btn-next{background:var(--neon);color:#000;border:none;border-radius:30px;padding:12px 24px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.ob-btn-next:active{transform:scale(.96)}
+.ob-btn-skip{background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:30px;padding:12px 20px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.ob-btn-skip:active{border-color:var(--text);color:var(--text)}
+.ob-fab-hint{font-size:28px;margin-bottom:16px;animation:ob-bounce .8s ease-in-out infinite}
+@keyframes ob-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+.ob-celebrate-icon{font-size:56px;margin-bottom:12px;animation:ob-pop .5s cubic-bezier(.16,1,.3,1)}
+@keyframes ob-pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.ob-progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:16px}
+.ob-progress-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--neon2));border-radius:2px;width:0%;transition:width 4s linear}
+#fab-wrap.ob-spotlight{position:fixed;z-index:9500}
+#fab-wrap.ob-spotlight #fab{animation:ob-fab-pulse 1s ease-in-out infinite;box-shadow:var(--glow),0 0 40px rgba(0,245,160,.5),0 8px 32px rgba(0,0,0,.6)}
+@keyframes ob-fab-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.ob-pins-pulse .mk-b{animation:pulse-danger .8s ease-in-out infinite alternate!important;filter:brightness(1.4)}
+#ob-confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9100}
+.ob-particle{position:absolute;width:8px;height:8px;border-radius:2px;opacity:0;animation:ob-fall linear forwards}
+@keyframes ob-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
 /* RICH TEXT */
 .rich-link{color:var(--neon);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:3px;font-family:'Space Mono',monospace;font-size:11px;background:rgba(0,245,160,.07);border:1px solid rgba(0,245,160,.2);border-radius:5px;padding:2px 7px;margin:1px 0}
 a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);background:rgba(245,0,160,.07)}
@@ -528,6 +565,64 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
         <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:6px;line-height:1.6">💡 Los links y teléfonos se vuelven clickeables automáticamente</div>
       </div>
       <button class="bsub" id="bsub">⚡ Publicar Flare (1 hora)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="ob-wrap">
+  <!-- Confetti particles -->
+  <div id="ob-confetti"></div>
+
+  <!-- Step 1: Bienvenida -->
+  <div class="ob-step" id="ob-1">
+    <div class="ob-card">
+      <div class="ob-logo">
+        <div class="ob-pin"></div>
+        <div class="ob-logo-txt">Fl<span>are</span></div>
+      </div>
+      <div class="ob-title">Esto es <span>Flare</span>.</div>
+      <div class="ob-desc">Un mapa vivo de lo que está pasando en tu ciudad, ahora mismo.</div>
+      <div class="ob-actions">
+        <button class="ob-btn-skip" data-step="1">Saltar</button>
+        <button class="ob-btn-next" data-next="2">Explorar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Explorar -->
+  <div class="ob-step" id="ob-2" style="display:none">
+    <div class="ob-card ob-card-sm">
+      <div class="ob-step-num">02</div>
+      <div class="ob-title">Mira lo que otros comparten <span>cerca de ti</span>.</div>
+      <div class="ob-desc">Cada pin es un momento real que alguien decidió compartir contigo.</div>
+      <div class="ob-actions">
+        <button class="ob-btn-skip" data-step="2">Saltar</button>
+        <button class="ob-btn-next" data-next="3">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Tu turno -->
+  <div class="ob-step" id="ob-3" style="display:none">
+    <div class="ob-card ob-card-sm ob-card-bottom">
+      <div class="ob-step-num">03</div>
+      <div class="ob-title">¿Ves algo interesante? <span>¡Compártelo!</span></div>
+      <div class="ob-desc">Toca el botón de abajo y lanza tu primer flare. Dura 1 hora y la comunidad puede extenderlo con likes.</div>
+      <div class="ob-fab-hint">👇 Toca aquí</div>
+      <div class="ob-actions">
+        <button class="ob-btn-skip" data-step="3">Saltar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Celebración -->
+  <div class="ob-step" id="ob-4" style="display:none">
+    <div class="ob-card ob-card-celebrate">
+      <div class="ob-celebrate-icon">🔥</div>
+      <div class="ob-title">¡Tu primer flare <span>está en vivo!</span></div>
+      <div class="ob-desc">Otros pueden verlo y darle like para mantenerlo vivo más tiempo.</div>
+      <div class="ob-progress-bar"><div class="ob-progress-fill" id="ob-progress-fill"></div></div>
     </div>
   </div>
 </div>
@@ -1095,6 +1190,10 @@ document.getElementById('bsub').addEventListener('click', function(){
       map.flyTo([pin.lat, pin.lng], 15, {duration:1});
       notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');
       applyVigFilter();
+      /* Onboarding: celebrar primer flare */
+      if(obCurrentStep===3 || !localStorage.getItem('flare_first_published')){
+        obCelebrate();
+      }
     })
     .catch(function(e) {
       btn.disabled = false;
@@ -1396,7 +1495,125 @@ loadLeaflet(function(){
     }
 
     startPoll();
+
+    /* Iniciar onboarding si es primera visita */
+    if(!localStorage.getItem('flare_onboarding_complete')){
+      setTimeout(obStart, 800);
+    }
   });
+});
+
+/* ══ ONBOARDING JS ══════════════════════════════════════ */
+var obCurrentStep = 0;
+
+function obStart(){
+  obCurrentStep = 1;
+  var wrap = document.getElementById('ob-wrap');
+  wrap.style.display = 'block';
+  setTimeout(function(){ wrap.classList.add('active'); }, 10);
+  obShowStep(1);
+}
+
+function obShowStep(n){
+  /* Ocultar todos los steps */
+  [1,2,3,4].forEach(function(i){
+    var el = document.getElementById('ob-'+i);
+    if(el) el.style.display = 'none';
+  });
+  var step = document.getElementById('ob-'+n);
+  if(!step) return;
+  step.style.display = 'flex';
+
+  /* Efectos por paso */
+  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
+  document.querySelectorAll('.mk').forEach(function(el){ el.classList.remove('ob-pins-pulse'); });
+
+  if(n===2){
+    /* Pulsar todos los pins visibles */
+    setTimeout(function(){
+      document.querySelectorAll('.mk-b').forEach(function(el){ el.style.animation='pulse-danger .8s ease-in-out infinite alternate'; });
+    }, 300);
+  }
+  if(n===3){
+    /* Spotlight en FAB + overlay transparente en zona del fab */
+    document.getElementById('ob-wrap').style.pointerEvents = 'none';
+    document.getElementById('fab-wrap').classList.add('ob-spotlight');
+    /* Reactivar pointer events solo en la card */
+    step.style.pointerEvents = 'all';
+    step.querySelector('.ob-actions').style.pointerEvents = 'all';
+  }
+}
+
+function obComplete(){
+  localStorage.setItem('flare_onboarding_complete','1');
+  var wrap = document.getElementById('ob-wrap');
+  wrap.classList.remove('active');
+  wrap.style.pointerEvents = 'none';
+  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
+  document.querySelectorAll('.mk-b').forEach(function(el){ el.style.animation=''; });
+  setTimeout(function(){ wrap.style.display='none'; }, 400);
+}
+
+function obSkip(){
+  obComplete();
+}
+
+function obCelebrate(){
+  if(localStorage.getItem('flare_first_published')) return;
+  localStorage.setItem('flare_first_published','1');
+  obCurrentStep = 4;
+
+  /* Restaurar estado */
+  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
+  document.querySelectorAll('.mk-b').forEach(function(el){ el.style.animation=''; });
+  document.getElementById('ob-wrap').style.pointerEvents = 'all';
+
+  obShowStep(4);
+  obLaunchConfetti();
+
+  /* Barra de progreso */
+  setTimeout(function(){
+    var fill = document.getElementById('ob-progress-fill');
+    if(fill) fill.style.width = '100%';
+  }, 100);
+
+  /* Auto cerrar en 4s */
+  setTimeout(function(){ obComplete(); }, 4200);
+}
+
+function obLaunchConfetti(){
+  var container = document.getElementById('ob-confetti');
+  var colors = ['#00f5a0','#f500a0','#ffb300','#ff4060','#ffffff','#00c8ff'];
+  for(var i=0; i<80; i++){
+    (function(i){
+      setTimeout(function(){
+        var p = document.createElement('div');
+        p.className = 'ob-particle';
+        p.style.left = Math.random()*100+'vw';
+        p.style.background = colors[Math.floor(Math.random()*colors.length)];
+        p.style.width = (6+Math.random()*8)+'px';
+        p.style.height = (6+Math.random()*8)+'px';
+        p.style.borderRadius = Math.random()>.5 ? '50%' : '2px';
+        p.style.animationDuration = (1.5+Math.random()*2)+'s';
+        p.style.animationDelay = '0s';
+        container.appendChild(p);
+        setTimeout(function(){ p.remove(); }, 3500);
+      }, i*30);
+    })(i);
+  }
+}
+
+/* Listeners de botones de onboarding */
+document.addEventListener('click', function(e){
+  var next = e.target.closest('.ob-btn-next');
+  if(next){
+    var n = parseInt(next.dataset.next);
+    obCurrentStep = n;
+    obShowStep(n);
+    return;
+  }
+  var skip = e.target.closest('.ob-btn-skip');
+  if(skip){ obSkip(); return; }
 });
 </script>
 </body>
