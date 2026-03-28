@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flare — El mapa que respira</title>
+<title>Flare — ¿Que esta pasando?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -610,7 +610,7 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
   <!-- Step 3: Tu turno -->
   <div class="ob-step" id="ob-3" style="display:none">
     <div class="ob-toast">
-      <div class="ob-toast-txt">¿Tienes algo que dar a conocer? <span>¡Compártelo con un flare!</span> 👇</div>
+      <div class="ob-toast-txt">Pon algo en el Mapa. <span>¡Pruebalo!</span> 👇</div>
       <button class="ob-btn-skip" data-step="3">Saltar</button>
     </div>
   </div>
@@ -1115,6 +1115,8 @@ function setPending(lat, lng){
   document.getElementById('ctxt').textContent = lat.toFixed(5)+', '+lng.toFixed(5);
 }
 function openModal(){
+  /* Quitar spotlight del onboarding al abrir el modal */
+  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
   buildCG(); buildEG();
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
