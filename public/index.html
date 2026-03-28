@@ -1535,12 +1535,20 @@ function obShowStep(n){
     }, 300);
   }
   if(n===3){
-    /* Spotlight en FAB + overlay transparente en zona del fab */
+    /* El overlay completo deja pasar todos los toques */
     document.getElementById('ob-wrap').style.pointerEvents = 'none';
+    /* Solo el FAB y la card son interactivos */
     document.getElementById('fab-wrap').classList.add('ob-spotlight');
-    /* Reactivar pointer events solo en la card */
-    step.style.pointerEvents = 'all';
-    step.querySelector('.ob-actions').style.pointerEvents = 'all';
+    step.style.pointerEvents = 'none';
+    step.style.background = 'transparent';
+    step.style.backdropFilter = 'none';
+    var card = step.querySelector('.ob-card');
+    if(card) card.style.pointerEvents = 'all';
+  } else {
+    /* Resto de pasos: overlay normal bloqueante */
+    document.getElementById('ob-wrap').style.pointerEvents = 'all';
+    var allSteps = document.querySelectorAll('.ob-step');
+    allSteps.forEach(function(s){ s.style.background=''; s.style.backdropFilter=''; s.style.pointerEvents=''; });
   }
 }
 
