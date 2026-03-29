@@ -220,12 +220,12 @@ function startPoll() {
 }
 
 /* ── marker ── */
-function mkHTML(pin, state){
+function mkHTML(pin, state, born){
   /* state: 'dying' | 'revived' | 'normal' */
   var dying = state === 'dying';
   var c = dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
-  var cls = 'mk' + (dying ? ' mk-dying' : state === 'revived' ? ' mk-revived' : '');
-  return '<div class="'+cls+'"><div class="mk-b" style="border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
+  var cls = 'mk' + (dying ? ' mk-dying' : state === 'revived' ? ' mk-revived' : '') + (born ? ' mk-born' : '');
+  return '<div class="'+cls+'"><div class="mk-b" style="color:'+c+';border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
 }
 function getPinState(pin){
   var r = new Date(pin.expires_at).getTime() - Date.now();
@@ -233,11 +233,15 @@ function getPinState(pin){
 }
 function makeMarker(pin){
   var state = getPinState(pin);
-  var ico = L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[44,52],iconAnchor:[22,52]});
+  var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[44,52],iconAnchor:[22,52]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
   m.bindPopup(popHTML(pin), {maxWidth:300});
   m.on('popupopen', function(){ refreshPop(pin); });
   clusterGroup.addLayer(m);
+  setTimeout(function(){
+    var el = m.getElement();
+    if(el){ var mk = el.querySelector('.mk'); if(mk) mk.classList.remove('mk-born'); }
+  }, 1000);
   return m;
 }
 function refreshMk(pin, revived){
