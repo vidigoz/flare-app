@@ -995,4 +995,3 @@ document.addEventListener('click', function(e){
   var skip = e.target.closest('.ob-btn-skip');
   if(skip){ obSkip(); return; }
 });
-</script>
