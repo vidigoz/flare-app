@@ -20,6 +20,8 @@ var map;
 var pollTimer = null;
 var clusterGroup = null;   /* L.markerClusterGroup instance */
 var clusterEnabled = true; /* toggle state */
+var myLocMarker = null;    /* marcador de posición del usuario */
+var myWatchId = null;      /* watchPosition id */
 
 /* ── User identity (anónima por dispositivo) ── */
 var MY_ID = localStorage.getItem('flare_uid');
@@ -429,6 +431,37 @@ function flyToPin(id){
       pin.marker.openPopup();
     }
   }, 900);
+}
+
+/* ── My location marker ── */
+function myLocHTML(){
+  return '<div class="my-loc"><div class="my-loc-pulse"></div><div class="my-loc-dot"></div></div>';
+}
+
+function setMyLocation(lat, lng){
+  if(!map) return;
+  if(!myLocMarker){
+    var ico = L.divIcon({className:'', html:myLocHTML(), iconSize:[40,40], iconAnchor:[20,20]});
+    myLocMarker = L.marker([lat, lng], {icon:ico, zIndexOffset:500, interactive:false});
+    myLocMarker.addTo(map);
+  } else {
+    myLocMarker.setLatLng([lat, lng]);
+  }
+}
+
+function startMyLocation(flyTo){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(function(pos){
+    setMyLocation(pos.coords.latitude, pos.coords.longitude);
+    if(flyTo) map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, {duration:1.2});
+    document.getElementById('loc-btn').classList.add('tracking');
+  }, function(){}, {enableHighAccuracy:true, timeout:8000});
+
+  if(myWatchId === null){
+    myWatchId = navigator.geolocation.watchPosition(function(pos){
+      setMyLocation(pos.coords.latitude, pos.coords.longitude);
+    }, function(){}, {enableHighAccuracy:true, maximumAge:5000});
+  }
 }
 
 /* ── FAB menu ── */
@@ -856,15 +889,11 @@ loadLeaflet(function(){
       openModal();
     });
 
-    if(navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        function(pos) {
-          map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, {duration:1.5});
-        },
-        function() {},
-        {enableHighAccuracy:false, timeout:5000}
-      );
-    }
+    startMyLocation(true);
+
+    document.getElementById('loc-btn').addEventListener('click', function(){
+      startMyLocation(true);
+    });
 
     startPoll();
 
