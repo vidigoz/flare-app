@@ -862,7 +862,7 @@ loadLeaflet(function(){
   loadMarkerCluster(function(){
     map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''}).addTo(map);
-    L.control.zoom({position:'bottomright'}).addTo(map);
+    /*L.control.zoom({position:'bottomright'}).addTo(map);*/
 
     /* Init cluster group */
     if(L.MarkerClusterGroup){
