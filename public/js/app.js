@@ -421,6 +421,7 @@ function renderPanel(){
 function flyToPin(id){
   var pin = pins[id];
   if(!pin) return;
+  closePanel();
   map.flyTo([pin.lat, pin.lng], 17, {duration:.8});
   setTimeout(function(){
     /* If clustering is on, the marker may be inside a cluster — zoomToShowLayer reveals it */
