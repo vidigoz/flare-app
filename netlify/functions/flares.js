@@ -110,6 +110,23 @@ export const handler = async (event) => {
         return err(400, "El contenido no cumple con las normas de la comunidad.");
       }
 
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(() => resolve({ timedOut: true }), 2000)
+      );
+      const moderationPromise = fetch("https://api.openai.com/v1/moderations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({ input: textoARevisar }),
+      }).then((r) => r.json());
+
+      const modResult = await Promise.race([moderationPromise, timeoutPromise]);
+      if (!modResult.timedOut && modResult.results?.[0]?.flagged) {
+        return err(400, "El contenido no cumple con las normas de la comunidad.");
+      }
+
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
       const durMin = Math.min(Math.max(parseInt(d.dur_min) || 60, 1), 720);
       const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
