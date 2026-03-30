@@ -35,17 +35,8 @@ export const handler = async (event) => {
       /* Ordenar por likes desc en zoom lejano para mostrar los más relevantes */
       const orderByLikes = zoom < 12;
 
-      // Activar reserva de tiempo: si expiró pero tiene bonus, extender
-      await sql`
-        UPDATE flares
-        SET expires_at   = NOW() + (bonus_seconds * INTERVAL '1 second'),
-            bonus_seconds = 0
-        WHERE expires_at < NOW()
-          AND bonus_seconds > 0
-      `;
-
-      // Limpieza liviana de expirados (solo los que no tienen bonus pendiente)
-      await sql`DELETE FROM flares WHERE expires_at < NOW() AND bonus_seconds = 0`;
+      // Limpieza liviana de expirados
+      await sql`DELETE FROM flares WHERE expires_at < NOW()`;
 
       const rows = orderByLikes
         ? await sql`
@@ -109,7 +100,7 @@ export const handler = async (event) => {
       const [row] = await sql`
         INSERT INTO flares (
           id, lat, lng, title, emoji, cat, cat_lbl, cat_color, cat_icon,
-          type, body_text, image_url, video_url, expires_at, base_expires_at
+          type, body_text, image_url, video_url, expires_at
         ) VALUES (
           ${id},
           ${lat},
@@ -124,7 +115,6 @@ export const handler = async (event) => {
           ${d.body_text || null},
           ${d.image_url || null},
           ${d.video_url || null},
-          ${expiresAt},
           ${expiresAt}
         )
         RETURNING *

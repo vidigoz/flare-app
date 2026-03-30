@@ -189,8 +189,6 @@ function rowToPin(row) {
     video: row.video_url || null,
     createdAt: new Date(row.created_at).getTime(),
     expires_at: row.expires_at,
-    base_expires_at: row.base_expires_at || row.expires_at,
-    bonus_seconds: row.bonus_seconds || 0,
     likes: row.likes,
     liked: hasLiked(row.id),
     marker: null,
@@ -252,13 +250,9 @@ function refreshMk(pin, revived){
 }
 
 /* ── popup ── */
-function isBasePeriod(pin){ return Date.now() < new Date(pin.base_expires_at).getTime(); }
-function bonusMinutes(pin){ return Math.round(pin.bonus_seconds / 60); }
-
 function popHTML(pin){
   var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
   var pct = Math.min(100, (r/MAX)*100);
-  var inBase = isBasePeriod(pin);
   var c = pin.catColor || 'var(--neon)';
   return '<div class="pop">'
     +'<div class="pop-hdr"><div class="pop-emo" style="background:'+c+'18;border-color:'+c+'44">'+pin.emoji+'</div>'
@@ -266,13 +260,12 @@ function popHTML(pin){
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
     +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
-    +(inBase && pin.bonus_seconds > 0 ? '<div class="pop-bonus">⚡ +'+bonusMinutes(pin)+' min en reserva</div>' : '')
     +'<div class="pop-foot">'
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
     +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
     +'</div>'
-    +(inBase ? '<div class="pop-like-hint">❤️ cada like suma +5 min en reserva</div>' : '')
+    +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
     +'</div>';
 }
 function refreshPop(pin){ if(pin.marker&&pin.marker.isPopupOpen()) pin.marker.setPopupContent(popHTML(pin)); }
@@ -286,14 +279,9 @@ function doLike(id){
   /* Optimistic UI */
   pin.liked = true;
   pin.likes++;
-  var inBase = isBasePeriod(pin);
-  if(inBase){
-    pin.bonus_seconds += 300;
-    notif('⚡ +5 min en reserva para "'+pin.title+'"','like');
-  } else {
-    notif('❤️ Like dado a "'+pin.title+'"','like');
-  }
+  pin.expires_at = new Date(new Date(pin.expires_at).getTime() + 5*60*1000).toISOString();
   markLiked(id);
+  notif('❤️ +5 min al flare "'+pin.title+'"','like');
   /* Detectar revivido instantáneamente */
   var nowDying = getPinState(pin) === 'dying';
   var revived = wasDying && !nowDying;
@@ -305,7 +293,6 @@ function doLike(id){
   postLike(id).then(function(data) {
     pin.expires_at = data.expires_at;
     pin.likes = data.likes;
-    pin.bonus_seconds = data.bonus_seconds || 0;
     refreshPop(pin);
   }).catch(function(e) {
     console.error('like error:', e);
@@ -381,8 +368,6 @@ function renderPanel(){
     var isOpen = (pin.id===expandedId);
 
     var isDying = getPinState(pin) === 'dying';
-    var pinInBase = isBasePeriod(pin);
-    var pinBonus = bonusMinutes(pin);
     html += '<div class="prow'+(isOpen?' open':'')+(isDying?' prow-dying':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
       +'<div class="prow-hdr">'
       +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
@@ -393,7 +378,6 @@ function renderPanel(){
       +'<span class="ptag">'+tl[pin.type]+'</span>'
       +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
       +'<span class="plikes'+(pin.likes>0?' plikes-active':'')+'">❤️ '+pin.likes+'</span>'
-      +(pinInBase && pinBonus > 0 ? '<span class="ptag pbonus">⚡ +'+pinBonus+'min</span>' : '')
       +'</div>'
       +'<div class="prow-bar"><div class="prow-fill" style="width:'+pct+'%;background:'+bc+'"></div></div>'
       +'</div>'
@@ -403,7 +387,6 @@ function renderPanel(){
 
     var html_detail = '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
       +(isDying?'<div class="rescue-msg">🔴 Este flare está por expirar — ¡dale like para salvarlo!</div>':'')
-      +(pinInBase && pinBonus > 0 ? '<div class="pd-bonus">⚡ +'+pinBonus+' min en reserva</div>' : '')
       +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
