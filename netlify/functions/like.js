@@ -1,5 +1,5 @@
 // netlify/functions/like.js
-// PATCH /api/like?id=xxx  → suma +1 like y +5 min al flare
+// PATCH /api/like?id=xxx  → like con mecánica de reserva de tiempo
 
 import { neon } from "@neondatabase/serverless";
 
@@ -18,20 +18,19 @@ export const handler = async (event) => {
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-    const BONUS_MS = 5 * 60 * 1000; // +5 min en ms
-    const MAX_EXTRA = 12 * 60 * 60 * 1000; // máximo 12h desde creación
-
+    // Si estamos en período base (NOW < base_expires_at): sumar +5 min a bonus_seconds
+    // Si estamos en período extensión (NOW >= base_expires_at): solo sumar like, sin bonus
     const [row] = await sql`
       UPDATE flares
       SET
-        likes      = likes + 1,
-        expires_at = LEAST(
-          expires_at + (${BONUS_MS} * INTERVAL '1 millisecond'),
-          created_at + (${MAX_EXTRA} * INTERVAL '1 millisecond')
-        )
+        likes         = likes + 1,
+        bonus_seconds = CASE
+          WHEN NOW() < base_expires_at THEN bonus_seconds + 300
+          ELSE bonus_seconds
+        END
       WHERE id = ${id}
         AND expires_at > NOW()
-      RETURNING id, likes, expires_at
+      RETURNING id, likes, expires_at, bonus_seconds, base_expires_at
     `;
 
     if (!row) return err(404, "Flare no encontrado o ya expiró");

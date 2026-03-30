@@ -296,6 +296,7 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .pop-like.liked{border-color:var(--neon2);background:rgba(245,0,160,.14);color:var(--neon2)}
 .tbdg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 7px;font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);display:flex;align-items:center;gap:3px;white-space:nowrap}
 .pop-like-hint{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);text-align:center;padding:6px 0 2px;opacity:.8}
+.pop-bonus{font-size:11px;font-family:'Space Mono',monospace;color:#ff9500;background:rgba(255,149,0,.1);border:1px solid rgba(255,149,0,.3);border-radius:6px;padding:5px 8px;margin-bottom:8px;font-weight:700}
 .pop-gmaps{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 
 /* MARKER */
@@ -371,6 +372,8 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .prow-dying{animation:pulse-row 1.2s ease-in-out infinite}
 .prow-revived{animation:revive-row .8s ease-out forwards}
 .rescue-msg{display:flex;align-items:center;gap:6px;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--danger);line-height:1.5;animation:pulse-row 1.5s ease-in-out infinite}
+.pd-bonus{font-size:11px;font-family:'Space Mono',monospace;color:#ff9500;background:rgba(255,149,0,.1);border:1px solid rgba(255,149,0,.3);border-radius:6px;padding:5px 8px;margin-bottom:8px;font-weight:700}
+.pbonus{font-size:10px;font-family:'Space Mono',monospace;color:#ff9500;font-weight:700;opacity:1}
 .flare-cluster{
   width:48px!important;height:48px!important;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
