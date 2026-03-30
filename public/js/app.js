@@ -486,6 +486,16 @@ document.addEventListener('click', function(){
 document.getElementById('fab-gps').addEventListener('click', function(e){
   e.stopPropagation();
   fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare';
+
+  /* Si ya tenemos la posición cacheada del watchPosition, usarla directo */
+  if(myLocMarker){
+    var ll = myLocMarker.getLatLng();
+    map.flyTo([ll.lat, ll.lng], 16, {duration:1});
+    setPending(ll.lat, ll.lng);
+    openModal();
+    return;
+  }
+
   fab.textContent='⏳ Obteniendo...'; fab.disabled=true;
   if(!navigator.geolocation){ notif('Tu browser no soporta geolocalización','err'); fab.textContent='＋ Crear Flare'; fab.disabled=false; return; }
   navigator.geolocation.getCurrentPosition(
