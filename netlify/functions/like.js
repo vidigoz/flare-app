@@ -18,17 +18,11 @@ export const handler = async (event) => {
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-    const BONUS_MS = 5 * 60 * 1000; // +5 min en ms
-    const MAX_EXTRA = 12 * 60 * 60 * 1000; // máximo 12h desde creación
-
     const [row] = await sql`
       UPDATE flares
       SET
         likes      = likes + 1,
-        expires_at = LEAST(
-          expires_at + (${BONUS_MS} * INTERVAL '1 millisecond'),
-          created_at + (${MAX_EXTRA} * INTERVAL '1 millisecond')
-        )
+        expires_at = expires_at + INTERVAL '5 minutes'
       WHERE id = ${id}
         AND expires_at > NOW()
       RETURNING id, likes, expires_at

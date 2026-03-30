@@ -6,7 +6,7 @@ var CATS = [
   {id:'food', lbl:'Comida y Bebida', icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
 ];
 
-var MAX = 12*60*60*1000;
+var MAX = 60*60*1000; /* referencia visual de la barra de progreso: 1 hora base */
 var pins = {}; /* id → pin object (includes marker) */
 var placing = false, pending = null;
 var selCat = CATS[0], selEmoji = CATS[0].emojis[0], selType = 'text', imgData = null;
@@ -779,7 +779,7 @@ function loadManual() {
   <div class="m-sec-hdr"><div class="m-sec-num">01</div><div class="m-sec-title">¿Qué es <span class="hl">Flare</span>?</div></div>
   <div class="m-card"><span class="m-card-icon">📍</span><div class="m-card-title">Mapa en Vivo</div><div class="m-card-desc">Coloca marcadores geolocalizados en cualquier parte del mapa con un solo toque.</div></div>
   <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Eventos Efímeros</div><div class="m-card-desc">Cada flare dura 1 hora y desaparece solo. El mapa siempre está fresco y relevante.</div></div>
-  <div class="m-card"><span class="m-card-icon">❤️</span><div class="m-card-title">Likes = Tiempo</div><div class="m-card-desc">Cada like suma +5 minutos de vida al flare. Máximo 12 horas en total.</div></div>
+  <div class="m-card"><span class="m-card-icon">❤️</span><div class="m-card-title">Likes = Tiempo</div><div class="m-card-desc">Cada like suma +5 minutos de vida al flare. Sin límite — si la comunidad lo mantiene vivo, sigue en el mapa.</div></div>
   <div class="m-card"><span class="m-card-icon">🔗</span><div class="m-card-title">Links y Teléfonos</div><div class="m-card-desc">Los números y URLs en el texto se convierten automáticamente en hipervínculos para llamar o visitar.</div></div>
 </div>
 
@@ -806,7 +806,7 @@ function loadManual() {
   <div class="m-vig-row" style="background:rgba(0,245,160,.04)"><div class="m-vig-dot" style="background:var(--neon);box-shadow:0 0 6px var(--neon)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--neon)">Nuevo</div><div class="m-vig-desc">Flare recién publicado. Brilla en verde.</div></div><div class="m-vig-time" style="color:var(--neon)">&gt; 30 min</div></div>
   <div class="m-vig-row" style="background:rgba(255,179,0,.04)"><div class="m-vig-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--amber)">Maduro</div><div class="m-vig-desc">Flare en su fase media.</div></div><div class="m-vig-time" style="color:var(--amber)">10–30 min</div></div>
   <div class="m-vig-row" style="background:rgba(255,64,96,.04)"><div class="m-vig-dot" style="background:var(--danger);box-shadow:0 0 6px var(--danger)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--danger)">Expirando</div><div class="m-vig-desc">Últimos minutos. Marcador rojo.</div></div><div class="m-vig-time" style="color:var(--danger)">&lt; 10 min</div></div>
-  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">❤️</div><div class="m-callout-body"><strong>Likes extienden la vida</strong><br>Cada ❤️ suma <strong style="color:var(--neon)">+5 minutos</strong>. Máximo <strong style="color:var(--amber)">12 horas</strong>. Solo un like por flare.</div></div>
+  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">❤️</div><div class="m-callout-body"><strong>Likes extienden la vida</strong><br>Cada ❤️ suma <strong style="color:var(--neon)">+5 minutos</strong>. Sin límite de tiempo — si la comunidad lo mantiene vivo, sigue en el mapa. Solo un like por flare.</div></div>
 </div>
 
 <div class="m-section" id="m-panel">
