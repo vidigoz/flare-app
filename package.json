@@ -4,6 +4,7 @@
   "description": "Flare — El mapa que respira",
   "type": "module",
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4"
+    "@neondatabase/serverless": "^0.10.4",
+    "leo-profanity": "^1.6.0"
   }
 }

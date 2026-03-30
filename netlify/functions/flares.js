@@ -4,6 +4,9 @@
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
+import leoProfanity from "leo-profanity";
+leoProfanity.loadDictionary("es");
+leoProfanity.add(leoProfanity.getDictionary("en"));
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -100,6 +103,11 @@ export const handler = async (event) => {
       }
       if (String(d.title).length > 100) {
         return err(400, "titulo demasiado largo");
+      }
+
+      const textoARevisar = `${String(d.title)} ${String(d.body_text || "")}`;
+      if (leoProfanity.check(textoARevisar)) {
+        return err(400, "El contenido no cumple con las normas de la comunidad.");
       }
 
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);

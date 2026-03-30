@@ -621,6 +621,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       btn.disabled = false;
       btn.textContent = '⚡ Publicar Flare (1 hora)';
       if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
+      else if(e.status === 400 && e.message.includes('normas')) notif('Contenido no permitido. Revisa el texto de tu flare.','err');
       else notif('Error al publicar: '+e.message,'err');
     });
 });
