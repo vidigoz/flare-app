@@ -3,11 +3,7 @@
    ══════════════════════════════════════════════════════ */
 
 var CATS = [
-  {id:'food',     lbl:'Comida y\nBebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
-  {id:'sale',     lbl:'Ventas',            icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦']},
-  {id:'event',    lbl:'Evento',            icon:'🎉', color:'#a000f5', emojis:['🎉','🎵','🎸','🎭','🎪','🏆','🎤','🎬','🎊','🕺']},
-  {id:'incident', lbl:'Suceso',            icon:'⚡', color:'#ff4060', emojis:['⚡','🚨','🚧','💥','🔥','🚑','⚠️','🌊','🌪️','🆘']},
-  {id:'info',     lbl:'Información',       icon:'ℹ️', color:'#00f5a0', emojis:['ℹ️','📍','💡','📢','🗺️','🔍','📌','📣','🌐','✅']},
+  {id:'food', lbl:'Comida y Bebida', icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
 ];
 
 var MAX = 12*60*60*1000;
@@ -323,6 +319,7 @@ function buildChips(){
   var vp = filteredVisible();
   var box = document.getElementById('chips');
   box.innerHTML = '';
+  if(CATS.length <= 1) return;
   var all = document.createElement('div');
   all.className = 'chip' + (activeCat === null ? ' on' : '');
   if(activeCat === null){ all.style.background='var(--neon)'; all.style.borderColor='var(--neon)'; }
@@ -542,7 +539,7 @@ document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
 function buildCG(){
-  var g = document.getElementById('cgrid'); g.innerHTML='';
+  var g = document.getElementById('cgrid'); if(!g) return; g.innerHTML='';
   CATS.forEach(function(cat){
     var b = document.createElement('div'); b.className='cbtn'+(cat.id===selCat.id?' sel':''); b.style.setProperty('--cc', cat.color);
     b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
