@@ -2,6 +2,7 @@
 // PATCH /api/like?id=xxx  → suma +1 like y +5 min al flare
 
 import { neon } from "@neondatabase/serverless";
+import { rateLimit } from "./_utils/rateLimit.js";
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -14,6 +15,16 @@ export const handler = async (event) => {
 
   const id = (event.queryStringParameters || {}).id;
   if (!id) return err(400, "id requerido");
+
+  const ip = (event.headers["x-forwarded-for"] || "").split(",")[0].trim()
+    || event.headers["client-ip"]
+    || "unknown";
+  const rl = rateLimit(ip, "like", 30, 60 * 60 * 1000);
+  if (!rl.allowed) return {
+    statusCode: 429,
+    headers: { ...cors(), "Retry-After": String(rl.retryAfter) },
+    body: JSON.stringify({ error: `Demasiadas solicitudes. Intenta en ${rl.retryAfter} segundos.`, retryAfter: rl.retryAfter }),
+  };
 
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);

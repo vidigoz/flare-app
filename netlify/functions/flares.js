@@ -3,6 +3,7 @@
 // POST /api/flares                                    → crear nuevo flare
 
 import { neon } from "@neondatabase/serverless";
+import { rateLimit } from "./_utils/rateLimit.js";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -13,11 +14,17 @@ export const handler = async (event) => {
     return { statusCode: 204, headers: cors() };
   }
 
+  const ip = (event.headers["x-forwarded-for"] || "").split(",")[0].trim()
+    || event.headers["client-ip"]
+    || "unknown";
+
   try {
     const sql = getDb();
 
     // ── GET ──────────────────────────────────────────
     if (event.httpMethod === "GET") {
+      const rl = rateLimit(ip, "get_flares", 60, 60 * 1000);
+      if (!rl.allowed) return tooMany(rl.retryAfter);
       const p = event.queryStringParameters || {};
       const minLat = parseFloat(p.minLat ?? -90);
       const maxLat = parseFloat(p.maxLat ?? 90);
@@ -65,6 +72,8 @@ export const handler = async (event) => {
 
     // ── POST ─────────────────────────────────────────
     if (event.httpMethod === "POST") {
+      const rl = rateLimit(ip, "create_flare", 5, 60 * 60 * 1000);
+      if (!rl.allowed) return tooMany(rl.retryAfter);
       let d;
       try {
         d = JSON.parse(event.body || "{}");
@@ -147,5 +156,13 @@ function err(code, msg) {
     statusCode: code,
     headers: cors(),
     body: JSON.stringify({ error: msg }),
+  };
+}
+
+function tooMany(retryAfter) {
+  return {
+    statusCode: 429,
+    headers: { ...cors(), "Retry-After": String(retryAfter) },
+    body: JSON.stringify({ error: `Demasiadas solicitudes. Intenta en ${retryAfter} segundos.`, retryAfter }),
   };
 }

@@ -99,7 +99,11 @@ function refreshBadge(){ document.getElementById('pbadge').textContent = filtere
 
 function apiFetch(url, opts) {
   return fetch(url, opts).then(function(r) {
-    if (!r.ok) return r.json().then(function(d){ throw new Error(d.error || r.statusText); });
+    if (!r.ok) return r.json().then(function(d){
+      var e = new Error(d.error || r.statusText);
+      e.status = r.status;
+      throw e;
+    });
     return r.json();
   });
 }
@@ -295,7 +299,8 @@ function doLike(id){
     pin.likes = data.likes;
     refreshPop(pin);
   }).catch(function(e) {
-    console.error('like error:', e);
+    if(e.status === 429) notif('Demasiados likes seguidos. Espera un momento 😅','err');
+    else console.error('like error:', e);
   });
 }
 
@@ -615,7 +620,8 @@ document.getElementById('bsub').addEventListener('click', function(){
     .catch(function(e) {
       btn.disabled = false;
       btn.textContent = '⚡ Publicar Flare (1 hora)';
-      notif('Error al publicar: '+e.message,'err');
+      if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
+      else notif('Error al publicar: '+e.message,'err');
     });
 });
 
