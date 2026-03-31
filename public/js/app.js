@@ -268,6 +268,7 @@ function popHTML(pin){
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
     +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
+    +'<button class="pop-report" onclick="openReport(\''+pin.id+'\')" title="Reportar">🚩</button>'
     +'</div>'
     +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
     +'</div>';
@@ -301,6 +302,53 @@ function doLike(id){
   }).catch(function(e) {
     if(e.status === 429) notif('Demasiados likes seguidos. Espera un momento 😅','err');
     else console.error('like error:', e);
+  });
+}
+
+/* ── report ── */
+function openReport(id) {
+  var overlay = document.getElementById('report-overlay');
+  overlay.style.display = 'flex';
+
+  function closeReport() {
+    overlay.style.display = 'none';
+    overlay.removeEventListener('click', onOverlay);
+    document.getElementById('report-cancel').removeEventListener('click', onCancel);
+    overlay.querySelectorAll('.report-reason-btn').forEach(function(btn) {
+      btn.removeEventListener('click', btn._reportHandler);
+    });
+  }
+
+  function onOverlay(e) { if(e.target === overlay) closeReport(); }
+  function onCancel() { closeReport(); }
+  overlay.addEventListener('click', onOverlay);
+  document.getElementById('report-cancel').addEventListener('click', onCancel);
+
+  overlay.querySelectorAll('.report-reason-btn').forEach(function(btn) {
+    btn._reportHandler = function() {
+      var reason = btn.dataset.reason;
+      closeReport();
+      fetch('/api/report?id=' + encodeURIComponent(id), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason }),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if(data.error) { notif('Error al reportar','err'); return; }
+        notif('Reporte enviado. Gracias 🙏');
+        if(data.hidden) {
+          notif('Este flare fue ocultado por la comunidad.');
+          if(pins[id]) {
+            clusterGroup.removeLayer(pins[id].marker);
+            delete pins[id];
+          }
+          if(panelOpen) renderPanel();
+        }
+      })
+      .catch(function() { notif('Error al reportar','err'); });
+    };
+    btn.addEventListener('click', btn._reportHandler);
   });
 }
 
@@ -400,6 +448,7 @@ function renderPanel(){
       +'</button>'
       +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
       +'<button class="pd-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')">🗺️ Cómo llegar</button>'
+      +'<button class="pd-report" data-report-id="'+pin.id+'">🚩 Reportar</button>'
       +'</div>'
       +'</div>';
     html += html_detail;
@@ -411,6 +460,8 @@ function renderPanel(){
     if(lb){ e.stopPropagation(); doLike(lb.dataset.lid); return; }
     var fb = e.target.closest('[data-fid]');
     if(fb){ e.stopPropagation(); flyToPin(fb.dataset.fid); return; }
+    var rb = e.target.closest('[data-report-id]');
+    if(rb){ e.stopPropagation(); openReport(rb.dataset.reportId); return; }
     var ico = e.target.closest('.prow-ico');
     if(ico){ var prow=ico.closest('.prow'); if(prow){ e.stopPropagation(); flyToPin(prow.dataset.pid); return; } }
     var row = e.target.closest('.prow');

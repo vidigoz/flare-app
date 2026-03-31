@@ -453,3 +453,17 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 #loc-btn{position:fixed;bottom:max(96px,calc(env(safe-area-inset-bottom) + 72px));right:12px;z-index:1000;width:40px;height:40px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:all .2s;-webkit-tap-highlight-color:transparent}
 #loc-btn:active{background:var(--surface2);border-color:rgba(77,144,254,.6)}
 #loc-btn.tracking{border-color:rgba(77,144,254,.8);background:rgba(77,144,254,.12)}
+
+/* REPORT MODAL */
+.report-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.report-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 18px;display:flex;flex-direction:column;gap:10px;min-width:260px;max-width:320px;box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 30px rgba(0,245,160,.07)}
+.report-modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+.report-reason-btn{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;text-align:left;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.report-reason-btn:active{border-color:var(--neon);color:var(--neon)}
+.report-cancel-btn{background:transparent;border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--dim);cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;margin-top:2px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.report-cancel-btn:active{border-color:var(--danger);color:var(--danger)}
+/* Report buttons in popup and panel */
+.pop-report{background:transparent;border:none;padding:7px 8px;font-size:14px;cursor:pointer;color:var(--dim);opacity:.6;display:flex;align-items:center;justify-content:center;transition:opacity .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.pop-report:active{opacity:1}
+.pd-report{background:transparent;border:none;padding:6px 8px;font-size:12px;cursor:pointer;color:var(--dim);opacity:.55;font-family:'Space Mono',monospace;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+.pd-report:active{opacity:1}

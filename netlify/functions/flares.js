@@ -52,6 +52,7 @@ export const handler = async (event) => {
         ? await sql`
             SELECT * FROM flares
             WHERE expires_at > NOW()
+              AND hidden = FALSE
               AND lat BETWEEN ${minLat} AND ${maxLat}
               AND lng BETWEEN ${minLng} AND ${maxLng}
             ORDER BY likes DESC, expires_at DESC
@@ -60,6 +61,7 @@ export const handler = async (event) => {
         : await sql`
             SELECT * FROM flares
             WHERE expires_at > NOW()
+              AND hidden = FALSE
               AND lat BETWEEN ${minLat} AND ${maxLat}
               AND lng BETWEEN ${minLng} AND ${maxLng}
             ORDER BY expires_at DESC
