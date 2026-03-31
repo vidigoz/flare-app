@@ -10,7 +10,7 @@ var MAX = 60*60*1000; /* referencia visual de la barra de progreso: 1 hora base 
 var pins = {}; /* id → pin object (includes marker) */
 var placing = false, pending = null;
 var selCat = CATS[0], selEmoji = CATS[0].emojis[0], selType = 'text', imgData = null;
-var panelOpen = false, activeCat = null, expandedId = null;
+var panelOpen = false, activeCat = null, expandedId = null, lastRowToggle = 0;
 var vigFilter = 'all';
 var map;
 var pollTimer = null;
@@ -477,6 +477,9 @@ function renderPanel(){
     if(ico){ var prow=ico.closest('.prow'); if(prow){ e.stopPropagation(); flyToPin(prow.dataset.pid); return; } }
     var row = e.target.closest('.prow');
     if(row){
+      var now = Date.now();
+      if(now - lastRowToggle < 350) return;
+      lastRowToggle = now;
       var pid = row.dataset.pid;
       expandedId = (expandedId===pid) ? null : pid;
       renderPanel();
