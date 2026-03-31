@@ -269,7 +269,7 @@ function popHTML(pin){
   var c = pin.catColor || 'var(--neon)';
   return '<div class="pop">'
     +'<div class="pop-hdr"><div class="pop-emo" style="background:'+c+'18;border-color:'+c+'44">'+pin.emoji+'</div>'
-    +'<div><div class="pop-name">'+esc(pin.title)+'</div><div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
+    +'<div>'+(pin.bizName?'<div class="pop-biz">🏪 '+esc(pin.bizName)+'</div>':'')+'<div class="pop-name">'+esc(pin.title)+'</div><div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
     +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
@@ -434,6 +434,7 @@ function renderPanel(){
       +'<div class="prow-hdr">'
       +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
       +'<div class="prow-body">'
+      +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
       +'<div class="prow-name">'+esc(pin.title)+'</div>'
       +'<div class="prow-tags">'
       +'<span class="ptag cat" style="border-color:'+cat.color+'55;color:'+cat.color+'">'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span>'
@@ -449,6 +450,7 @@ function renderPanel(){
 
     var html_detail = '<div class="pdetail" id="pdet-'+pin.id+'" style="border-left-color:'+cat.color+'">'
       +(isDying?'<div class="rescue-msg">🔴 Este flare está por expirar — ¡dale like para salvarlo!</div>':'')
+      +(pin.bizName?'<div class="pd-biz">🏪 '+esc(pin.bizName)+'</div>':'')
       +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
