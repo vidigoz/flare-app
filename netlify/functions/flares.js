@@ -136,7 +136,7 @@ export const handler = async (event) => {
       const [row] = await sql`
         INSERT INTO flares (
           id, lat, lng, title, emoji, cat, cat_lbl, cat_color, cat_icon,
-          type, body_text, image_url, video_url, expires_at
+          type, body_text, biz_name, image_url, video_url, expires_at
         ) VALUES (
           ${id},
           ${lat},
@@ -148,7 +148,8 @@ export const handler = async (event) => {
           ${d.cat_color || "#00f5a0"},
           ${d.cat_icon || "ℹ️"},
           ${d.type || "text"},
-          ${d.biz_name ? `🏪 ${d.biz_name}${d.body_text ? '\n' + d.body_text : ''}` : d.body_text || null},
+          ${d.body_text || null},
+          ${d.biz_name || null},
           ${d.image_url || null},
           ${d.video_url || null},
           ${expiresAt}

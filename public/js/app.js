@@ -177,9 +177,9 @@ function reconcilePins(rows) {
 }
 
 function rowToPin(row) {
-  var bizName = null;
+  var bizName = row.biz_name || null;
   var bodyText = row.body_text || '';
-  if(bodyText.startsWith('🏪 ')){
+  if(!bizName && bodyText.startsWith('🏪 ')){
     var lines = bodyText.split('\n');
     bizName = lines[0].replace('🏪 ', '');
     bodyText = lines.slice(1).join('\n');

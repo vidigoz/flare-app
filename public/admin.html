@@ -160,10 +160,10 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
     <div class="sec-title">Carga Masiva de <span>Flares</span></div>
     <div class="sec-sub">Sube un CSV para crear multiples flares de una vez. Maximo 500 por carga.</div>
 
-    <div class="csv-example">lat,lng,title,cat,emoji,description,dur_min
-32.5210,-116.9430,Tacos El Guero,food,,Carne asada y adobada,120
-32.5180,-116.9380,Reten Km 3,incident,,Alcoholimetro ambos lados,60
-32.5250,-116.9410,Feria del Empleo,event,,CV en mano al parque,180</div>
+    <div class="csv-example">lat,lng,title,cat,emoji,description,dur_min,biz_name
+32.5210,-116.9430,Tacos El Güero,food,🌮,Carne asada,120,Taquería El Güero
+32.5180,-116.9380,Reten Km 3,incident,,Alcoholimetro ambos lados,60,
+32.5250,-116.9410,Feria del Empleo,event,,CV en mano al parque,180,</div>
 
     <div class="field-list">
       <div class="field"><span class="field-name">lat</span><span class="field-req">requerido</span><span class="field-desc">Latitud (ej: 32.5210)</span></div>
@@ -173,6 +173,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
       <div class="field"><span class="field-name">emoji</span><span class="field-opt">opcional</span><span class="field-desc">Emoji del pin (dejar vacio usa el icono de la categoria)</span></div>
       <div class="field"><span class="field-name">description</span><span class="field-opt">opcional</span><span class="field-desc">Texto descriptivo</span></div>
       <div class="field"><span class="field-name">dur_min</span><span class="field-opt">opcional</span><span class="field-desc">Duracion en minutos (default: 60, max: 720)</span></div>
+      <div class="field"><span class="field-name">biz_name</span><span class="field-opt">opcional</span><span class="field-desc">Nombre del negocio (ej: Tacos El Güero)</span></div>
     </div>
 
     <div class="dropzone" id="dropzone">

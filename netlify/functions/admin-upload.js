@@ -70,11 +70,12 @@ export const handler = async (event) => {
 
         const cat = CATS[row.cat] ? row.cat : "info";
         const catData = CATS[cat];
+        const bizName = row.biz_name || row.bizname || row.biz || null;
 
         const [inserted_row] = await sql`
           INSERT INTO flares (
             id, lat, lng, title, emoji, cat, cat_lbl, cat_color, cat_icon,
-            type, body_text, expires_at
+            type, body_text, biz_name, expires_at
           ) VALUES (
             ${id}, ${lat}, ${lng},
             ${String(row.title).trim().slice(0, 100)},
@@ -82,6 +83,7 @@ export const handler = async (event) => {
             ${cat}, ${catData.lbl}, ${catData.color}, ${catData.icon},
             'text',
             ${row.description || null},
+            ${bizName || null},
             ${expiresAt}
           )
           RETURNING id, title, lat, lng, expires_at
