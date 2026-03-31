@@ -811,17 +811,6 @@ document.getElementById('toggle-labels').addEventListener('click', function(){
   document.getElementById('map').classList.toggle('labels-hidden');
 });
 
-map.on('zoomend', function(){
-  var zoom = map.getZoom();
-  var mapEl = document.getElementById('map');
-  var btn = document.getElementById('toggle-labels');
-  if(zoom < 14){
-    mapEl.classList.add('labels-hidden');
-  } else if(btn.classList.contains('on')){
-    mapEl.classList.remove('labels-hidden');
-  }
-});
-
 /* ── panel buttons ── */
 document.getElementById('pbtn').addEventListener('click', function(){ togglePanel(); });
 document.getElementById('pov').addEventListener('click', function(){ closePanel(); });
@@ -978,6 +967,15 @@ loadLeaflet(function(){
       if(panelOpen){ buildChips(); renderPanel(); }
       clearTimeout(pollTimer);
       pollTimer = setTimeout(fetchFlares, 500);
+      /* Auto-ocultar etiquetas en zoom lejano */
+      var zoom = map.getZoom();
+      var mapEl = document.getElementById('map');
+      var lblBtn = document.getElementById('toggle-labels');
+      if(zoom < 14){
+        mapEl.classList.add('labels-hidden');
+      } else if(lblBtn.classList.contains('on')){
+        mapEl.classList.remove('labels-hidden');
+      }
     });
 
     map.on('click', function(e){
