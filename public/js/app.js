@@ -426,7 +426,7 @@ function renderPanel(){
     var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
     var pct = Math.min(100, (r/MAX)*100);
     var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
-    var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[4];
+    var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[0];
     var isOpen = (pin.id===expandedId);
 
     var isDying = getPinState(pin) === 'dying';
