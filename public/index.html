@@ -30,6 +30,7 @@
     <div class="hf-sep"></div>
     <!-- Clusters -->
     <div class="hdr-chip on" id="cluster-toggle" title="Agrupar flares en clusters">⬡ <span class="hf-lbl">Clusters</span></div>
+    <div class="hdr-chip on" id="toggle-labels" title="Mostrar/ocultar nombres">🏷 <span class="hf-lbl">Nombres</span></div>
   </div>
   <div class="hdr-r">
     <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
@@ -140,6 +141,10 @@
       <div class="fg">
         <label>Ícono</label>
         <div class="egrid" id="egrid"></div>
+      </div>
+      <div class="fg">
+        <label>Nombre del negocio <span style="color:var(--dim);font-weight:400">(opcional)</span></label>
+        <input type="text" id="f-biz" placeholder="Ej: Tacos El Güero" maxlength="40">
       </div>
       <div class="fg">
         <label>Título</label>

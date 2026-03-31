@@ -148,7 +148,7 @@ export const handler = async (event) => {
           ${d.cat_color || "#00f5a0"},
           ${d.cat_icon || "ℹ️"},
           ${d.type || "text"},
-          ${d.body_text || null},
+          ${d.biz_name ? `🏪 ${d.biz_name}${d.body_text ? '\n' + d.body_text : ''}` : d.body_text || null},
           ${d.image_url || null},
           ${d.video_url || null},
           ${expiresAt}

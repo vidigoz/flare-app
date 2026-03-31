@@ -177,6 +177,13 @@ function reconcilePins(rows) {
 }
 
 function rowToPin(row) {
+  var bizName = null;
+  var bodyText = row.body_text || '';
+  if(bodyText.startsWith('🏪 ')){
+    var lines = bodyText.split('\n');
+    bizName = lines[0].replace('🏪 ', '');
+    bodyText = lines.slice(1).join('\n');
+  }
   return {
     id: row.id,
     lat: parseFloat(row.lat),
@@ -188,7 +195,8 @@ function rowToPin(row) {
     catColor: row.cat_color,
     catIcon: row.cat_icon,
     type: row.type,
-    text: row.body_text || '',
+    text: bodyText,
+    bizName: bizName,
     image: row.image_url || null,
     video: row.video_url || null,
     createdAt: new Date(row.created_at).getTime(),
@@ -225,7 +233,8 @@ function mkHTML(pin, state, born){
   var dying = state === 'dying';
   var c = dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
   var cls = 'mk' + (dying ? ' mk-dying' : state === 'revived' ? ' mk-revived' : '') + (born ? ' mk-born' : '');
-  return '<div class="'+cls+'"><div class="mk-b" style="color:'+c+';border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
+  var label = pin.bizName ? '<div class="mk-label">'+esc(pin.bizName)+'</div>' : '';
+  return '<div class="'+cls+'">'+label+'<div class="mk-b" style="color:'+c+';border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
 }
 function getPinState(pin){
   var r = new Date(pin.expires_at).getTime() - Date.now();
@@ -596,6 +605,7 @@ function openModal(){
 function closeModal(){
   document.getElementById('mover').classList.remove('on');
   pending=null;
+  document.getElementById('f-biz').value='';
   document.getElementById('f-ttl').value='';
   document.getElementById('f-txt').value='';
   stopPlace();
@@ -647,6 +657,7 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_color: selCat.color,
     cat_icon: selCat.icon,
     type: 'text',
+    biz_name: document.getElementById('f-biz').value.trim() || null,
     body_text: document.getElementById('f-txt').value.trim() || null,
     dur_min: 60,
   };
@@ -791,6 +802,23 @@ document.getElementById('cluster-toggle').addEventListener('click', function(){
     clusterGroup = L.layerGroup().addTo(map);
     applyVigFilter();
     notif('📍 Flares individuales');
+  }
+});
+
+/* ── Labels toggle ── */
+document.getElementById('toggle-labels').addEventListener('click', function(){
+  this.classList.toggle('on');
+  document.getElementById('map').classList.toggle('labels-hidden');
+});
+
+map.on('zoomend', function(){
+  var zoom = map.getZoom();
+  var mapEl = document.getElementById('map');
+  var btn = document.getElementById('toggle-labels');
+  if(zoom < 14){
+    mapEl.classList.add('labels-hidden');
+  } else if(btn.classList.contains('on')){
+    mapEl.classList.remove('labels-hidden');
   }
 });
 

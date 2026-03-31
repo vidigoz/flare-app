@@ -467,3 +467,7 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .pop-report:active{opacity:1;color:var(--danger)}
 .pd-report{background:transparent;border:none;padding:6px 8px;font-size:12px;cursor:pointer;color:var(--dim);opacity:.55;font-family:'Space Mono',monospace;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .pd-report:active{opacity:1}
+
+/* BUSINESS NAME LABEL ON MARKER */
+.mk-label{background:rgba(8,11,18,.85);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:2px 7px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;margin-bottom:3px;backdrop-filter:blur(4px);pointer-events:none;transition:opacity .2s;text-align:center}
+.labels-hidden .mk-label{display:none}
