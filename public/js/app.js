@@ -268,8 +268,8 @@ function popHTML(pin){
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
     +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
-    +'<button class="pop-report" onclick="openReport(\''+pin.id+'\')" title="Reportar">🚩</button>'
     +'</div>'
+    +'<button class="pop-report" onclick="openReport(\''+pin.id+'\')">🚩 Reportar este flare</button>'
     +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
     +'</div>';
 }
