@@ -4,9 +4,6 @@
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
-import leoProfanity from "leo-profanity";
-leoProfanity.loadDictionary("es");
-leoProfanity.add(leoProfanity.getDictionary("en"));
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -108,9 +105,6 @@ export const handler = async (event) => {
       }
 
       const textoARevisar = `${String(d.title)} ${String(d.body_text || "")}`;
-      if (leoProfanity.check(textoARevisar)) {
-        return err(400, "El contenido no cumple con las normas de la comunidad.");
-      }
 
       const timeoutPromise = new Promise((resolve) =>
         setTimeout(() => resolve({ timedOut: true }), 2000)
