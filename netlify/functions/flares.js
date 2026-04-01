@@ -4,6 +4,7 @@
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
+import { ensureAdminSettingsTable, getAdminSetting } from "./_utils/settings.js";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -74,8 +75,11 @@ export const handler = async (event) => {
 
     // ── POST ─────────────────────────────────────────
     if (event.httpMethod === "POST") {
-      const rl = rateLimit(ip, "create_flare", 5, 60 * 60 * 1000);
-      if (!rl.allowed) return tooMany(rl.retryAfter);
+      const enforceLimit = await shouldEnforceNonRegisterFlareLimit(sql);
+      if (enforceLimit) {
+        const rl = rateLimit(ip, "create_flare", 5, 60 * 60 * 1000);
+        if (!rl.allowed) return tooMany(rl.retryAfter);
+      }
       let d;
       try {
         d = JSON.parse(event.body || "{}");
@@ -200,4 +204,17 @@ function tooMany(retryAfter) {
     headers: { ...cors(), "Retry-After": String(retryAfter) },
     body: JSON.stringify({ error: `Demasiadas solicitudes. Intenta en ${retryAfter} segundos.`, retryAfter }),
   };
+}
+
+const NON_REGISTER_LIMIT_KEY = "non_register_flare_limit";
+
+async function shouldEnforceNonRegisterFlareLimit(sql) {
+  try {
+    await ensureAdminSettingsTable(sql);
+    const value = await getAdminSetting(sql, NON_REGISTER_LIMIT_KEY, "on");
+    return value !== "off";
+  } catch (e) {
+    console.error("No se pudo leer la configuracion de limite:", e);
+    return true;
+  }
 }

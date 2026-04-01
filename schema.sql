@@ -28,6 +28,12 @@ CREATE INDEX IF NOT EXISTS flares_geo ON flares (lat, lng);
 -- Índice de expiración para limpiar rápido
 CREATE INDEX IF NOT EXISTS flares_expires ON flares (expires_at);
 
+CREATE TABLE IF NOT EXISTS admin_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ================================================
 --  Función que borra flares expirados automáticamente
 --  (opcional — también lo hace la Function de Node)

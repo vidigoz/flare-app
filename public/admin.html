@@ -54,6 +54,17 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 .field-req{background:rgba(0,245,160,.1);border:1px solid rgba(0,245,160,.25);color:var(--neon);border-radius:4px;padding:1px 5px;font-size:9px;white-space:nowrap;flex-shrink:0}
 .field-opt{background:var(--surface2);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;font-size:9px;white-space:nowrap;flex-shrink:0}
 .field-desc{color:var(--dim);line-height:1.5}
+.toggle-row{align-items:center}
+.cfg-toggle-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.toggle-btn{width:52px;height:28px;border-radius:999px;border:1px solid var(--border);background:var(--border);position:relative;cursor:pointer;transition:all .2s;outline:none}
+.toggle-btn::after{content:'';position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s,background .2s}
+.toggle-btn[data-enabled="true"]{background:var(--neon);border-color:var(--neon)}
+.toggle-btn[data-enabled="true"]::after{transform:translateX(24px);background:#000}
+.toggle-status{font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:var(--dim)}
+.toggle-status.active{color:var(--neon)}
+.toggle-status.inactive{color:var(--danger)}
+.toggle-status.error{color:#ff8a00}
+.toggle-status.loading{color:var(--dim)}
 .dropzone{border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
 .dropzone:hover,.dropzone.drag{border-color:var(--neon);background:rgba(0,245,160,.04)}
 .dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -151,9 +162,25 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
       <div class="stat"><div class="stat-val" id="stat-total">-</div><div class="stat-lbl">Flares activos</div></div>
       <div class="stat"><div class="stat-val" id="stat-food">-</div><div class="stat-lbl">Comida</div></div>
       <div class="stat"><div class="stat-val" id="stat-event">-</div><div class="stat-lbl">Eventos</div></div>
-      <div class="stat"><div class="stat-val" id="stat-incident">-</div><div class="stat-lbl">Sucesos</div></div>
+    <div class="stat"><div class="stat-val" id="stat-incident">-</div><div class="stat-lbl">Sucesos</div></div>
+  </div>
+  <button class="btn-purge" id="purge-btn">Borrar todos los flares activos</button>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">Non Register <span>Flare Limit</span></div>
+    <div class="sec-sub">Activa este control para limitar flares desde una misma IP cuando no hay sesion. Desactivalo temporalmente mientras haces pruebas de carga.</div>
+    <div class="cfg-row toggle-row">
+      <div class="cfg-icon">🚦</div>
+      <div class="cfg-body">
+        <div class="cfg-label">Non Register Flare Limit</div>
+        <div class="cfg-desc">Cuando está activo se aplica el limite de 5 flares por hora por IP que no esta autentificada. Si lo apagas puedes crear flares sin restricciones.</div>
+      </div>
+      <div class="cfg-toggle-wrap">
+        <button id="limit-toggle" class="toggle-btn" type="button" data-enabled="true" disabled></button>
+        <div class="toggle-status" id="limit-toggle-status">Cargando...</div>
+      </div>
     </div>
-    <button class="btn-purge" id="purge-btn">Borrar todos los flares activos</button>
   </div>
 
   <div class="section">
@@ -206,6 +233,8 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 <script>
 var adminKey = '';
 var parsedRows = [];
+var limitToggle = document.getElementById('limit-toggle');
+var limitStatus = document.getElementById('limit-toggle-status');
 
 document.getElementById('login-btn').addEventListener('click', tryLogin);
 document.getElementById('pwd-inp').addEventListener('keydown', function(e){ if(e.key==='Enter') tryLogin(); });
@@ -245,6 +274,7 @@ function tryLogin() {
       document.getElementById('login-wrap').style.display = 'none';
       document.getElementById('admin-wrap').style.display = 'block';
       loadStats();
+      loadLimitState();
     } else {
       document.getElementById('login-err').textContent = 'Error del servidor (' + r.status + '). Intenta de nuevo.';
       document.getElementById('login-err').style.display = 'block';
@@ -266,6 +296,10 @@ document.getElementById('logout-btn').addEventListener('click', function() {
   document.getElementById('pwd-inp').value = '';
 });
 
+if (limitToggle) {
+  limitToggle.addEventListener('click', toggleLimit);
+}
+
 function loadStats() {
   fetch('/api/flares?minLat=-90&maxLat=90&minLng=-180&maxLng=180')
     .then(function(r){ return r.json(); })
@@ -276,6 +310,77 @@ function loadStats() {
       document.getElementById('stat-incident').textContent = rows.filter(function(r){ return r.cat==='incident'; }).length;
     })
     .catch(function(){ document.getElementById('stat-total').textContent = '?'; });
+}
+
+function setLimitStatusText(text, variant) {
+  if (!limitStatus) return;
+  limitStatus.textContent = text;
+  limitStatus.classList.remove('active', 'inactive', 'error', 'loading');
+  if (variant) limitStatus.classList.add(variant);
+}
+
+function setLimitToggleState(enabled) {
+  if (!limitToggle) return;
+  limitToggle.dataset.enabled = enabled ? 'true' : 'false';
+  limitToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+  limitToggle.disabled = false;
+  setLimitStatusText(enabled ? 'Activo' : 'Desactivado', enabled ? 'active' : 'inactive');
+}
+
+function setLimitLoading(text) {
+  if (!limitToggle) return;
+  limitToggle.disabled = true;
+  setLimitStatusText(text || 'Cargando...', 'loading');
+}
+
+function setLimitError(text) {
+  if (!limitToggle) return;
+  limitToggle.disabled = true;
+  setLimitStatusText(text || 'Error', 'error');
+}
+
+function loadLimitState() {
+  if (!limitToggle) return;
+  setLimitLoading('Cargando...');
+  fetch('/api/admin/config', {
+    headers: { 'x-admin-key': adminKey },
+  })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Status ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      setLimitToggleState(!!d.enabled);
+    })
+    .catch(function(err) {
+      console.error('load limit', err);
+      setLimitError('No se pudo cargar');
+    });
+}
+
+function toggleLimit() {
+  if (!limitToggle || limitToggle.disabled || !adminKey) return;
+  var next = limitToggle.dataset.enabled !== 'true';
+  setLimitLoading('Guardando...');
+  fetch('/api/admin/config', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': adminKey,
+    },
+    body: JSON.stringify({ enabled: next }),
+  })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Status ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      setLimitToggleState(!!d.enabled);
+    })
+    .catch(function(err) {
+      console.error('toggle limit', err);
+      setLimitError('No se pudo guardar');
+    });
 }
 
 document.getElementById('purge-btn').addEventListener('click', function() {
