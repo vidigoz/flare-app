@@ -106,20 +106,33 @@ export const handler = async (event) => {
 
       const textoARevisar = `${String(d.title)} ${String(d.body_text || "")}`;
 
-      const timeoutPromise = new Promise((resolve) =>
-        setTimeout(() => resolve({ timedOut: true }), 2000)
+      const moderationResponse = await fetch(
+        "https://api.openai.com/v1/moderations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({ input: textoARevisar }),
+        }
       );
-      const moderationPromise = fetch("https://api.openai.com/v1/moderations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({ input: textoARevisar }),
-      }).then((r) => r.json());
 
-      const modResult = await Promise.race([moderationPromise, timeoutPromise]);
-      if (!modResult.timedOut && modResult.results?.[0]?.flagged) {
+      if (!moderationResponse.ok) {
+        const text = await moderationResponse.text();
+        console.error(
+          "Moderación OpenAI respondió con error:",
+          moderationResponse.status,
+          text
+        );
+        return err(
+          502,
+          "No fue posible verificar el contenido. Intenta nuevamente."
+        );
+      }
+
+      const modResult = await moderationResponse.json();
+      if (modResult.results?.[0]?.flagged) {
         return err(400, "El contenido no cumple con las normas de la comunidad.");
       }
 
