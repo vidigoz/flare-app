@@ -5,6 +5,7 @@
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
 import { ensureAdminSettingsTable, getAdminSetting } from "./_utils/settings.js";
+import { containsProfanity } from "./_utils/profanityList.js";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -110,6 +111,12 @@ export const handler = async (event) => {
 
       const textoARevisar = `${String(d.title)} ${String(d.body_text || "")}`;
 
+      // Capa 1: lista local — siempre bloquea
+      if (containsProfanity(textoARevisar)) {
+        return err(400, "El contenido no cumple con las normas de la comunidad.");
+      }
+
+      // Capa 2: OpenAI — con timeout, si falla se permite publicar
       try {
         const timeoutPromise = new Promise((resolve) =>
           setTimeout(() => resolve({ timedOut: true }), 2000)
