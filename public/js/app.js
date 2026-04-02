@@ -720,6 +720,7 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_icon: selCat.icon,
     type: 'text',
     uid: MY_ID,
+    local_date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
     biz_name: document.getElementById('f-biz').value.trim() || null,
     body_text: document.getElementById('f-txt').value.trim() || null,
     dur_min: 60,

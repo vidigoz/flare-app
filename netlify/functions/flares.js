@@ -90,7 +90,11 @@ export const handler = async (event) => {
 
       // Límite diario por uid de dispositivo
       const uid = d.uid || null;
-      const daily = await checkDailyLimit(sql, uid);
+      // Usar la fecha local del cliente (YYYY-MM-DD) para que el reset sea a medianoche local
+      const localDate = /^\d{4}-\d{2}-\d{2}$/.test(d.local_date || "")
+        ? d.local_date
+        : new Date().toISOString().slice(0, 10); // fallback a fecha UTC
+      const daily = await checkDailyLimit(sql, uid, localDate);
       if (!daily.allowed) {
         return {
           statusCode: 429,
@@ -177,7 +181,7 @@ export const handler = async (event) => {
         RETURNING *
       `;
 
-      await incrementDailyCount(sql, uid);
+      await incrementDailyCount(sql, uid, localDate);
 
       return {
         statusCode: 201,
@@ -232,7 +236,7 @@ async function shouldEnforceNonRegisterFlareLimit(sql) {
   }
 }
 
-async function checkDailyLimit(sql, uid) {
+async function checkDailyLimit(sql, uid, localDate) {
   /* Retorna { allowed: bool, count: number } */
   try {
     await ensureAdminSettingsTable(sql);
@@ -251,7 +255,7 @@ async function checkDailyLimit(sql, uid) {
 
     const rows = await sql`
       SELECT count FROM user_daily_flares
-      WHERE uid = ${uid} AND day = CURRENT_DATE
+      WHERE uid = ${uid} AND day = ${localDate}::date
     `;
     const count = rows[0]?.count ?? 0;
     return { allowed: count < DAILY_LIMIT_MAX, count };
@@ -261,12 +265,12 @@ async function checkDailyLimit(sql, uid) {
   }
 }
 
-async function incrementDailyCount(sql, uid) {
+async function incrementDailyCount(sql, uid, localDate) {
   if (!uid) return;
   try {
     await sql`
       INSERT INTO user_daily_flares (uid, day, count)
-      VALUES (${uid}, CURRENT_DATE, 1)
+      VALUES (${uid}, ${localDate}::date, 1)
       ON CONFLICT (uid, day) DO UPDATE SET count = user_daily_flares.count + 1
     `;
   } catch (e) {
