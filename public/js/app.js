@@ -616,6 +616,13 @@ function openModal(){
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
 }
+function openDailyLimitModal(){
+  document.getElementById('daily-limit-modal').style.display = 'flex';
+}
+function closeDailyLimitModal(){
+  document.getElementById('daily-limit-modal').style.display = 'none';
+}
+
 function closeModal(){
   document.getElementById('mover').classList.remove('on');
   pending=null;
@@ -671,6 +678,7 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_color: selCat.color,
     cat_icon: selCat.icon,
     type: 'text',
+    uid: MY_ID,
     biz_name: document.getElementById('f-biz').value.trim() || null,
     body_text: document.getElementById('f-txt').value.trim() || null,
     dur_min: 60,
@@ -696,7 +704,8 @@ document.getElementById('bsub').addEventListener('click', function(){
     .catch(function(e) {
       btn.disabled = false;
       btn.textContent = '⚡ Publicar Flare (1 hora)';
-      if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
+      if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
+      else if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
       else if(e.status === 400 && e.message.includes('normas')) notif('Contenido no permitido. Revisa el texto de tu flare.','err');
       else notif('Error al publicar: '+e.message,'err');
     });

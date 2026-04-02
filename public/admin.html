@@ -168,17 +168,28 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
   </div>
 
   <div class="section">
-    <div class="sec-title">Non Register <span>Flare Limit</span></div>
-    <div class="sec-sub">Activa este control para limitar flares desde una misma IP cuando no hay sesion. Desactivalo temporalmente mientras haces pruebas de carga.</div>
+    <div class="sec-title">Límites de <span>Publicación</span></div>
+    <div class="sec-sub">Controla las restricciones para publicar flares. Desactívalas temporalmente durante pruebas.</div>
     <div class="cfg-row toggle-row">
       <div class="cfg-icon">🚦</div>
       <div class="cfg-body">
         <div class="cfg-label">Non Register Flare Limit</div>
-        <div class="cfg-desc">Cuando está activo se aplica el limite de 5 flares por hora por IP que no esta autentificada. Si lo apagas puedes crear flares sin restricciones.</div>
+        <div class="cfg-desc">Limita a 5 flares por hora por IP. Desactívalo durante pruebas de carga.</div>
       </div>
       <div class="cfg-toggle-wrap">
         <button id="limit-toggle" class="toggle-btn" type="button" data-enabled="true" disabled></button>
         <div class="toggle-status" id="limit-toggle-status">Cargando...</div>
+      </div>
+    </div>
+    <div class="cfg-row toggle-row" style="margin-top:8px">
+      <div class="cfg-icon">📅</div>
+      <div class="cfg-body">
+        <div class="cfg-label">Daily Flare Limit</div>
+        <div class="cfg-desc">Limita a 3 flares por día por dispositivo. Se reinicia a medianoche.</div>
+      </div>
+      <div class="cfg-toggle-wrap">
+        <button id="daily-limit-toggle" class="toggle-btn" type="button" data-enabled="true" disabled></button>
+        <div class="toggle-status" id="daily-limit-toggle-status">Cargando...</div>
       </div>
     </div>
   </div>
@@ -296,9 +307,11 @@ document.getElementById('logout-btn').addEventListener('click', function() {
   document.getElementById('pwd-inp').value = '';
 });
 
-if (limitToggle) {
-  limitToggle.addEventListener('click', toggleLimit);
-}
+var dailyLimitToggle = document.getElementById('daily-limit-toggle');
+var dailyLimitStatus = document.getElementById('daily-limit-toggle-status');
+
+if (limitToggle) limitToggle.addEventListener('click', function(){ toggleConfigKey('non_register_flare_limit', limitToggle, limitStatus); });
+if (dailyLimitToggle) dailyLimitToggle.addEventListener('click', function(){ toggleConfigKey('daily_flare_limit', dailyLimitToggle, dailyLimitStatus); });
 
 function loadStats() {
   fetch('/api/flares?minLat=-90&maxLat=90&minLng=-180&maxLng=180')
@@ -312,75 +325,56 @@ function loadStats() {
     .catch(function(){ document.getElementById('stat-total').textContent = '?'; });
 }
 
-function setLimitStatusText(text, variant) {
-  if (!limitStatus) return;
-  limitStatus.textContent = text;
-  limitStatus.classList.remove('active', 'inactive', 'error', 'loading');
-  if (variant) limitStatus.classList.add(variant);
+function setToggleState(btn, statusEl, enabled) {
+  if (!btn) return;
+  btn.dataset.enabled = enabled ? 'true' : 'false';
+  btn.disabled = false;
+  if (statusEl) {
+    statusEl.textContent = enabled ? 'Activo' : 'Desactivado';
+    statusEl.className = 'toggle-status ' + (enabled ? 'active' : 'inactive');
+  }
 }
 
-function setLimitToggleState(enabled) {
-  if (!limitToggle) return;
-  limitToggle.dataset.enabled = enabled ? 'true' : 'false';
-  limitToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-  limitToggle.disabled = false;
-  setLimitStatusText(enabled ? 'Activo' : 'Desactivado', enabled ? 'active' : 'inactive');
+function setToggleLoading(btn, statusEl, text) {
+  if (!btn) return;
+  btn.disabled = true;
+  if (statusEl) { statusEl.textContent = text || 'Cargando...'; statusEl.className = 'toggle-status loading'; }
 }
 
-function setLimitLoading(text) {
-  if (!limitToggle) return;
-  limitToggle.disabled = true;
-  setLimitStatusText(text || 'Cargando...', 'loading');
-}
-
-function setLimitError(text) {
-  if (!limitToggle) return;
-  limitToggle.disabled = true;
-  setLimitStatusText(text || 'Error', 'error');
+function setToggleError(btn, statusEl, text) {
+  if (!btn) return;
+  btn.disabled = false;
+  if (statusEl) { statusEl.textContent = text || 'Error'; statusEl.className = 'toggle-status error'; }
 }
 
 function loadLimitState() {
-  if (!limitToggle) return;
-  setLimitLoading('Cargando...');
-  fetch('/api/admin/config', {
-    headers: { 'x-admin-key': adminKey },
-  })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Status ' + r.status);
-      return r.json();
-    })
+  setToggleLoading(limitToggle, limitStatus, 'Cargando...');
+  setToggleLoading(dailyLimitToggle, dailyLimitStatus, 'Cargando...');
+  fetch('/api/admin/config', { headers: { 'x-admin-key': adminKey } })
+    .then(function(r) { if (!r.ok) throw new Error('Status ' + r.status); return r.json(); })
     .then(function(d) {
-      setLimitToggleState(!!d.enabled);
+      setToggleState(limitToggle,      limitStatus,      !!d.non_register_flare_limit);
+      setToggleState(dailyLimitToggle, dailyLimitStatus, !!d.daily_flare_limit);
     })
-    .catch(function(err) {
-      console.error('load limit', err);
-      setLimitError('No se pudo cargar');
+    .catch(function(e) {
+      console.error('load config', e);
+      setToggleError(limitToggle, limitStatus, 'Error');
+      setToggleError(dailyLimitToggle, dailyLimitStatus, 'Error');
     });
 }
 
-function toggleLimit() {
-  if (!limitToggle || limitToggle.disabled || !adminKey) return;
-  var next = limitToggle.dataset.enabled !== 'true';
-  setLimitLoading('Guardando...');
+function toggleConfigKey(key, btn, statusEl) {
+  if (!btn || btn.disabled || !adminKey) return;
+  var next = btn.dataset.enabled !== 'true';
+  setToggleLoading(btn, statusEl, 'Guardando...');
   fetch('/api/admin/config', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-admin-key': adminKey,
-    },
-    body: JSON.stringify({ enabled: next }),
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+    body: JSON.stringify({ key: key, enabled: next }),
   })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Status ' + r.status);
-      return r.json();
-    })
-    .then(function(d) {
-      setLimitToggleState(!!d.enabled);
-    })
-    .catch(function(err) {
-      console.error('toggle limit', err);
-      setLimitError('No se pudo guardar');
-    });
+    .then(function(r) { if (!r.ok) throw new Error('Status ' + r.status); return r.json(); })
+    .then(function(d) { setToggleState(btn, statusEl, !!d.enabled); })
+    .catch(function(e) { console.error('toggle', key, e); setToggleError(btn, statusEl, 'No se pudo guardar'); });
 }
 
 document.getElementById('purge-btn').addEventListener('click', function() {

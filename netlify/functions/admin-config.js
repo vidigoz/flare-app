@@ -10,7 +10,9 @@ import {
   upsertAdminSetting,
 } from "./_utils/settings.js";
 
-const FLAG_KEY = "non_register_flare_limit";
+const FLAG_KEY       = "non_register_flare_limit";
+const DAILY_FLAG_KEY = "daily_flare_limit";
+const VALID_KEYS     = [FLAG_KEY, DAILY_FLAG_KEY];
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -32,11 +34,17 @@ export const handler = async (event) => {
     await ensureAdminSettingsTable(sql);
 
     if (event.httpMethod === "GET") {
-      const value = await getAdminSetting(sql, FLAG_KEY, "on");
+      const [v1, v2] = await Promise.all([
+        getAdminSetting(sql, FLAG_KEY, "on"),
+        getAdminSetting(sql, DAILY_FLAG_KEY, "on"),
+      ]);
       return {
         statusCode: 200,
         headers: { ...cors(), "Content-Type": "application/json" },
-        body: JSON.stringify({ key: FLAG_KEY, enabled: value !== "off" }),
+        body: JSON.stringify({
+          non_register_flare_limit: v1 !== "off",
+          daily_flare_limit:        v2 !== "off",
+        }),
       };
     }
 
@@ -47,14 +55,15 @@ export const handler = async (event) => {
       return err(400, "JSON invalido");
     }
 
+    const key = body.key;
+    if (!VALID_KEYS.includes(key)) return err(400, "key invalido");
     const enabled = body.enabled === true;
-    const nextValue = enabled ? "on" : "off";
-    await upsertAdminSetting(sql, FLAG_KEY, nextValue);
+    await upsertAdminSetting(sql, key, enabled ? "on" : "off");
 
     return {
       statusCode: 200,
       headers: { ...cors(), "Content-Type": "application/json" },
-      body: JSON.stringify({ key: FLAG_KEY, enabled }),
+      body: JSON.stringify({ key, enabled }),
     };
   } catch (e) {
     console.error(e);

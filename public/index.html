@@ -215,6 +215,20 @@
 
 <button id="loc-btn" title="Mi ubicación">📍</button>
 
+<!-- Daily Limit Modal -->
+<div class="report-modal-overlay" id="daily-limit-modal" style="display:none" onclick="if(event.target===this)closeDailyLimitModal()">
+  <div class="report-modal">
+    <div style="font-size:36px;text-align:center;margin-bottom:4px">🔥</div>
+    <div class="report-modal-title" style="text-align:center;font-size:16px">Límite diario alcanzado</div>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);text-align:center;line-height:1.7;margin:8px 0 14px">
+      Puedes publicar hasta <strong style="color:var(--text)">3 flares por día</strong>.<br>
+      Tu límite se reinicia a medianoche.<br><br>
+      <span style="color:var(--neon)">Próximamente:</span> crea un perfil para aumentar tu límite.
+    </p>
+    <button class="report-cancel-btn" onclick="closeDailyLimitModal()" style="text-align:center">Entendido</button>
+  </div>
+</div>
+
 <!-- Report Modal -->
 <div class="report-modal-overlay" id="report-overlay" style="display:none">
   <div class="report-modal">

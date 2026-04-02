@@ -88,6 +88,17 @@ export const handler = async (event) => {
         return err(400, "JSON invalido");
       }
 
+      // Límite diario por uid de dispositivo
+      const uid = d.uid || null;
+      const daily = await checkDailyLimit(sql, uid);
+      if (!daily.allowed) {
+        return {
+          statusCode: 429,
+          headers: { ...cors(), "Content-Type": "application/json" },
+          body: JSON.stringify({ error: "daily_limit", count: daily.count, max: DAILY_LIMIT_MAX }),
+        };
+      }
+
       // Validacion — usar == null para no rechazar coordenada 0
       if (d.lat == null || d.lng == null || !d.title) {
         return err(400, "lat, lng y title son requeridos");
@@ -166,6 +177,8 @@ export const handler = async (event) => {
         RETURNING *
       `;
 
+      await incrementDailyCount(sql, uid);
+
       return {
         statusCode: 201,
         headers: { ...cors(), "Content-Type": "application/json" },
@@ -205,6 +218,8 @@ function tooMany(retryAfter) {
 }
 
 const NON_REGISTER_LIMIT_KEY = "non_register_flare_limit";
+const DAILY_LIMIT_KEY        = "daily_flare_limit";
+const DAILY_LIMIT_MAX        = 3;
 
 async function shouldEnforceNonRegisterFlareLimit(sql) {
   try {
@@ -214,5 +229,47 @@ async function shouldEnforceNonRegisterFlareLimit(sql) {
   } catch (e) {
     console.error("No se pudo leer la configuracion de limite:", e);
     return true;
+  }
+}
+
+async function checkDailyLimit(sql, uid) {
+  /* Retorna { allowed: bool, count: number } */
+  try {
+    await ensureAdminSettingsTable(sql);
+    const enabled = await getAdminSetting(sql, DAILY_LIMIT_KEY, "on");
+    if (enabled === "off") return { allowed: true, count: 0 };
+    if (!uid) return { allowed: true, count: 0 }; /* sin uid no se limita */
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_daily_flares (
+        uid  TEXT NOT NULL,
+        day  DATE NOT NULL DEFAULT CURRENT_DATE,
+        count INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (uid, day)
+      )
+    `;
+
+    const rows = await sql`
+      SELECT count FROM user_daily_flares
+      WHERE uid = ${uid} AND day = CURRENT_DATE
+    `;
+    const count = rows[0]?.count ?? 0;
+    return { allowed: count < DAILY_LIMIT_MAX, count };
+  } catch (e) {
+    console.error("checkDailyLimit falló, permitiendo:", e.message);
+    return { allowed: true, count: 0 };
+  }
+}
+
+async function incrementDailyCount(sql, uid) {
+  if (!uid) return;
+  try {
+    await sql`
+      INSERT INTO user_daily_flares (uid, day, count)
+      VALUES (${uid}, CURRENT_DATE, 1)
+      ON CONFLICT (uid, day) DO UPDATE SET count = user_daily_flares.count + 1
+    `;
+  } catch (e) {
+    console.error("incrementDailyCount falló:", e.message);
   }
 }
