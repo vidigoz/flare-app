@@ -413,7 +413,7 @@ function renderPanel(){
   var q = (document.getElementById('srch').value||'').toLowerCase();
   var vp = filteredVisible();
   if(activeCat) vp = vp.filter(function(p){ return p.cat===activeCat; });
-  if(q) vp = vp.filter(function(p){ return p.title.toLowerCase().includes(q)||(p.text||'').toLowerCase().includes(q); });
+  if(q) vp = vp.filter(function(p){ return p.title.toLowerCase().includes(q)||(p.text||'').toLowerCase().includes(q)||(p.bizName||'').toLowerCase().includes(q); });
 
   var vigLabels = {nuevo:'🟢 Nuevo',maduro:'🟡 Maduro',expirando:'🔴 Expirando'};
   var vigSuffix = vigFilter!=='all' ? ' · '+vigLabels[vigFilter] : '';
