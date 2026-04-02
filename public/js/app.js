@@ -629,6 +629,8 @@ function closeModal(){
   document.getElementById('f-biz').value='';
   document.getElementById('f-ttl').value='';
   document.getElementById('f-txt').value='';
+  var plus = document.querySelector('.ebtn-plus');
+  if(plus){ plus.textContent='+'; plus.classList.remove('sel'); plus.style.borderColor=''; plus.style.background=''; plus.style.fontSize=''; }
   stopPlace();
 }
 document.getElementById('modal-x').addEventListener('click', closeModal);
@@ -656,6 +658,45 @@ function buildEG(){
     });
     g.appendChild(b);
   });
+
+  /* Botón + para emoji personalizado */
+  var plus = document.createElement('button');
+  plus.className = 'ebtn ebtn-plus';
+  plus.textContent = '+';
+  plus.title = 'Usar otro emoji';
+  plus.addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('emoji-custom-inp').value = '';
+    document.getElementById('emoji-custom-inp').focus();
+  });
+  g.appendChild(plus);
+
+  /* Input invisible que captura el emoji del teclado nativo */
+  var inp = document.getElementById('emoji-custom-inp');
+  if(!inp){
+    inp = document.createElement('input');
+    inp.type = 'text';
+    inp.id = 'emoji-custom-inp';
+    inp.setAttribute('inputmode', 'text');
+    inp.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;';
+    document.body.appendChild(inp);
+  }
+  inp.oninput = function(){
+    var val = inp.value;
+    var match = val.match(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/u);
+    if(!match) return;
+    var emoji = match[0];
+    selEmoji = emoji;
+    inp.value = '';
+    g.querySelectorAll('.ebtn').forEach(function(b){
+      b.classList.remove('sel'); b.style.borderColor=''; b.style.background=''; b.style.fontSize='';
+    });
+    plus.classList.add('sel');
+    plus.textContent = emoji;
+    plus.style.borderColor = selCat.color;
+    plus.style.background = selCat.color+'22';
+    plus.style.fontSize = '20px';
+  };
 }
 
 

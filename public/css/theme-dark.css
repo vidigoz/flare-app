@@ -476,3 +476,7 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .pop-biz{font-size:13px;font-weight:700;color:var(--neon);font-family:'Syne',sans-serif;margin-bottom:4px}
 .prow-biz{font-size:11px;font-weight:700;color:var(--neon);font-family:'Syne',sans-serif;margin-bottom:2px}
 .pd-biz{font-size:12px;font-weight:700;color:var(--neon);font-family:'Syne',sans-serif;margin-bottom:8px;padding:6px 10px;background:rgba(0,245,160,.07);border-radius:6px;border:1px solid rgba(0,245,160,.2)}
+
+/* EMOJI CUSTOM BUTTON */
+.ebtn-plus{font-size:18px;font-weight:700;color:var(--dim);border-style:dashed;transition:all .2s}
+.ebtn-plus:active{border-color:var(--neon);color:var(--neon)}
