@@ -720,6 +720,7 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_icon: selCat.icon,
     type: 'text',
     uid: MY_ID,
+    owner_uid: MY_ID,
     local_date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
     biz_name: document.getElementById('f-biz').value.trim() || null,
     body_text: document.getElementById('f-txt').value.trim() || null,
@@ -738,6 +739,11 @@ document.getElementById('bsub').addEventListener('click', function(){
       map.flyTo([pin.lat, pin.lng], 15, {duration:1});
       notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');
       applyVigFilter();
+      /* Guardar ID en lista de mis flares */
+      var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
+      mine.push(row.id);
+      if(mine.length > 50) mine = mine.slice(-50);
+      localStorage.setItem('flare_mine', JSON.stringify(mine));
       /* Onboarding: celebrar primer flare */
       if(obCurrentStep===3 || !localStorage.getItem('flare_first_published')){
         obCelebrate();
@@ -886,9 +892,11 @@ document.getElementById('srch').addEventListener('input', function(){ renderPane
 var manualOpen = false;
 document.getElementById('ph-help').addEventListener('click', function(){
   manualOpen = !manualOpen;
+  if(manualOpen) { mineOpen = false; document.getElementById('ph-mine').classList.remove('active'); }
   this.classList.toggle('active', manualOpen);
-  document.getElementById('panel-flares').style.display = manualOpen ? 'none' : 'flex';
-  document.getElementById('panel-manual').style.display = manualOpen ? 'block' : 'none';
+  document.getElementById('panel-flares').style.display  = manualOpen ? 'none' : 'flex';
+  document.getElementById('panel-manual').style.display  = manualOpen ? 'block' : 'none';
+  document.getElementById('panel-mine').style.display    = 'none';
   document.getElementById('ph-ttl').innerHTML = manualOpen
     ? 'Manual de <span>Uso</span>'
     : 'Flares en <span>Vista</span>';
@@ -900,6 +908,95 @@ document.getElementById('ph-help').addEventListener('click', function(){
     document.getElementById('panel-manual').dataset.loaded = '1';
   }
 });
+
+/* ── Mis Flares toggle ── */
+var mineOpen = false;
+document.getElementById('ph-mine').addEventListener('click', function(){
+  mineOpen = !mineOpen;
+  if(mineOpen) { manualOpen = false; document.getElementById('ph-help').classList.remove('active'); }
+  this.classList.toggle('active', mineOpen);
+  document.getElementById('panel-flares').style.display  = mineOpen ? 'none' : 'flex';
+  document.getElementById('panel-manual').style.display  = 'none';
+  document.getElementById('panel-mine').style.display    = mineOpen ? 'flex' : 'none';
+  document.getElementById('ph-ttl').innerHTML = mineOpen
+    ? 'Mis <span>Flares</span>'
+    : 'Flares en <span>Vista</span>';
+  document.getElementById('ph-sub').textContent = mineOpen
+    ? 'Tus flares publicados'
+    : (Object.keys(pins).length + ' flares activos');
+  if(mineOpen) renderMyFlares();
+});
+
+function loadMyFlares() {
+  var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
+  return mine.map(function(id) {
+    return pins[id] ? pins[id] : { id: id, expired: true };
+  });
+}
+
+function deleteMyFlare(id) {
+  if(!confirm('¿Eliminar este flare del mapa?')) return;
+  fetch('/api/flares/delete?id=' + encodeURIComponent(id) + '&uid=' + encodeURIComponent(MY_ID), {
+    method: 'DELETE'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.error){ notif('No se pudo eliminar: ' + data.error, 'err'); return; }
+    if(pins[id]){ clusterGroup.removeLayer(pins[id].marker); delete pins[id]; }
+    var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
+    localStorage.setItem('flare_mine', JSON.stringify(mine.filter(function(x){ return x !== id; })));
+    notif('Flare eliminado 🗑️');
+    renderMyFlares();
+    if(panelOpen) renderPanel();
+  })
+  .catch(function(){ notif('Error al eliminar', 'err'); });
+}
+
+function removeFromMineList(id) {
+  var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
+  localStorage.setItem('flare_mine', JSON.stringify(mine.filter(function(x){ return x !== id; })));
+  renderMyFlares();
+}
+
+function renderMyFlares() {
+  var items = loadMyFlares();
+  var box = document.getElementById('mine-list');
+  if(!items.length){
+    box.innerHTML = '<div class="pempty"><div class="pe-ico">📍</div>No has publicado ningún flare todavía.</div>';
+    return;
+  }
+  var html = '';
+  items.forEach(function(pin){
+    if(pin.expired){
+      html += '<div class="prow" style="opacity:.45">'
+        +'<div class="prow-hdr">'
+        +'<div class="prow-ico">⌛</div>'
+        +'<div class="prow-body">'
+        +'<div class="prow-name">Flare expirado</div>'
+        +'<div class="prow-tags"><span class="ptag">Ya no visible en el mapa</span></div>'
+        +'</div>'
+        +'<button class="pd-report" onclick="removeFromMineList(\''+pin.id+'\')" title="Quitar de la lista">✕</button>'
+        +'</div></div>';
+      return;
+    }
+    var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+    var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[0];
+    var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
+    html += '<div class="prow">'
+      +'<div class="prow-hdr">'
+      +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
+      +'<div class="prow-body">'
+      +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
+      +'<div class="prow-name">'+esc(pin.title)+'</div>'
+      +'<div class="prow-tags">'
+      +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
+      +'<span class="plikes">❤️ '+pin.likes+'</span>'
+      +'</div></div>'
+      +'<button class="pd-report" onclick="deleteMyFlare(\''+pin.id+'\')" title="Eliminar flare">🗑️</button>'
+      +'</div></div>';
+  });
+  box.innerHTML = html;
+}
 
 function loadManual() {
   document.getElementById('panel-manual').innerHTML = `
