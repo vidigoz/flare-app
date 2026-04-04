@@ -209,6 +209,7 @@ function reconcilePins(rows) {
   applyVigFilter();
   refreshBadge();
   if (panelOpen) { buildChips(); renderPanel(); }
+  checkDeepLink();
 }
 
 function rowToPin(row) {
@@ -260,6 +261,35 @@ function postLike(id) {
 function startPoll() {
   fetchFlares();
   pollTimer = setInterval(fetchFlares, 15000);
+  // Si hay deep link pero el flare no llegó después del primer poll, avisarle al usuario
+  setTimeout(function(){
+    var hash = location.hash;
+    if(hash && hash.startsWith('#flare-') && !deepLinkHandled){
+      history.replaceState(null, '', location.pathname);
+      notif('⏱️ Este flare ya expiró o no existe', 'err');
+    }
+  }, 5000);
+}
+
+var deepLinkHandled = false;
+function checkDeepLink() {
+  if(deepLinkHandled) return;
+  var hash = location.hash;
+  if(!hash || !hash.startsWith('#flare-')) return;
+  var id = hash.replace('#flare-', '');
+  if(!pins[id]) return;
+  deepLinkHandled = true;
+  history.replaceState(null, '', location.pathname);
+  map.flyTo([pins[id].lat, pins[id].lng], 17, {duration: 1});
+  setTimeout(function(){
+    if(clusterEnabled && clusterGroup.zoomToShowLayer) {
+      clusterGroup.zoomToShowLayer(pins[id].marker, function(){
+        pins[id].marker.openPopup();
+      });
+    } else {
+      pins[id].marker.openPopup();
+    }
+  }, 1100);
 }
 
 /* ── marker ── */
@@ -1175,7 +1205,8 @@ loadLeaflet(function(){
       openModal();
     });
 
-    startMyLocation(true);
+    var hasDeepLink = location.hash.startsWith('#flare-');
+    startMyLocation(!hasDeepLink);
 
     document.getElementById('loc-btn').addEventListener('click', function(){
       startMyLocation(true);
