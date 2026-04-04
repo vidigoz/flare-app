@@ -66,6 +66,32 @@ function richText(raw) {
 function mapsUrl(lat, lng) {
   return 'https://maps.google.com/?q='+lat+','+lng;
 }
+function shareFlare(id) {
+  var pin = pins[id];
+  if(!pin) return;
+  var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+  var url = location.origin + location.pathname + '#flare-' + id;
+  var texto = pin.emoji + ' ' + pin.title
+    + (pin.bizName ? '\n🏪 ' + pin.bizName : '')
+    + (pin.text ? '\n' + pin.text.slice(0, 100) + (pin.text.length > 100 ? '...' : '') : '')
+    + '\n⏱ Vigente por ' + fmtT(r)
+    + '\n\n📍 Ver en Flare → ' + url;
+
+  if(navigator.share) {
+    navigator.share({
+      title: pin.emoji + ' ' + pin.title,
+      text: texto,
+      url: url
+    }).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(texto).then(function(){
+      notif('📋 Copiado al portapapeles');
+    }).catch(function(){
+      notif('No se pudo compartir', 'err');
+    });
+  }
+}
+
 function openMaps(lat, lng) {
   var url = 'https://maps.google.com/?q='+lat+','+lng;
   /* En iOS intenta abrir Apple Maps nativo primero, luego Google Maps */
@@ -286,6 +312,7 @@ function popHTML(pin){
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
     +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
     +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
+    +'<button class="pop-share" onclick="shareFlare(\''+pin.id+'\')" title="Compartir">↗</button>'
     +'</div>'
     +'<button class="pop-report" onclick="openReport(\''+pin.id+'\')">🚩 Reportar este flare</button>'
     +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
@@ -468,6 +495,7 @@ function renderPanel(){
       +'</button>'
       +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
       +'<button class="pd-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')">🗺️ Cómo llegar</button>'
+      +'<button class="pd-share" onclick="shareFlare(\''+pin.id+'\')">↗ Compartir</button>'
       +'<button class="pd-report" data-report-id="'+pin.id+'">🚩 Reportar</button>'
       +'</div>'
       +'</div>';
