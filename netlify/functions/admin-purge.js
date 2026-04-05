@@ -20,6 +20,17 @@ export const handler = async (event) => {
 
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
+    const id = (event.queryStringParameters || {}).id;
+    if (id) {
+      /* Eliminar un flare específico por ID */
+      const result = await sql`DELETE FROM flares WHERE id = ${id} RETURNING id, title, emoji`;
+      if (!result.length) return err(404, "Flare no encontrado");
+      return {
+        statusCode: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+        body: JSON.stringify({ deleted: 1, flare: result[0] }),
+      };
+    }
     const result = await sql`DELETE FROM flares RETURNING id`;
     return {
       statusCode: 200,

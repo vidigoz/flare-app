@@ -195,6 +195,16 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
   </div>
 
   <div class="section">
+    <div class="sec-title">Buscar y Eliminar <span>Flare</span></div>
+    <div class="sec-sub">Busca un flare por su ID para ver su información y eliminarlo si es necesario.</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="flare-id-inp" type="text" placeholder="ID del flare (ej: p1743812345678abc)" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:11px 14px;outline:none;transition:border-color .2s" oninput="this.style.borderColor=''" onkeydown="if(event.key==='Enter')searchFlare()">
+      <button onclick="searchFlare()" style="background:var(--neon);color:#000;border:none;border-radius:10px;padding:11px 18px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">Buscar</button>
+    </div>
+    <div id="flare-result" style="display:none"></div>
+  </div>
+
+  <div class="section">
     <div class="sec-title">Carga Masiva de <span>Flares</span></div>
     <div class="sec-sub">Sube un CSV para crear multiples flares de una vez. Maximo 500 por carga.</div>
 
@@ -454,6 +464,63 @@ document.getElementById('clear-btn').addEventListener('click', function() {
   document.getElementById('upload-btn').disabled = true;
   document.getElementById('log').style.display = 'none';
 });
+
+function searchFlare() {
+  var id = document.getElementById('flare-id-inp').value.trim();
+  var box = document.getElementById('flare-result');
+  if (!id) { document.getElementById('flare-id-inp').style.borderColor = 'var(--danger)'; return; }
+  box.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim);padding:10px 0">Buscando...</div>';
+  box.style.display = 'block';
+  fetch('/api/flares?id=' + encodeURIComponent(id))
+    .then(function(r){ return r.json(); })
+    .then(function(row) {
+      if (!row) {
+        box.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--danger);padding:10px 0">⚠️ Flare no encontrado o ya expiró.</div>';
+        return;
+      }
+      var r = Math.max(0, new Date(row.expires_at).getTime() - Date.now());
+      var mins = Math.floor(r / 60000);
+      box.innerHTML = '<div class="cfg-row" style="flex-direction:column;gap:10px">'
+        + '<div style="display:flex;gap:12px;align-items:flex-start">'
+        + '<div style="font-size:28px;flex-shrink:0">' + (row.emoji || '📍') + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:700;margin-bottom:4px">' + escHtml(row.title) + '</div>'
+        + (row.biz_name ? '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim);margin-bottom:3px">🏪 ' + escHtml(row.biz_name) + '</div>' : '')
+        + '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--dim);line-height:1.8">'
+        + 'ID: <span style="color:var(--neon)">' + row.id + '</span><br>'
+        + 'Cat: ' + (row.cat || '-') + ' · Likes: ' + (row.likes || 0) + '<br>'
+        + 'Lat: ' + row.lat + ', Lng: ' + row.lng + '<br>'
+        + 'Expira en: <span style="color:var(--amber)">' + mins + ' min</span>'
+        + '</div>'
+        + '</div></div>'
+        + (row.body_text ? '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim);border-top:1px solid var(--border);padding-top:10px;line-height:1.6">' + escHtml(row.body_text) + '</div>' : '')
+        + '<div style="border-top:1px solid var(--border);padding-top:10px">'
+        + '<button onclick="deleteFlareAdmin(\'' + row.id + '\')" class="btn-purge" style="width:100%">🗑️ Eliminar este flare</button>'
+        + '</div>'
+        + '</div>';
+    })
+    .catch(function(){ box.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--danger);padding:10px 0">Error de red.</div>'; });
+}
+
+function deleteFlareAdmin(id) {
+  if (!confirm('¿Eliminar el flare "' + id + '"? Esta acción no se puede deshacer.')) return;
+  fetch('/api/admin/purge?id=' + encodeURIComponent(id), {
+    method: 'DELETE',
+    headers: { 'x-admin-key': adminKey }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) { alert('Error: ' + d.error); return; }
+    document.getElementById('flare-result').innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--neon);padding:10px 0">✓ Flare eliminado correctamente.</div>';
+    document.getElementById('flare-id-inp').value = '';
+    loadStats();
+  })
+  .catch(function(){ alert('Error de red al eliminar.'); });
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 document.getElementById('upload-btn').addEventListener('click', function() {
   var validRows = parsedRows.filter(function(r){ return r._valid; });
