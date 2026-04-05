@@ -45,20 +45,20 @@ function richText(raw) {
   if(!raw) return '';
   /* 1. Escapar HTML */
   var s = esc(raw);
-  /* 2. Detectar URLs */
-  s = s.replace(/(https?:\/\/[^\s<>"]+)/g, function(url){
-    var display = url.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
-    if(display.length > 40) display = display.slice(0,38)+'…';
-    return '<a href="'+url+'" target="_blank" rel="noopener" class="rich-link">🔗 '+display+'</a>';
-  });
-  /* 3. Detectar teléfonos MX: 10 dígitos, con o sin espacios/guiones, opcionalmente +52 */
-  s = s.replace(/(\+?52[\s\-]?)?(\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4})/g, function(match){
+  /* 2. Detectar URLs y teléfonos en un solo pass para evitar que el regex de
+        teléfonos corrompa el interior de un <a> ya generado (e.g. ?id=6156919351) */
+  s = s.replace(/(https?:\/\/[^\s<>"]+)|(\+?52[\s\-]?)?(\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4})/g, function(match, url){
+    if(url) {
+      var display = url.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+      if(display.length > 40) display = display.slice(0,38)+'…';
+      return '<a href="'+url+'" target="_blank" rel="noopener" class="rich-link">🔗 '+display+'</a>';
+    }
     var digits = match.replace(/\D/g,'');
     if(digits.length < 10) return match;
     var tel = digits.length === 10 ? '+52'+digits : '+'+digits;
     return '<a href="tel:'+tel+'" class="rich-link">📞 '+match+'</a>';
   });
-  /* 4. Saltos de línea */
+  /* 3. Saltos de línea */
   s = s.replace(/\n/g,'<br>');
   return s;
 }
