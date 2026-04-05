@@ -1296,6 +1296,17 @@ function obShowStep(n){
     step.style.backdropFilter = 'none';
     var card = step.querySelector('.ob-card');
     if(card) card.style.pointerEvents = 'all';
+    /* Step 3 usa ob-toast — reactivar y escuchar touchend directo
+       porque el click no burbujea bien en iOS con padre pointer-events:none */
+    var toast = step.querySelector('.ob-toast');
+    if(toast){
+      toast.style.pointerEvents = 'all';
+      var skipBtn = toast.querySelector('.ob-btn-skip');
+      if(skipBtn && !skipBtn._touchBound){
+        skipBtn._touchBound = true;
+        skipBtn.addEventListener('touchend', function(e){ e.preventDefault(); obSkip(); });
+      }
+    }
   } else {
     /* Resto de pasos: overlay normal bloqueante */
     document.getElementById('ob-wrap').style.pointerEvents = 'all';
