@@ -704,6 +704,9 @@ function setPending(lat, lng){
 function openModal(){
   /* Quitar spotlight del onboarding al abrir el modal */
   document.getElementById('fab-wrap').classList.remove('ob-spotlight');
+  /* Ocultar el toast del paso 3 para que no tape el modal */
+  var toast = document.querySelector('#ob-3 .ob-toast');
+  if(toast) toast.style.visibility = 'hidden';
   buildCG(); buildEG();
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
@@ -717,6 +720,9 @@ function closeDailyLimitModal(){
 
 function closeModal(){
   document.getElementById('mover').classList.remove('on');
+  /* Restaurar el toast del paso 3 si el onboarding sigue activo */
+  var toast = document.querySelector('#ob-3 .ob-toast');
+  if(toast) toast.style.visibility = '';
   pending=null;
   document.getElementById('f-biz').value='';
   document.getElementById('f-ttl').value='';
