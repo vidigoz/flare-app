@@ -168,6 +168,16 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
   </div>
 
   <div class="section">
+    <div class="sec-title">Flares <span>Ocultos</span></div>
+    <div class="sec-sub">Flares reportados 3+ veces y ocultados automáticamente. Puedes revisarlos y restaurarlos al mapa.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span id="hidden-count" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)">Cargando...</span>
+      <button onclick="loadHiddenFlares()" style="background:var(--surface2);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:6px 12px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer">↺ Actualizar</button>
+    </div>
+    <div id="hidden-list"></div>
+  </div>
+
+  <div class="section">
     <div class="sec-title">Límites de <span>Publicación</span></div>
     <div class="sec-sub">Controla las restricciones para publicar flares. Desactívalas temporalmente durante pruebas.</div>
     <div class="cfg-row toggle-row">
@@ -296,6 +306,7 @@ function tryLogin() {
       document.getElementById('admin-wrap').style.display = 'block';
       loadStats();
       loadLimitState();
+      loadHiddenFlares();
     } else {
       document.getElementById('login-err').textContent = 'Error del servidor (' + r.status + '). Intenta de nuevo.';
       document.getElementById('login-err').style.display = 'block';
@@ -465,6 +476,63 @@ document.getElementById('clear-btn').addEventListener('click', function() {
   document.getElementById('log').style.display = 'none';
 });
 
+function loadHiddenFlares() {
+  var countEl = document.getElementById('hidden-count');
+  var listEl  = document.getElementById('hidden-list');
+  countEl.textContent = 'Cargando...';
+  listEl.innerHTML = '';
+  fetch('/api/admin/purge', { headers: { 'x-admin-key': adminKey } })
+    .then(function(r){ return r.json(); })
+    .then(function(rows) {
+      if (!rows.length) {
+        countEl.textContent = '0 flares ocultos';
+        listEl.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim);padding:10px 0">No hay flares ocultos en este momento.</div>';
+        return;
+      }
+      countEl.textContent = rows.length + ' flare' + (rows.length !== 1 ? 's' : '') + ' oculto' + (rows.length !== 1 ? 's' : '');
+      listEl.innerHTML = rows.map(function(row) {
+        var mins = Math.max(0, Math.floor((new Date(row.expires_at).getTime() - Date.now()) / 60000));
+        return '<div class="cfg-row" id="hrow-' + row.id + '" style="flex-direction:column;gap:8px;margin-bottom:8px">'
+          + '<div style="display:flex;gap:10px;align-items:flex-start">'
+          + '<div style="font-size:24px;flex-shrink:0">' + (row.emoji || '📍') + '</div>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:700;margin-bottom:3px">' + escHtml(row.title) + '</div>'
+          + (row.biz_name ? '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--dim)">🏪 ' + escHtml(row.biz_name) + '</div>' : '')
+          + '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--dim);line-height:1.8;margin-top:2px">'
+          + 'ID: <span style="color:var(--neon)">' + row.id + '</span> · '
+          + '<span style="color:var(--danger)">🚩 ' + row.reports_count + ' reportes</span> · '
+          + '❤️ ' + (row.likes || 0) + ' · ⏱ ' + mins + ' min'
+          + '</div>'
+          + '</div>'
+          + '</div>'
+          + '<div style="display:flex;gap:8px;border-top:1px solid var(--border);padding-top:8px">'
+          + '<button onclick="restoreFlare(\'' + row.id + '\')" style="flex:1;background:rgba(0,245,160,.1);border:1px solid rgba(0,245,160,.3);color:var(--neon);border-radius:8px;padding:8px;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer">✓ Restaurar al mapa</button>'
+          + '<button onclick="deleteFlareAdmin(\'' + row.id + '\')" style="background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:8px 12px;font-family:\'Space Mono\',monospace;font-size:11px;cursor:pointer">🗑️ Eliminar</button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){ countEl.textContent = 'Error al cargar'; });
+}
+
+function restoreFlare(id) {
+  if (!confirm('¿Restaurar este flare al mapa y limpiar sus reportes?')) return;
+  fetch('/api/admin/purge?id=' + encodeURIComponent(id), {
+    method: 'PATCH',
+    headers: { 'x-admin-key': adminKey }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) { alert('Error: ' + d.error); return; }
+    var row = document.getElementById('hrow-' + id);
+    if (row) row.remove();
+    var remaining = document.querySelectorAll('[id^="hrow-"]').length;
+    document.getElementById('hidden-count').textContent = remaining + ' flare' + (remaining !== 1 ? 's' : '') + ' oculto' + (remaining !== 1 ? 's' : '');
+    if (!remaining) document.getElementById('hidden-list').innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim);padding:10px 0">No hay flares ocultos en este momento.</div>';
+  })
+  .catch(function(){ alert('Error de red.'); });
+}
+
 function searchFlare() {
   var id = document.getElementById('flare-id-inp').value.trim();
   var box = document.getElementById('flare-result');
@@ -514,6 +582,7 @@ function deleteFlareAdmin(id) {
     document.getElementById('flare-result').innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--neon);padding:10px 0">✓ Flare eliminado correctamente.</div>';
     document.getElementById('flare-id-inp').value = '';
     loadStats();
+    loadHiddenFlares();
   })
   .catch(function(){ alert('Error de red al eliminar.'); });
 }
