@@ -36,6 +36,10 @@ function saveLiked() { localStorage.setItem('flare_liked', JSON.stringify(likedI
 function hasLiked(id) { return likedIds.indexOf(id) !== -1; }
 function markLiked(id) { if (!hasLiked(id)) { likedIds.push(id); saveLiked(); } }
 
+var reportedIds = JSON.parse(localStorage.getItem('flare_reported') || '[]');
+function hasReported(id) { return reportedIds.indexOf(id) !== -1; }
+function markReported(id) { if (!hasReported(id)) { reportedIds.push(id); localStorage.setItem('flare_reported', JSON.stringify(reportedIds)); } }
+
 /* ── helpers ── */
 function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
 function fmtT(ms){if(ms<=0)return'0 min';var h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?h+'h '+m+'m':m+' min'}
@@ -417,6 +421,7 @@ function doLike(id){
 
 /* ── report ── */
 function openReport(id) {
+  if(hasReported(id)) { notif('Ya reportaste este flare 🙏', 'err'); return; }
   var overlay = document.getElementById('report-overlay');
   overlay.style.display = 'flex';
 
@@ -446,6 +451,7 @@ function openReport(id) {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if(data.error) { notif('Error al reportar','err'); return; }
+        markReported(id);
         notif('Reporte enviado. Gracias 🙏');
         if(data.hidden) {
           notif('Este flare fue ocultado por la comunidad.');
