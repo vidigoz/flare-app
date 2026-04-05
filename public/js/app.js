@@ -367,13 +367,16 @@ function popHTML(pin){
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
     +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
     +'<div class="pop-foot">'
-    +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'+(pin.liked?'❤️':'🤍')+' <span class="pop-like-count">'+pin.likes+'</span> '+(pin.liked?'Liked':'Me gusta')+'</button>'
-    +'<div class="tbdg">⏱ '+fmtT(r)+'</div>'
+    +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'
+    +'<span style="font-size:20px">'+(pin.liked?'❤️':'🤍')+'</span>'
+    +'<span class="pop-like-count">'+pin.likes+'</span>'
+    +'</button>'
+    +'<div class="pop-foot-center">'
     +'<button class="pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">🗺️</button>'
     +'<button class="pop-share" onclick="shareFlare(\''+pin.id+'\')" title="Compartir">↗</button>'
     +'</div>'
-    +'<button class="pop-report" onclick="openReport(\''+pin.id+'\')">🚩 Reportar este flare</button>'
-    +'<div class="pop-like-hint">❤️ cada like suma +5 min de vigencia al flare</div>'
+    +'<button class="pop-report-btn" onclick="openReport(\''+pin.id+'\')" title="Reportar">🚩</button>'
+    +'</div>'
     +'</div>';
 }
 function refreshPop(pin){ if(pin.marker&&pin.marker.isPopupOpen()) pin.marker.setPopupContent(popHTML(pin)); }
