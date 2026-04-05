@@ -380,6 +380,7 @@ function popHTML(pin){
     +'</div>'
     +'<button class="pop-report-btn" onclick="openReport(\''+pin.id+'\')" title="Reportar">🚩</button>'
     +'</div>'
+    +'<div class="pop-id" onclick="navigator.clipboard.writeText(\''+pin.id+'\').then(function(){var el=document.querySelector(\'.pop-id[data-id=\\\'' +pin.id+ '\\\']\');if(el){el.textContent=\'✓ copiado\';setTimeout(function(){el.textContent=\'ID: '+pin.id+'\'},1500)}})" data-id="'+pin.id+'" title="Mantén presionado para copiar">ID: '+pin.id+'</div>'
     +'</div>';
 }
 function refreshPop(pin){ if(pin.marker&&pin.marker.isPopupOpen()) pin.marker.setPopupContent(popHTML(pin)); }

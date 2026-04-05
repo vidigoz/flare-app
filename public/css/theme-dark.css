@@ -309,6 +309,8 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .pop-report-btn:active{border-color:var(--danger);opacity:1}
 .tbdg{display:none}
 .pop-like-hint{display:none}
+.pop-id{font-size:9px;font-family:'Space Mono',monospace;color:var(--dim);opacity:.45;text-align:center;padding:6px 0 2px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:opacity .15s}
+.pop-id:active{opacity:1;color:var(--neon)}
 
 /* MARKER */
 .mk{display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative}
