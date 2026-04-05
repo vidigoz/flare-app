@@ -1,2 +1,2 @@
 # Flare App 🔥
-**El mapa en vivo** 
+**El mapa en vivo.** 
