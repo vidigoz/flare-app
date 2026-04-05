@@ -368,7 +368,10 @@ function popHTML(pin){
     +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
     +'<div class="pop-foot">'
     +'<button class="pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'
-    +'<span style="font-size:20px">'+(pin.liked?'❤️':'🤍')+'</span>'
+    +'<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'
+    +'<span style="font-size:20px;line-height:1">'+(pin.liked?'❤️':'🤍')+'</span>'
+    +'<span style="font-size:9px;font-family:\'Space Mono\',monospace;opacity:.7;letter-spacing:.5px">+5min</span>'
+    +'</div>'
     +'<span class="pop-like-count">'+pin.likes+'</span>'
     +'</button>'
     +'<div class="pop-foot-center">'
