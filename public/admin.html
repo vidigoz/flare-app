@@ -205,6 +205,16 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
   </div>
 
   <div class="section">
+    <div class="sec-title">Tickets de <span>Soporte</span></div>
+    <div class="sec-sub">Mensajes enviados por usuarios desde la app.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span id="support-count" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)">Cargando...</span>
+      <button onclick="loadSupportTickets()" style="background:var(--surface2);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:6px 12px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer">↺ Actualizar</button>
+    </div>
+    <div id="support-list"></div>
+  </div>
+
+  <div class="section">
     <div class="sec-title">Buscar y Eliminar <span>Flare</span></div>
     <div class="sec-sub">Busca un flare por su ID para ver su información y eliminarlo si es necesario.</div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
@@ -307,6 +317,7 @@ function tryLogin() {
       loadStats();
       loadLimitState();
       loadHiddenFlares();
+      loadSupportTickets();
     } else {
       document.getElementById('login-err').textContent = 'Error del servidor (' + r.status + '). Intenta de nuevo.';
       document.getElementById('login-err').style.display = 'block';
@@ -475,6 +486,64 @@ document.getElementById('clear-btn').addEventListener('click', function() {
   document.getElementById('upload-btn').disabled = true;
   document.getElementById('log').style.display = 'none';
 });
+
+var STATUS_LABELS = { pendiente: '🟡 Pendiente', en_revision: '🔵 En revisión', resuelto: '✅ Resuelto' };
+var STATUS_COLORS = { pendiente: 'var(--amber)', en_revision: '#4ea8ff', resuelto: 'var(--neon)' };
+
+function loadSupportTickets() {
+  var countEl = document.getElementById('support-count');
+  var listEl  = document.getElementById('support-list');
+  countEl.textContent = 'Cargando...';
+  listEl.innerHTML = '';
+  fetch('/api/support', { headers: { 'x-admin-key': adminKey } })
+    .then(function(r){ return r.json(); })
+    .then(function(rows) {
+      if (!rows.length) {
+        countEl.textContent = '0 tickets';
+        listEl.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim);padding:10px 0">No hay tickets de soporte.</div>';
+        return;
+      }
+      var pendientes = rows.filter(function(r){ return r.status === 'pendiente'; }).length;
+      countEl.textContent = rows.length + ' ticket' + (rows.length !== 1 ? 's' : '') + (pendientes ? ' · ' + pendientes + ' pendiente' + (pendientes !== 1 ? 's' : '') : '');
+      listEl.innerHTML = rows.map(function(row) {
+        var date = new Date(row.created_at).toLocaleString('es-MX', {dateStyle:'short', timeStyle:'short'});
+        return '<div class="cfg-row" id="srow-' + row.id + '" style="flex-direction:column;gap:8px;margin-bottom:8px">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:700;margin-bottom:3px">' + escHtml(row.motivo) + '</div>'
+          + '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--dim);line-height:1.8">'
+          + '📧 ' + escHtml(row.email) + '<br>'
+          + (row.flare_id ? '📍 <span style="color:var(--neon)">' + row.flare_id + '</span><br>' : '')
+          + '🕐 ' + date + ' · ID: ' + row.id
+          + '</div>'
+          + '</div>'
+          + '<span style="font-family:\'Space Mono\',monospace;font-size:10px;color:' + (STATUS_COLORS[row.status]||'var(--dim)') + ';white-space:nowrap;flex-shrink:0">' + (STATUS_LABELS[row.status]||row.status) + '</span>'
+          + '</div>'
+          + '<div style="background:var(--surface2);border-radius:6px;padding:10px;font-family:\'Space Mono\',monospace;font-size:11px;color:var(--text);line-height:1.6;white-space:pre-wrap;border:1px solid var(--border)">' + escHtml(row.descripcion) + '</div>'
+          + '<div style="display:flex;gap:6px;border-top:1px solid var(--border);padding-top:8px;flex-wrap:wrap">'
+          + '<button onclick="setTicketStatus(\'' + row.id + '\',\'en_revision\')" style="background:rgba(78,168,255,.1);border:1px solid rgba(78,168,255,.3);color:#4ea8ff;border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">🔵 En revisión</button>'
+          + '<button onclick="setTicketStatus(\'' + row.id + '\',\'resuelto\')" style="background:rgba(0,245,160,.1);border:1px solid rgba(0,245,160,.3);color:var(--neon);border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">✅ Resuelto</button>'
+          + '<button onclick="setTicketStatus(\'' + row.id + '\',\'pendiente\')" style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.2);color:var(--amber);border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">🟡 Pendiente</button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){ countEl.textContent = 'Error al cargar'; });
+}
+
+function setTicketStatus(id, status) {
+  fetch('/api/support', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+    body: JSON.stringify({ id: id, status: status })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) { alert('Error: ' + d.error); return; }
+    loadSupportTickets();
+  })
+  .catch(function(){ alert('Error de red.'); });
+}
 
 function loadHiddenFlares() {
   var countEl = document.getElementById('hidden-count');

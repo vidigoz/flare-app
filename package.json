@@ -4,6 +4,7 @@
   "description": "Flare — El mapa vivo",
   "type": "module",
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4"
+    "@neondatabase/serverless": "^0.10.4",
+    "nodemailer": "^8.0.4"
   }
 }

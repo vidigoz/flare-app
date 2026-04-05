@@ -993,6 +993,57 @@ document.getElementById('pov').addEventListener('click', function(){ closePanel(
 document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
 document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
 
+/* ── Support modal ── */
+document.getElementById('ph-support').addEventListener('click', function(){ openSupportModal(); });
+
+function openSupportModal() {
+  document.getElementById('support-overlay').style.display = 'flex';
+  document.getElementById('sup-err').style.display = 'none';
+  document.getElementById('sup-btn').disabled = false;
+  document.getElementById('sup-btn').textContent = 'Enviar mensaje';
+}
+function closeSupportModal() {
+  document.getElementById('support-overlay').style.display = 'none';
+  document.getElementById('sup-motivo').value = '';
+  document.getElementById('sup-desc').value = '';
+  document.getElementById('sup-email').value = '';
+  document.getElementById('sup-flareid').value = '';
+  document.getElementById('sup-err').style.display = 'none';
+}
+function submitSupport() {
+  var motivo  = document.getElementById('sup-motivo').value.trim();
+  var desc    = document.getElementById('sup-desc').value.trim();
+  var email   = document.getElementById('sup-email').value.trim();
+  var flareId = document.getElementById('sup-flareid').value.trim() || null;
+  var errEl   = document.getElementById('sup-err');
+  var btn     = document.getElementById('sup-btn');
+
+  if(!motivo || !desc || !email) {
+    errEl.textContent = 'Por favor completa todos los campos requeridos.';
+    errEl.style.display = 'block'; return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Correo electrónico no válido.';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+
+  fetch('/api/support', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ motivo: motivo, descripcion: desc, email: email, flare_id: flareId }),
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if(d.error) { errEl.textContent = d.error; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Enviar mensaje'; return; }
+    closeSupportModal();
+    notif('✉ Mensaje enviado. Te responderemos pronto 🙏');
+  })
+  .catch(function() { errEl.textContent = 'Error de red. Intenta de nuevo.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Enviar mensaje'; });
+}
+
 /* ── Manual toggle ── */
 var manualOpen = false;
 document.getElementById('ph-help').addEventListener('click', function(){
