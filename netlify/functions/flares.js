@@ -28,6 +28,21 @@ export const handler = async (event) => {
       const rl = rateLimit(ip, "get_flares", 60, 60 * 1000);
       if (!rl.allowed) return tooMany(rl.retryAfter);
       const p = event.queryStringParameters || {};
+
+      /* Fetch por ID directo — para deep links */
+      if (p.id) {
+        const rows = await sql`
+          SELECT * FROM flares
+          WHERE id = ${p.id} AND expires_at > NOW() AND hidden = FALSE
+          LIMIT 1
+        `;
+        return {
+          statusCode: 200,
+          headers: { ...cors(), "Content-Type": "application/json" },
+          body: JSON.stringify(rows[0] || null),
+        };
+      }
+
       const minLat = parseFloat(p.minLat ?? -90);
       const maxLat = parseFloat(p.maxLat ?? 90);
       const minLng = parseFloat(p.minLng ?? -180);

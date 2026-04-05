@@ -261,14 +261,42 @@ function postLike(id) {
 function startPoll() {
   fetchFlares();
   pollTimer = setInterval(fetchFlares, 15000);
-  // Si hay deep link pero el flare no llegó después del primer poll, avisarle al usuario
-  setTimeout(function(){
-    var hash = location.hash;
-    if(hash && hash.startsWith('#flare-') && !deepLinkHandled){
-      history.replaceState(null, '', location.pathname);
-      notif('⏱️ Este flare ya expiró o no existe', 'err');
-    }
-  }, 5000);
+
+  /* Si hay deep link, intentar cargar el flare por ID directo sin depender del bbox */
+  var hash = location.hash;
+  if(hash && hash.startsWith('#flare-')) {
+    var dlId = hash.replace('#flare-', '');
+    apiFetch('/api/flares?id=' + encodeURIComponent(dlId))
+      .then(function(row) {
+        if(!row) {
+          history.replaceState(null, '', location.pathname);
+          notif('⏱️ Este flare ya expiró o no existe', 'err');
+          return;
+        }
+        if(!pins[row.id]) {
+          var pin = rowToPin(row);
+          pin.marker = makeMarker(pin);
+          pins[row.id] = pin;
+          applyVigFilter();
+        }
+        deepLinkHandled = true;
+        history.replaceState(null, '', location.pathname);
+        map.flyTo([pins[row.id].lat, pins[row.id].lng], 17, {duration: 1});
+        setTimeout(function(){
+          if(clusterEnabled && clusterGroup.zoomToShowLayer) {
+            clusterGroup.zoomToShowLayer(pins[row.id].marker, function(){
+              pins[row.id].marker.openPopup();
+            });
+          } else {
+            pins[row.id].marker.openPopup();
+          }
+        }, 1100);
+      })
+      .catch(function(){
+        history.replaceState(null, '', location.pathname);
+        notif('⏱️ Este flare ya expiró o no existe', 'err');
+      });
+  }
 }
 
 var deepLinkHandled = false;
