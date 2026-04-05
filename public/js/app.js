@@ -1296,6 +1296,8 @@ function obShowStep(n){
     step.style.backdropFilter = 'none';
     var card = step.querySelector('.ob-card');
     if(card) card.style.pointerEvents = 'all';
+    var toast = step.querySelector('.ob-toast');
+    if(toast) toast.style.pointerEvents = 'all';
   } else {
     /* Resto de pasos: overlay normal bloqueante */
     document.getElementById('ob-wrap').style.pointerEvents = 'all';
