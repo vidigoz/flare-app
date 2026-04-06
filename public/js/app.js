@@ -1039,7 +1039,11 @@ function submitSupport() {
   .then(function(d) {
     if(d.error) { errEl.textContent = d.error; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Enviar mensaje'; return; }
     closeSupportModal();
-    notif('✉ Mensaje enviado. Te responderemos pronto 🙏');
+    if(d.emailSent === false) {
+      notif('✉ Ticket guardado pero el email falló (' + (d.emailError||'error') + ')', 'err');
+    } else {
+      notif('✉ Mensaje enviado. Te responderemos pronto 🙏');
+    }
   })
   .catch(function() { errEl.textContent = 'Error de red. Intenta de nuevo.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Enviar mensaje'; });
 }

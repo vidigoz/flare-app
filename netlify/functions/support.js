@@ -94,13 +94,14 @@ export const handler = async (event) => {
     `;
 
     // Enviar email via Zoho SMTP
+    let emailError = null;
     if (process.env.ZOHO_USER && process.env.ZOHO_PASS) {
       try {
         const transporter = nodemailer.createTransport({
           host: "smtp.zoho.com",
-          port: 465,
-          secure: true,
-          auth: { user: process.env.ZOHO_USER, pass: process.env.ZOHO_PASS },
+          port: 587,
+          secure: false,
+          auth: { user: process.env.ZOHO_USER.trim(), pass: process.env.ZOHO_PASS.trim() },
         });
         await transporter.sendMail({
           from: `"Flare Soporte" <${process.env.ZOHO_USER}>`,
@@ -132,14 +133,17 @@ export const handler = async (event) => {
           `,
         });
       } catch (mailErr) {
-        console.error("Email falló, ticket guardado en DB:", mailErr.message);
+        emailError = mailErr.message;
+        console.error("Email falló:", mailErr.message);
       }
+    } else {
+      emailError = "ZOHO_USER o ZOHO_PASS no configurados";
     }
 
     return {
       statusCode: 200,
       headers: { ...cors(), "Content-Type": "application/json" },
-      body: JSON.stringify({ ok: true, ticket: ticketId }),
+      body: JSON.stringify({ ok: true, ticket: ticketId, emailSent: !emailError, emailError: emailError || undefined }),
     };
   } catch (e) {
     console.error(e);
