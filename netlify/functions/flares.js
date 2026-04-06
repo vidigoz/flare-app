@@ -43,6 +43,21 @@ export const handler = async (event) => {
         };
       }
 
+      /* Fetch por owner_uid — para "Mis Flares", incluye activos e incluye hidden propios */
+      if (p.owner_uid) {
+        const rows = await sql`
+          SELECT * FROM flares
+          WHERE owner_uid = ${p.owner_uid} AND expires_at > NOW()
+          ORDER BY expires_at DESC
+          LIMIT 50
+        `;
+        return {
+          statusCode: 200,
+          headers: { ...cors(), "Content-Type": "application/json" },
+          body: JSON.stringify(rows),
+        };
+      }
+
       const minLat = parseFloat(p.minLat ?? -90);
       const maxLat = parseFloat(p.maxLat ?? 90);
       const minLng = parseFloat(p.minLng ?? -180);

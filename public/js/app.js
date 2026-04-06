@@ -1087,11 +1087,12 @@ document.getElementById('ph-mine').addEventListener('click', function(){
   if(mineOpen) renderMyFlares();
 });
 
-function loadMyFlares() {
-  var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
-  return mine.map(function(id) {
-    return pins[id] ? pins[id] : { id: id, expired: true };
-  });
+function loadMyFlares(cb) {
+  var box = document.getElementById('mine-list');
+  box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
+  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(MY_ID))
+    .then(function(rows) { cb(null, rows); })
+    .catch(function(e) { cb(e, []); });
 }
 
 function deleteMyFlare(id) {
@@ -1103,8 +1104,6 @@ function deleteMyFlare(id) {
   .then(function(data){
     if(data.error){ notif('No se pudo eliminar: ' + data.error, 'err'); return; }
     if(pins[id]){ clusterGroup.removeLayer(pins[id].marker); delete pins[id]; }
-    var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
-    localStorage.setItem('flare_mine', JSON.stringify(mine.filter(function(x){ return x !== id; })));
     notif('Flare eliminado 🗑️');
     renderMyFlares();
     if(panelOpen) renderPanel();
@@ -1119,43 +1118,34 @@ function removeFromMineList(id) {
 }
 
 function renderMyFlares() {
-  var items = loadMyFlares();
-  var box = document.getElementById('mine-list');
-  if(!items.length){
-    box.innerHTML = '<div class="pempty"><div class="pe-ico">📍</div>No has publicado ningún flare todavía.</div>';
-    return;
-  }
-  var html = '';
-  items.forEach(function(pin){
-    if(pin.expired){
-      html += '<div class="prow" style="opacity:.45">'
-        +'<div class="prow-hdr">'
-        +'<div class="prow-ico">⌛</div>'
-        +'<div class="prow-body">'
-        +'<div class="prow-name">Flare expirado</div>'
-        +'<div class="prow-tags"><span class="ptag">Ya no visible en el mapa</span></div>'
-        +'</div>'
-        +'<button class="pd-report" onclick="removeFromMineList(\''+pin.id+'\')" title="Quitar de la lista">✕</button>'
-        +'</div></div>';
+  loadMyFlares(function(err, rows) {
+    var box = document.getElementById('mine-list');
+    if(err) { box.innerHTML = '<div class="pempty">Error al cargar. Intenta de nuevo.</div>'; return; }
+    if(!rows.length){
+      box.innerHTML = '<div class="pempty"><div class="pe-ico">📍</div>No has publicado ningún flare todavía.</div>';
       return;
     }
-    var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
-    var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[0];
-    var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
-    html += '<div class="prow">'
-      +'<div class="prow-hdr">'
-      +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
-      +'<div class="prow-body">'
-      +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
-      +'<div class="prow-name">'+esc(pin.title)+'</div>'
-      +'<div class="prow-tags">'
-      +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
-      +'<span class="plikes">❤️ '+pin.likes+'</span>'
-      +'</div></div>'
-      +'<button class="pd-report" onclick="deleteMyFlare(\''+pin.id+'\')" title="Eliminar flare">🗑️</button>'
-      +'</div></div>';
+    var html = '';
+    rows.forEach(function(row){
+      var pin = rowToPin(row);
+      var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+      var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[0];
+      var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
+      html += '<div class="prow">'
+        +'<div class="prow-hdr">'
+        +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
+        +'<div class="prow-body">'
+        +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
+        +'<div class="prow-name">'+esc(pin.title)+'</div>'
+        +'<div class="prow-tags">'
+        +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
+        +'<span class="plikes">❤️ '+pin.likes+'</span>'
+        +'</div></div>'
+        +'<button class="pd-report" onclick="deleteMyFlare(\''+pin.id+'\')" title="Eliminar flare">🗑️</button>'
+        +'</div></div>';
+    });
+    box.innerHTML = html;
   });
-  box.innerHTML = html;
 }
 
 function loadManual() {
