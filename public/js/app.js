@@ -4,6 +4,7 @@
 
 var CATS = [
   {id:'food', lbl:'Comida y Bebida', icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
+  {id:'sale', lbl:'Ventas',          icon:'💵', color:'#00c2ff', emojis:['💵','💲','💸','🛒','🎁','💰','🛍️','🤑','💎','📦']},
 ];
 
 /*
@@ -497,7 +498,6 @@ function buildChips(){
   box.appendChild(all);
   CATS.forEach(function(cat){
     var cnt = vp.filter(function(p){ return p.cat===cat.id; }).length;
-    if(!cnt) return;
     var ch = document.createElement('div');
     ch.className = 'chip' + (activeCat===cat.id ? ' on' : '');
     if(activeCat===cat.id){ ch.style.background=cat.color; ch.style.borderColor=cat.color; }
@@ -900,10 +900,7 @@ function applyVigFilter(){
   });
 
   /* Sync chips de categoría en header */
-  ['food','sale','event','incident','info'].forEach(function(c){
-    var el = document.getElementById('hf-'+c);
-    if(el) el.classList.toggle('on', activeCat===c);
-  });
+  buildHdrCatChips();
 
   refreshBadge();
   if(panelOpen){ buildChips(); renderPanel(); }
@@ -955,13 +952,30 @@ document.querySelectorAll('.hdr-vig').forEach(function(btn){
     applyVigFilter();
   });
 });
-document.querySelectorAll('.hdr-cat').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    var cat = btn.dataset.cat;
-    activeCat = (activeCat === cat) ? null : cat;
-    applyVigFilter();
+function buildHdrCatChips(){
+  /* Remove previously injected cat chips */
+  document.querySelectorAll('.hdr-cat').forEach(function(el){ el.remove(); });
+  var sep = document.querySelector('.hf-sep');
+  if(!sep) return;
+  CATS.forEach(function(cat){
+    var btn = document.createElement('div');
+    btn.className = 'hdr-chip hdr-cat' + (activeCat === cat.id ? ' on' : '');
+    btn.dataset.cat = cat.id;
+    btn.title = cat.lbl;
+    btn.innerHTML = cat.icon + '<span class="hf-lbl"> ' + cat.lbl + '</span>';
+    if(activeCat === cat.id){
+      btn.style.borderColor = cat.color;
+      btn.style.background  = cat.color + '33';
+    }
+    btn.addEventListener('click', function(){
+      activeCat = (activeCat === cat.id) ? null : cat.id;
+      buildHdrCatChips();
+      applyVigFilter();
+    });
+    sep.parentNode.insertBefore(btn, sep);
   });
-});
+}
+buildHdrCatChips();
 
 /* ── Cluster toggle ── */
 document.getElementById('cluster-toggle').addEventListener('click', function(){

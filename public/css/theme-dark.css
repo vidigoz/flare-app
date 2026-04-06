@@ -13,10 +13,10 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height
 
 /* HEADER — compacto en móvil */
 header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display:flex;align-items:center;gap:8px;justify-content:space-between;background:linear-gradient(180deg,rgba(8,11,18,.98) 0%,transparent 100%)}
-.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.logo-pin{width:22px;height:22px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
-.logo-pin::after{content:'';position:absolute;width:7px;height:7px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-.logo-text{font-size:17px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
+.logo{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.logo-pin{width:13px;height:13px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);position:relative;flex-shrink:0}
+.logo-pin::after{content:'';position:absolute;width:4px;height:4px;background:var(--bg);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.logo-text{font-size:10px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
 .logo-text span{color:var(--neon)}
 
 /* FILTROS EN HEADER */
@@ -25,7 +25,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .hdr-chip{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:rgba(15,20,32,.8);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px)}
 .hdr-chip:active{transform:scale(.95)}
 .hdr-chip.on{border-color:var(--neon);color:var(--neon);background:rgba(0,245,160,.1)}
-.hdr-cat{padding:5px 8px;font-size:14px}
+.hdr-cat{padding:5px 8px}
 .hdr-cat.on{border-color:var(--neon2);background:rgba(245,0,160,.1)}
 .hf-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .hf-lbl{display:none}
@@ -274,7 +274,7 @@ label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-tra
 input[type=text],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s;resize:none;-webkit-appearance:none}
 input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
 .coords-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Space Mono',monospace;font-size:12px;color:var(--neon);display:flex;align-items:center;gap:7px}
-.cgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
 .cbtn{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;-webkit-tap-highlight-color:transparent}
 .cbtn.sel{border-color:var(--cc,var(--neon));background:color-mix(in srgb,var(--cc,var(--neon)) 12%,transparent)}
 .cb-ic{font-size:22px;line-height:1}
