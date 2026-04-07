@@ -524,11 +524,27 @@ function loadSupportTickets() {
           + '<button onclick="setTicketStatus(\'' + row.id + '\',\'en_revision\')" style="background:rgba(78,168,255,.1);border:1px solid rgba(78,168,255,.3);color:#4ea8ff;border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">🔵 En revisión</button>'
           + '<button onclick="setTicketStatus(\'' + row.id + '\',\'resuelto\')" style="background:rgba(0,245,160,.1);border:1px solid rgba(0,245,160,.3);color:var(--neon);border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">✅ Resuelto</button>'
           + '<button onclick="setTicketStatus(\'' + row.id + '\',\'pendiente\')" style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.2);color:var(--amber);border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">🟡 Pendiente</button>'
+          + '<button onclick="deleteTicket(\'' + row.id + '\')" style="margin-left:auto;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.3);color:var(--danger);border-radius:7px;padding:7px 10px;font-family:\'Space Mono\',monospace;font-size:10px;cursor:pointer">🗑 Eliminar</button>'
           + '</div>'
           + '</div>';
       }).join('');
     })
     .catch(function(){ countEl.textContent = 'Error al cargar'; });
+}
+
+function deleteTicket(id) {
+  if (!confirm('¿Eliminar este ticket? Esta acción no se puede deshacer.')) return;
+  fetch('/api/support', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+    body: JSON.stringify({ id: id })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.error) { alert('Error: ' + d.error); return; }
+    loadSupportTickets();
+  })
+  .catch(function(){ alert('Error de red.'); });
 }
 
 function setTicketStatus(id, status) {

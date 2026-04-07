@@ -1326,7 +1326,6 @@ loadLeaflet(function(){
     });
 
     startPoll();
-    initParticles();
 
     /* Iniciar onboarding si es primera visita */
     if(!localStorage.getItem('flare_onboarding_complete')){
@@ -1335,109 +1334,6 @@ loadLeaflet(function(){
   });
 });
 
-/* ══ PARTICLE SYSTEM (bengala effect) ══════════════════ */
-var _pCanvas, _pCtx, _pRAF;
-var _particles = [];
-var _pLastSpawn = 0;
-
-function initParticles() {
-  /* Custom Leaflet pane: z-index 690 → sobre markers(600) pero BAJO popups(700) */
-  map.createPane('particlePane');
-  var pane = map.getPane('particlePane');
-  pane.style.zIndex = '690';
-  pane.style.pointerEvents = 'none';
-
-  _pCanvas = document.createElement('canvas');
-  _pCanvas.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;';
-  pane.appendChild(_pCanvas);
-  _pCtx = _pCanvas.getContext('2d');
-  _resizePC();
-  window.addEventListener('resize', _resizePC);
-  map.on('resize', _resizePC);
-  /* Al mover/zoom se descartan partículas para evitar deriva de coordenadas */
-  /* Solo limpiar en zoom (las layer coords cambian); en pan el pane se mueve solo */
-  map.on('zoomstart', function(){ _particles = []; });
-  _pRAF = requestAnimationFrame(_tickParticles);
-}
-
-function _resizePC() {
-  var el = document.getElementById('map');
-  _pCanvas.width  = el.offsetWidth;
-  _pCanvas.height = el.offsetHeight;
-}
-
-function _spawnFromPins() {
-  var visible = Object.values(pins).filter(function(p) {
-    return p.marker
-      && getPinStatus(p) !== 'expirando'
-      && map.getBounds && map.getBounds().contains(p.marker.getLatLng());
-  });
-  if (!visible.length) return;
-  if (_particles.length > 500) return;
-  var perPin = visible.length > 30 ? 1 : visible.length > 10 ? 2 : 3;
-  visible.forEach(function(pin) {
-    if (Math.random() > 0.7) return;
-    /* layerPoint: coordenadas relativas al origen del pane — se mueven con el mapa */
-    var lp = map.latLngToLayerPoint(pin.marker.getLatLng());
-    var pt = { x: lp.x, y: lp.y - 52 };
-    var color = pin.catColor || '#00f5a0';
-    for (var i = 0; i < perPin; i++) {
-      _particles.push({
-        x:     pt.x + (Math.random() - 0.5) * 8,
-        y:     pt.y - 6,
-        vx:    (Math.random() - 0.5) * 0.6,   /* deriva lateral suave */
-        vy:    -(0.8 + Math.random() * 1.4),   /* solo hacia arriba */
-        life:  1.0,
-        decay: 0.022 + Math.random() * 0.018,  /* desvanece con el tiempo */
-        size:  1.0 + Math.random() * 2.0,
-        color: color,
-        wobble: (Math.random() - 0.5) * 0.08,  /* oscilación horizontal */
-      });
-    }
-  });
-}
-
-function _tickParticles(now) {
-  var ctx = _pCtx;
-  var W = _pCanvas.width, H = _pCanvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  _particles = _particles.filter(function(p) {
-    p.vy  *= 0.995;               /* suave desaceleración al subir */
-    p.vx  += p.wobble;            /* oscilación tipo llama */
-    p.vx  *= 0.96;                /* amortiguación lateral */
-    p.x   += p.vx;
-    p.y   += p.vy;
-    p.life -= p.decay;
-    if (p.life <= 0) return false;
-
-    /* Tamaño se reduce con la vida (punta de llama más fina) */
-    var r = p.size * p.life;
-
-    /* Gradiente radial: color sólido en centro → transparente en borde */
-    var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.5);
-    grad.addColorStop(0, p.color);
-    grad.addColorStop(1, 'transparent');
-
-    ctx.save();
-    ctx.globalAlpha = Math.pow(p.life, 1.4) * 0.9; /* fade acelerado en top */
-    ctx.shadowBlur  = 8;
-    ctx.shadowColor = p.color;
-    ctx.fillStyle   = grad;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    return true;
-  });
-
-  if (now - _pLastSpawn > 100) {
-    _spawnFromPins();
-    _pLastSpawn = now;
-  }
-
-  _pRAF = requestAnimationFrame(_tickParticles);
-}
 
 /* ══ ONBOARDING JS ══════════════════════════════════════ */
 var obCurrentStep = 0;

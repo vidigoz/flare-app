@@ -39,6 +39,22 @@ export const handler = async (event) => {
     } catch(e) { return err(500, e.message); }
   }
 
+  /* DELETE — eliminar ticket (solo admin) */
+  if (event.httpMethod === "DELETE") {
+    const secret = process.env.ADMIN_SECRET;
+    const provided = event.headers["x-admin-key"];
+    if (!secret || provided !== secret) return err(401, "No autorizado");
+    let d; try { d = JSON.parse(event.body || "{}"); } catch(e) { return err(400, "JSON inválido"); }
+    const { id } = d;
+    if (!id) return err(400, "id requerido");
+    try {
+      const sql = neon(process.env.NETLIFY_DATABASE_URL);
+      const result = await sql`DELETE FROM support_tickets WHERE id = ${id} RETURNING id`;
+      if (!result.length) return err(404, "Ticket no encontrado");
+      return { statusCode: 200, headers: { ...cors(), "Content-Type": "application/json" }, body: JSON.stringify({ ok: true }) };
+    } catch(e) { return err(500, e.message); }
+  }
+
   if (event.httpMethod !== "POST") {
     return err(405, "Method not allowed");
   }
