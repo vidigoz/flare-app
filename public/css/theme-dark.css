@@ -415,7 +415,9 @@ input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 
 .ob-card-sm{max-width:320px}
 .ob-card-bottom{position:absolute;bottom:max(100px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%)}
 .ob-card-celebrate{border-color:rgba(0,245,160,.3);box-shadow:0 0 60px rgba(0,245,160,.15),0 24px 80px rgba(0,0,0,.8)}
-.ob-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
+.ob-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+.ob-card-wrap{display:flex;align-items:center;width:calc(100% - 40px);max-width:360px}
+.ob-mascota{display:block;height:260px;width:auto;margin:-60px auto -60px;pointer-events:none;position:relative;z-index:1}
 .ob-pin{width:28px;height:28px;background:var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:var(--glow);flex-shrink:0}
 .ob-logo-txt{font-size:26px;font-weight:800;letter-spacing:-.5px}
 .ob-logo-txt span{color:var(--neon)}
