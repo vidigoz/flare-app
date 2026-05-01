@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
-    "nodemailer": "^8.0.4"
+    "nodemailer": "^8.0.4",
+    "twilio": "^6.0.0"
   }
 }
