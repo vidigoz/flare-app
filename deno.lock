@@ -12,7 +12,8 @@
     "packageJson": {
       "dependencies": [
         "npm:@neondatabase/serverless@~0.10.4",
-        "npm:nodemailer@^8.0.4"
+        "npm:nodemailer@^8.0.4",
+        "npm:twilio@6"
       ]
     }
   }

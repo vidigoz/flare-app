@@ -55,6 +55,7 @@ export const handler = async (event) => {
       info:     { lbl: "Informacion",     color: "#00f5a0", icon: "ℹ️"  },
     };
 
+    let seq = 0;
     for (const row of rows) {
       try {
         const lat = parseFloat(row.lat);
@@ -64,7 +65,7 @@ export const handler = async (event) => {
           continue;
         }
 
-        const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
+        const id = "p" + Date.now() + (seq++).toString().padStart(4, "0") + Math.random().toString(36).slice(2, 4);
         const durMin = Math.min(Math.max(parseInt(row.dur_min) || 60, 1), 720);
         const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
 
