@@ -30,6 +30,7 @@ var myLocMarker = null;    /* marcador de posición del usuario */
 var myWatchId = null;      /* watchPosition id */
 var TILES = {};
 var mapMode = localStorage.getItem('flare_mapmode') || 'night';
+var popupInteracting = false;
 
 /* ── User identity (anónima por dispositivo) ── */
 var MY_ID = localStorage.getItem('flare_uid');
@@ -357,8 +358,13 @@ function makeMarker(pin){
 function refreshMk(pin, revived){
   var wasOpen = pin.marker.isPopupOpen();
   var state = revived ? 'revived' : getPinState(pin);
-  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[31,36],iconAnchor:[15,36]}));
-  if(wasOpen) pin.marker.openPopup();
+  if(wasOpen){
+    /* Popup abierto: parchear el DOM del icono directamente para no disparar close/open */
+    var el = pin.marker.getElement();
+    if(el){ el.innerHTML = mkHTML(pin, state); }
+  } else {
+    pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[31,36],iconAnchor:[15,36]}));
+  }
   if(revived){
     setTimeout(function(){ refreshMk(pin, false); }, 900);
   }
@@ -396,7 +402,16 @@ function popHTML(pin){
     +'<div class="pop-id" onclick="navigator.clipboard.writeText(\''+pin.id+'\').then(function(){var el=document.querySelector(\'.pop-id[data-id=\\\'' +pin.id+ '\\\']\');if(el){el.textContent=\'✓ copiado\';setTimeout(function(){el.textContent=\'ID: '+pin.id+'\'},1500)}})" data-id="'+pin.id+'" title="Mantén presionado para copiar">ID: '+pin.id+'</div>'
     +'</div>';
 }
-function refreshPop(pin){ if(pin.marker&&pin.marker.isPopupOpen()) pin.marker.setPopupContent(popHTML(pin)); }
+function refreshPop(pin){
+  if(!pin.marker || !pin.marker.isPopupOpen()) return;
+  var popup = pin.marker.getPopup();
+  if(!popup) return;
+  var el = popup.getElement && popup.getElement();
+  if(el){
+    var content = el.querySelector('.leaflet-popup-content');
+    if(content) content.innerHTML = popHTML(pin);
+  }
+}
 
 /* ── like ── */
 function doLike(id){
@@ -409,13 +424,16 @@ function doLike(id){
   pin.likes++;
   pin.expires_at = new Date(new Date(pin.expires_at).getTime() + 5*60*1000).toISOString();
   markLiked(id);
-  notif('❤️ +5 min al flare "'+pin.title+'"','like');
   /* Detectar revivido instantáneamente */
   var nowDying = getPinState(pin) === 'dying';
   var revived = wasDying && !nowDying;
-  refreshMk(pin, revived);
-  if(revived) notif('💚 "'+pin.title+'" fue salvado!','like');
+  if(!pin.marker.isPopupOpen()) refreshMk(pin, revived);
   refreshPop(pin);
+  setTimeout(function(){
+    if(!pin.marker.isPopupOpen()) pin.marker.openPopup();
+    var likeBtn = document.querySelector('.pop-like');
+    if(likeBtn){ likeBtn.classList.add('like-fire'); setTimeout(function(){ likeBtn.classList.remove('like-fire'); }, 700); }
+  }, 0);
   if(panelOpen) renderPanel();
   /* Persist to server */
   postLike(id).then(function(data) {
@@ -423,8 +441,18 @@ function doLike(id){
     pin.likes = data.likes;
     refreshPop(pin);
   }).catch(function(e) {
-    if(e.status === 429) notif('Demasiados likes seguidos. Espera un momento 😅','err');
-    else console.error('like error:', e);
+    if(e.status === 429) {
+      /* Revertir optimistic UI */
+      pin.liked = false;
+      pin.likes--;
+      pin.expires_at = new Date(new Date(pin.expires_at).getTime() - 5*60*1000).toISOString();
+      likedIds = likedIds.filter(function(x){ return x !== id; });
+      saveLiked();
+      refreshPop(pin);
+      notif('Demasiados likes seguidos. Espera un momento 😅','err');
+    } else {
+      console.error('like error:', e);
+    }
   });
 }
 
@@ -1350,11 +1378,17 @@ loadLeaflet(function(){
     });
 
     map.on('click', function(e){
-      if(map.closePopup) map.closePopup();
       if(!placing) return;
       stopPlace();
       setPending(e.latlng.lat, e.latlng.lng);
       openModal();
+    });
+
+    /* Cerrar popup al tocar el mapa fuera del popup */
+    document.getElementById('map').addEventListener('click', function(e){
+      if(!e.target.closest('.leaflet-popup') && !e.target.closest('.leaflet-marker-icon')){
+        map.closePopup();
+      }
     });
 
     var hasDeepLink = location.hash.startsWith('#flare-');

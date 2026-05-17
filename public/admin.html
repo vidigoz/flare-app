@@ -202,6 +202,17 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
         <div class="toggle-status" id="daily-limit-toggle-status">Cargando...</div>
       </div>
     </div>
+    <div class="cfg-row toggle-row" style="margin-top:8px">
+      <div class="cfg-icon">❤️</div>
+      <div class="cfg-body">
+        <div class="cfg-label">Like Rate Limit</div>
+        <div class="cfg-desc">Limita a 30 likes por hora por IP. Desactívalo durante pruebas.</div>
+      </div>
+      <div class="cfg-toggle-wrap">
+        <button id="like-rl-toggle" class="toggle-btn" type="button" data-enabled="true" disabled></button>
+        <div class="toggle-status" id="like-rl-toggle-status">Cargando...</div>
+      </div>
+    </div>
   </div>
 
   <div class="section">
@@ -341,9 +352,12 @@ document.getElementById('logout-btn').addEventListener('click', function() {
 
 var dailyLimitToggle = document.getElementById('daily-limit-toggle');
 var dailyLimitStatus = document.getElementById('daily-limit-toggle-status');
+var likeRlToggle     = document.getElementById('like-rl-toggle');
+var likeRlStatus     = document.getElementById('like-rl-toggle-status');
 
-if (limitToggle) limitToggle.addEventListener('click', function(){ toggleConfigKey('non_register_flare_limit', limitToggle, limitStatus); });
-if (dailyLimitToggle) dailyLimitToggle.addEventListener('click', function(){ toggleConfigKey('daily_flare_limit', dailyLimitToggle, dailyLimitStatus); });
+if (limitToggle)     limitToggle.addEventListener('click',     function(){ toggleConfigKey('non_register_flare_limit', limitToggle,     limitStatus); });
+if (dailyLimitToggle) dailyLimitToggle.addEventListener('click', function(){ toggleConfigKey('daily_flare_limit',        dailyLimitToggle, dailyLimitStatus); });
+if (likeRlToggle)    likeRlToggle.addEventListener('click',    function(){ toggleConfigKey('like_rate_limit',           likeRlToggle,     likeRlStatus); });
 
 function loadStats() {
   fetch('/api/flares?minLat=-90&maxLat=90&minLng=-180&maxLng=180')
@@ -380,18 +394,21 @@ function setToggleError(btn, statusEl, text) {
 }
 
 function loadLimitState() {
-  setToggleLoading(limitToggle, limitStatus, 'Cargando...');
+  setToggleLoading(limitToggle,      limitStatus,      'Cargando...');
   setToggleLoading(dailyLimitToggle, dailyLimitStatus, 'Cargando...');
+  setToggleLoading(likeRlToggle,     likeRlStatus,     'Cargando...');
   fetch('/api/admin/config', { headers: { 'x-admin-key': adminKey } })
     .then(function(r) { if (!r.ok) throw new Error('Status ' + r.status); return r.json(); })
     .then(function(d) {
       setToggleState(limitToggle,      limitStatus,      !!d.non_register_flare_limit);
       setToggleState(dailyLimitToggle, dailyLimitStatus, !!d.daily_flare_limit);
+      setToggleState(likeRlToggle,     likeRlStatus,     !!d.like_rate_limit);
     })
     .catch(function(e) {
       console.error('load config', e);
-      setToggleError(limitToggle, limitStatus, 'Error');
+      setToggleError(limitToggle,      limitStatus,      'Error');
       setToggleError(dailyLimitToggle, dailyLimitStatus, 'Error');
+      setToggleError(likeRlToggle,     likeRlStatus,     'Error');
     });
 }
 

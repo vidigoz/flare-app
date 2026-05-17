@@ -12,7 +12,8 @@ import {
 
 const FLAG_KEY       = "non_register_flare_limit";
 const DAILY_FLAG_KEY = "daily_flare_limit";
-const VALID_KEYS     = [FLAG_KEY, DAILY_FLAG_KEY];
+const LIKE_RL_KEY    = "like_rate_limit";
+const VALID_KEYS     = [FLAG_KEY, DAILY_FLAG_KEY, LIKE_RL_KEY];
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -34,9 +35,10 @@ export const handler = async (event) => {
     await ensureAdminSettingsTable(sql);
 
     if (event.httpMethod === "GET") {
-      const [v1, v2] = await Promise.all([
+      const [v1, v2, v3] = await Promise.all([
         getAdminSetting(sql, FLAG_KEY, "on"),
         getAdminSetting(sql, DAILY_FLAG_KEY, "on"),
+        getAdminSetting(sql, LIKE_RL_KEY, "on"),
       ]);
       return {
         statusCode: 200,
@@ -44,6 +46,7 @@ export const handler = async (event) => {
         body: JSON.stringify({
           non_register_flare_limit: v1 !== "off",
           daily_flare_limit:        v2 !== "off",
+          like_rate_limit:          v3 !== "off",
         }),
       };
     }

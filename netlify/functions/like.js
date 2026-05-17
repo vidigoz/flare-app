@@ -3,6 +3,7 @@
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
+import { ensureAdminSettingsTable, getAdminSetting } from "./_utils/settings.js";
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -16,18 +17,22 @@ export const handler = async (event) => {
   const id = (event.queryStringParameters || {}).id;
   if (!id) return err(400, "id requerido");
 
-  const ip = (event.headers["x-forwarded-for"] || "").split(",")[0].trim()
-    || event.headers["client-ip"]
-    || "unknown";
-  const rl = rateLimit(ip, "like", 30, 60 * 60 * 1000);
-  if (!rl.allowed) return {
-    statusCode: 429,
-    headers: { ...cors(), "Retry-After": String(rl.retryAfter) },
-    body: JSON.stringify({ error: `Demasiadas solicitudes. Intenta en ${rl.retryAfter} segundos.`, retryAfter: rl.retryAfter }),
-  };
-
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
+    await ensureAdminSettingsTable(sql);
+    const likeRlEnabled = (await getAdminSetting(sql, "like_rate_limit", "on")) !== "off";
+
+    if (likeRlEnabled) {
+      const ip = (event.headers["x-forwarded-for"] || "").split(",")[0].trim()
+        || event.headers["client-ip"]
+        || "unknown";
+      const rl = rateLimit(ip, "like", 30, 60 * 60 * 1000);
+      if (!rl.allowed) return {
+        statusCode: 429,
+        headers: { ...cors(), "Retry-After": String(rl.retryAfter) },
+        body: JSON.stringify({ error: `Demasiadas solicitudes. Intenta en ${rl.retryAfter} segundos.`, retryAfter: rl.retryAfter }),
+      };
+    }
 
     const [row] = await sql`
       UPDATE flares
