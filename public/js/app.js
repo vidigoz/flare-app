@@ -153,6 +153,7 @@ function apiFetch(url, opts) {
 /* Poll server for flares in current bbox */
 function fetchFlares() {
   if (!map) return;
+  if (map.hasLayer && Object.values(pins).some(function(p){ return p.marker && p.marker.isPopupOpen(); })) return;
   var b = map.getBounds();
   var params = new URLSearchParams({
     minLat: b.getSouth().toFixed(6),
@@ -344,8 +345,9 @@ function makeMarker(pin){
   var state = getPinState(pin);
   var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[31,36],iconAnchor:[15,36]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
-  m.bindPopup(popHTML(pin), {maxWidth:300});
+  m.bindPopup(popHTML(pin), {maxWidth:300, autoPan:false});
   m.on('popupopen', function(){ refreshPop(pin); });
+  m.on('popupclose', function(){ fetchFlares(); });
   clusterGroup.addLayer(m);
   setTimeout(function(){
     var el = m.getElement();
@@ -357,13 +359,7 @@ function refreshMk(pin, revived){
   var wasOpen = pin.marker.isPopupOpen();
   var state = revived ? 'revived' : getPinState(pin);
   pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[31,36],iconAnchor:[15,36]}));
-  if(wasOpen){
-    /* Reabrir sin autoPan para no disparar moveend → fetchFlares → loop */
-    var popup = pin.marker.getPopup();
-    popup.options.autoPan = false;
-    pin.marker.openPopup();
-    popup.options.autoPan = true;
-  }
+  if(wasOpen) pin.marker.openPopup();
   if(revived){
     setTimeout(function(){ refreshMk(pin, false); }, 900);
   }
@@ -1332,6 +1328,13 @@ loadLeaflet(function(){
       if(panelOpen){ buildChips(); renderPanel(); }
       clearTimeout(pollTimer);
       pollTimer = setTimeout(fetchFlares, 500);
+      /* Cerrar popup si el pin quedó fuera de los bounds visibles */
+      var b = map.getBounds();
+      Object.values(pins).forEach(function(p){
+        if(p.marker && p.marker.isPopupOpen() && !b.contains([p.lat, p.lng])){
+          p.marker.closePopup();
+        }
+      });
       /* Auto-ocultar etiquetas en zoom lejano */
       var zoom = map.getZoom();
       var mapEl = document.getElementById('map');
@@ -1344,6 +1347,7 @@ loadLeaflet(function(){
     });
 
     map.on('click', function(e){
+      if(map.closePopup) map.closePopup();
       if(!placing) return;
       stopPlace();
       setPending(e.latlng.lat, e.latlng.lng);
