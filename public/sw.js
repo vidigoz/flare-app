@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flare-v9';
+const CACHE_NAME = 'flare-v11';
 
 // Recursos del app shell que se cachean al instalar
 const APP_SHELL = [
