@@ -28,6 +28,8 @@ var clusterGroup = null;   /* L.markerClusterGroup instance */
 var clusterEnabled = true; /* toggle state */
 var myLocMarker = null;    /* marcador de posición del usuario */
 var myWatchId = null;      /* watchPosition id */
+var TILES = {};
+var mapMode = localStorage.getItem('flare_mapmode') || 'night';
 
 /* ── User identity (anónima por dispositivo) ── */
 var MY_ID = localStorage.getItem('flare_uid');
@@ -340,7 +342,7 @@ function getPinState(pin){
 }
 function makeMarker(pin){
   var state = getPinState(pin);
-  var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[44,52],iconAnchor:[22,52]});
+  var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[31,36],iconAnchor:[15,36]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
   m.bindPopup(popHTML(pin), {maxWidth:300});
   m.on('popupopen', function(){ refreshPop(pin); });
@@ -354,7 +356,7 @@ function makeMarker(pin){
 function refreshMk(pin, revived){
   var wasOpen = pin.marker.isPopupOpen();
   var state = revived ? 'revived' : getPinState(pin);
-  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[44,52],iconAnchor:[22,52]}));
+  pin.marker.setIcon(L.divIcon({className:'',html:mkHTML(pin, state),iconSize:[31,36],iconAnchor:[15,36]}));
   if(wasOpen){
     /* Reabrir sin autoPan para no disparar moveend → fetchFlares → loop */
     var popup = pin.marker.getPopup();
@@ -929,7 +931,7 @@ function buildClusterGroup(){
       var cls = count < 10 ? 'flare-cluster'
               : count < 50 ? 'flare-cluster flare-cluster-medium'
               : 'flare-cluster flare-cluster-large';
-      var size = count < 10 ? 48 : count < 50 ? 54 : 62;
+      var size = count < 10 ? 34 : count < 50 ? 38 : 43;
       return L.divIcon({
         html: '<div class="'+cls+'">'+count+'</div>',
         className: '',
@@ -1006,6 +1008,27 @@ document.getElementById('cluster-toggle').addEventListener('click', function(){
 document.getElementById('toggle-labels').addEventListener('click', function(){
   this.classList.toggle('on');
   document.getElementById('map').classList.toggle('labels-hidden');
+});
+
+/* ── Map mode toggle (día / noche) ── */
+document.getElementById('toggle-mapmode').addEventListener('click', function(){
+  var mapEl = document.getElementById('map');
+  if(mapMode === 'night'){
+    map.removeLayer(TILES.night);
+    TILES.day.addTo(map);
+    mapMode = 'day';
+    mapEl.classList.remove('map-night');
+    this.classList.remove('on');
+    this.innerHTML = '☀️ <span class="hf-lbl">Día</span>';
+  } else {
+    map.removeLayer(TILES.day);
+    TILES.night.addTo(map);
+    mapMode = 'night';
+    mapEl.classList.add('map-night');
+    this.classList.add('on');
+    this.innerHTML = '🌙 <span class="hf-lbl">Noche</span>';
+  }
+  localStorage.setItem('flare_mapmode', mapMode);
 });
 
 /* ── panel buttons ── */
@@ -1281,7 +1304,16 @@ function loadMarkerCluster(cb){
 loadLeaflet(function(){
   loadMarkerCluster(function(){
     map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false, closePopupOnClick:false});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''}).addTo(map);
+    TILES.night = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''});
+    TILES.day   = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''});
+    TILES[mapMode].addTo(map);
+    if(mapMode === 'night') document.getElementById('map').classList.add('map-night');
+    (function syncMapModeBtn(){
+      var btn = document.getElementById('toggle-mapmode');
+      if(!btn) return;
+      if(mapMode === 'night'){ btn.classList.add('on'); btn.innerHTML = '🌙 <span class="hf-lbl">Noche</span>'; }
+      else { btn.classList.remove('on'); btn.innerHTML = '☀️ <span class="hf-lbl">Día</span>'; }
+    })();
     /*L.control.zoom({position:'bottomright'}).addTo(map);*/
 
     /* Init cluster group */
