@@ -48,7 +48,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 /* FAB — centrado, zona segura */
 #fab-wrap{position:fixed!important;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999!important;display:flex;flex-direction:column;align-items:center;gap:10px}
 @supports(bottom:env(safe-area-inset-bottom)){#fab-wrap{bottom:calc(24px + env(safe-area-inset-bottom,0px))}}
-#fab{background:var(--neon);color:#000;border:none;border-radius:30px;padding:13px 26px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+#fab{background:var(--neon);color:#000;border:none;border-radius:30px;padding:10px 21px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;box-shadow:var(--glow),0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 #fab:active{transform:scale(.97)}
 #fab.placing{background:var(--neon2);animation:fabg 1s infinite}
 @keyframes fabg{0%,100%{box-shadow:var(--glow2),0 8px 32px rgba(0,0,0,.6)}50%{box-shadow:0 0 50px rgba(245,0,160,.6),0 8px 32px rgba(0,0,0,.6)}}

@@ -513,6 +513,7 @@ function openPanel(){
   document.getElementById('panel').classList.add('open');
   document.getElementById('pov').classList.add('on');
   document.getElementById('pbtn').style.display = 'none';
+  document.getElementById('fab-wrap').style.display = 'none';
   buildChips(); renderPanel();
 }
 function closePanel(){
@@ -520,6 +521,7 @@ function closePanel(){
   document.getElementById('panel').classList.remove('open');
   document.getElementById('pov').classList.remove('on');
   document.getElementById('pbtn').style.display = 'flex';
+  document.getElementById('fab-wrap').style.display = 'flex';
 }
 
 function buildChips(){
@@ -748,6 +750,7 @@ function setPending(lat, lng){
 function openModal(){
   /* Quitar spotlight del onboarding al abrir el modal */
   document.getElementById('fab-wrap').classList.remove('ob-spotlight');
+  document.getElementById('fab-wrap').style.display = 'none';
   /* Ocultar el toast del paso 3 para que no tape el modal */
   var toast = document.querySelector('#ob-3 .ob-toast');
   if(toast) toast.style.visibility = 'hidden';
@@ -764,6 +767,7 @@ function closeDailyLimitModal(){
 
 function closeModal(){
   document.getElementById('mover').classList.remove('on');
+  document.getElementById('fab-wrap').style.display = 'flex';
   /* Restaurar el toast del paso 3 si el onboarding sigue activo */
   var toast = document.querySelector('#ob-3 .ob-toast');
   if(toast) toast.style.visibility = '';
