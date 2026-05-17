@@ -3,19 +3,12 @@
    ══════════════════════════════════════════════════════ */
 
 var CATS = [
-  {id:'food', lbl:'Comida y Bebida', icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
-  {id:'sale', lbl:'Ventas',          icon:'💵', color:'#00c2ff', emojis:['💵','💲','💸','🛒','🎁','💰','🛍️','🤑','💎','📦']},
-];
-
-/*
-var CATS = [
   {id:'food',     lbl:'Comida y Bebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
   {id:'sale',     lbl:'Ventas',           icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦']},
   {id:'event',    lbl:'Evento',           icon:'🎉', color:'#a000f5', emojis:['🎉','🎵','🎸','🎭','🎪','🏆','🎤','🎬','🎊','🕺']},
   {id:'incident', lbl:'Suceso',           icon:'⚡', color:'#ff4060', emojis:['⚡','🚨','🚧','💥','🔥','🚑','⚠️','🌊','🌪️','🆘']},
   {id:'info',     lbl:'Información',      icon:'ℹ️', color:'#00f5a0', emojis:['ℹ️','📍','💡','📢','🗺️','🔍','📌','📣','🌐','✅']},
 ];
-*/
 var MAX = 60*60*1000; /* referencia visual de la barra de progreso: 1 hora base */
 var pins = {}; /* id → pin object (includes marker) */
 var placing = false, pending = null;
@@ -346,8 +339,16 @@ function makeMarker(pin){
   var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[31,36],iconAnchor:[15,36]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
   m.bindPopup(popHTML(pin), {maxWidth:300, autoPan:false});
-  m.on('popupopen', function(){ refreshPop(pin); });
-  m.on('popupclose', function(){ fetchFlares(); });
+  m.on('popupopen', function(){
+    refreshPop(pin);
+    var el = m.getElement();
+    if(el) el.classList.add('mk-open');
+  });
+  m.on('popupclose', function(){
+    var el = m.getElement();
+    if(el) el.classList.remove('mk-open');
+    fetchFlares();
+  });
   clusterGroup.addLayer(m);
   setTimeout(function(){
     var el = m.getElement();
