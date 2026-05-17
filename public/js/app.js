@@ -78,20 +78,19 @@ function shareFlare(id) {
   if(!pin) return;
   var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
   var url = location.origin + location.pathname + '#flare-' + id;
-  var texto = pin.emoji + ' ' + pin.title
+  var textoBase = pin.emoji + ' ' + pin.title
     + (pin.bizName ? '\n🏪 ' + pin.bizName : '')
     + (pin.text ? '\n' + pin.text.slice(0, 100) + (pin.text.length > 100 ? '...' : '') : '')
-    + '\n⏱ Vigente por ' + fmtT(r)
-    + '\n\n📍 Ver en Flare → ' + url;
+    + '\n⏱ Vigente por ' + fmtT(r);
 
   if(navigator.share) {
     navigator.share({
       title: pin.emoji + ' ' + pin.title,
-      text: texto,
+      text: textoBase,
       url: url
     }).catch(function(){});
   } else {
-    navigator.clipboard.writeText(texto).then(function(){
+    navigator.clipboard.writeText(textoBase + '\n\n📍 Ver en Flare → ' + url).then(function(){
       notif('📋 Copiado al portapapeles');
     }).catch(function(){
       notif('No se pudo compartir', 'err');
