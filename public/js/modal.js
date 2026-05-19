@@ -4,16 +4,24 @@ var fabMenuOpen = false;
 var fab = document.getElementById('fab');
 var fabMenu = document.getElementById('fab-menu');
 
+function obSkipBtnSetVisible(visible){
+  var btn = document.getElementById('ob-skip-btn');
+  if(!btn) return;
+  if(localStorage.getItem('flare_onboarding_complete')) return;
+  btn.style.display = visible ? 'block' : 'none';
+}
+
 fab.addEventListener('click', function(e){
   e.stopPropagation();
-  if(placing){ stopPlace(); return; }
+  if(placing){ stopPlace(); obSkipBtnSetVisible(true); return; }
   fabMenuOpen = !fabMenuOpen;
   fabMenu.classList.toggle('on', fabMenuOpen);
   fab.textContent = fabMenuOpen ? '✕  Cancelar' : '＋ Crear Flare';
+  obSkipBtnSetVisible(!fabMenuOpen);
 });
 
 document.addEventListener('click', function(){
-  if(fabMenuOpen){ fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare'; }
+  if(fabMenuOpen){ fabMenuOpen=false; fabMenu.classList.remove('on'); fab.textContent='＋ Crear Flare'; obSkipBtnSetVisible(true); }
 });
 
 document.getElementById('fab-gps').addEventListener('click', function(e){
