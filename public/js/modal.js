@@ -61,10 +61,8 @@ function setPending(lat, lng){
 }
 
 function openModal(){
-  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
+  obHideTips();
   document.getElementById('fab-wrap').style.display = 'none';
-  var toast = document.querySelector('#ob-3 .ob-toast');
-  if(toast) toast.style.visibility = 'hidden';
   buildCG(); buildEG();
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
@@ -81,8 +79,9 @@ function closeDailyLimitModal(){
 function closeModal(){
   document.getElementById('mover').classList.remove('on');
   document.getElementById('fab-wrap').style.display = 'flex';
-  var toast = document.querySelector('#ob-3 .ob-toast');
-  if(toast) toast.style.visibility = '';
+  if(!localStorage.getItem('flare_onboarding_complete')){
+    document.getElementById('ob-skip-btn').style.display = 'block';
+  }
   pending=null;
   document.getElementById('f-biz').value='';
   document.getElementById('f-ttl').value='';
@@ -197,7 +196,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       mine.push(row.id);
       if(mine.length > 50) mine = mine.slice(-50);
       localStorage.setItem('flare_mine', JSON.stringify(mine));
-      if(obCurrentStep===3 || !localStorage.getItem('flare_first_published')){
+      if(!localStorage.getItem('flare_first_published')){
         obCelebrate();
       }
     })

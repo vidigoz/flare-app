@@ -3,6 +3,7 @@
 function togglePanel(){ panelOpen ? closePanel() : openPanel(); }
 function openPanel(){
   panelOpen = true;
+  obHideTips();
   document.getElementById('panel').classList.add('open');
   document.getElementById('pov').classList.add('on');
   document.getElementById('pbtn').style.display = 'none';
@@ -15,6 +16,12 @@ function closePanel(){
   document.getElementById('pov').classList.remove('on');
   document.getElementById('pbtn').style.display = 'flex';
   document.getElementById('fab-wrap').style.display = 'flex';
+  if(!localStorage.getItem('flare_onboarding_complete')){
+    document.getElementById('ob-wrap').style.display = 'block';
+    document.getElementById('ob-tip-fab').style.display = 'flex';
+    document.getElementById('ob-tip-filters').style.display = 'block';
+    document.getElementById('ob-skip-btn').style.display = 'block';
+  }
 }
 
 function buildChips(){

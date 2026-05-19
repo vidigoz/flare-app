@@ -1,66 +1,32 @@
-/* ── onboarding.js — full onboarding tutorial ── */
+/* ── onboarding.js — tooltips no invasivos ── */
 
 var obCurrentStep = 0;
 
+
 function obStart(){
   obCurrentStep = 1;
-  var wrap = document.getElementById('ob-wrap');
-  wrap.style.display = 'block';
-  setTimeout(function(){ wrap.classList.add('active'); }, 10);
-  obShowStep(1);
+  document.getElementById('ob-wrap').style.display = 'block';
+  document.getElementById('ob-tip-fab').style.display = 'flex';
+  document.getElementById('ob-tip-filters').style.display = 'block';
+  document.getElementById('ob-skip-btn').style.display = 'block';
 }
 
-function obShowStep(n){
-  [1,2,3,4].forEach(function(i){
-    var el = document.getElementById('ob-'+i);
+function obHideTips(){
+  ['ob-tip-fab','ob-tip-filters'].forEach(function(id){
+    var el = document.getElementById(id);
     if(el) el.style.display = 'none';
   });
-  var step = document.getElementById('ob-'+n);
-  if(!step) return;
-  step.style.display = 'flex';
-
-  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
-  document.querySelectorAll('.mk').forEach(function(el){ el.classList.remove('ob-pins-pulse'); });
-
-  if(n===2){
-    setTimeout(function(){
-      document.querySelectorAll('.mk-b').forEach(function(el){ el.style.animation='pulse-danger .8s ease-in-out infinite alternate'; });
-    }, 300);
-  }
-  if(n===3){
-    document.getElementById('ob-wrap').style.pointerEvents = 'none';
-    document.getElementById('fab-wrap').classList.add('ob-spotlight');
-    step.style.pointerEvents = 'none';
-    step.style.background = 'transparent';
-    step.style.backdropFilter = 'none';
-    var card = step.querySelector('.ob-card');
-    if(card) card.style.pointerEvents = 'all';
-    var toast = step.querySelector('.ob-toast');
-    if(toast){
-      toast.style.pointerEvents = 'all';
-      toast.style.position = 'relative';
-      toast.style.zIndex = '9600';
-      var skipBtn = toast.querySelector('.ob-btn-skip');
-      if(skipBtn && !skipBtn._touchBound){
-        skipBtn._touchBound = true;
-        skipBtn.addEventListener('touchend', function(e){ e.preventDefault(); e.stopPropagation(); obSkip(); });
-      }
-    }
-  } else {
-    document.getElementById('ob-wrap').style.pointerEvents = 'all';
-    var allSteps = document.querySelectorAll('.ob-step');
-    allSteps.forEach(function(s){ s.style.background=''; s.style.backdropFilter=''; s.style.pointerEvents=''; });
-  }
+  document.getElementById('ob-skip-btn').style.display = 'none';
 }
 
 function obComplete(){
   localStorage.setItem('flare_onboarding_complete','1');
+  obHideTips();
   var wrap = document.getElementById('ob-wrap');
-  wrap.classList.remove('active');
-  wrap.style.pointerEvents = 'none';
-  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
-  document.querySelectorAll('.mk-b').forEach(function(el){ el.style.animation=''; });
-  setTimeout(function(){ wrap.style.display='none'; }, 400);
+  /* Dejar visible sólo si hay celebración en curso, si no ocultar */
+  if(document.getElementById('ob-celebrate').style.display === 'none'){
+    wrap.style.display = 'none';
+  }
 }
 
 function obSkip(){
@@ -72,11 +38,13 @@ function obCelebrate(){
   localStorage.setItem('flare_first_published','1');
   obCurrentStep = 4;
 
-  document.getElementById('fab-wrap').classList.remove('ob-spotlight');
-  document.querySelectorAll('.mk-b').forEach(function(el){ el.style.animation=''; });
-  document.getElementById('ob-wrap').style.pointerEvents = 'all';
+  obHideTips();
 
-  obShowStep(4);
+  var wrap = document.getElementById('ob-wrap');
+  wrap.style.display = 'block';
+  var cel = document.getElementById('ob-celebrate');
+  cel.style.display = 'flex';
+
   obLaunchConfetti();
 
   setTimeout(function(){
@@ -84,7 +52,11 @@ function obCelebrate(){
     if(fill) fill.style.width = '100%';
   }, 100);
 
-  setTimeout(function(){ obComplete(); }, 4200);
+  setTimeout(function(){
+    cel.style.display = 'none';
+    wrap.style.display = 'none';
+    localStorage.setItem('flare_onboarding_complete','1');
+  }, 4200);
 }
 
 function obLaunchConfetti(){
@@ -108,15 +80,3 @@ function obLaunchConfetti(){
     })(i);
   }
 }
-
-document.addEventListener('click', function(e){
-  var next = e.target.closest('.ob-btn-next');
-  if(next){
-    var n = parseInt(next.dataset.next);
-    obCurrentStep = n;
-    obShowStep(n);
-    return;
-  }
-  var skip = e.target.closest('.ob-btn-skip');
-  if(skip){ obSkip(); return; }
-});
