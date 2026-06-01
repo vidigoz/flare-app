@@ -209,29 +209,26 @@ function doSendCode() {
   btn.disabled = true;
   btn.textContent = 'Enviando...';
 
-  if (!window._fbAuth || !window._fbRecaptchaVerifier || !window._fbSignInWithPhone) {
-    errEl.textContent = 'Firebase no cargó. Recarga la página e intenta de nuevo.';
-    errEl.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Enviar código';
-    return;
-  }
-
-  // Crear reCAPTCHA invisible si no existe
-  if (!window._fbAppVerifier) {
-    window._fbAppVerifier = new window._fbRecaptchaVerifier(window._fbAuth, 'recaptcha-container', { size: 'invisible' });
-  }
-
-  window._fbSignInWithPhone(window._fbAuth, phone, window._fbAppVerifier)
+  // Esperar a que Firebase esté listo (puede tardar si la red es lenta)
+  Promise.resolve(window._fbReady || null)
+    .then(function() {
+      if (!window._fbAuth || !window._fbRecaptchaVerifier || !window._fbSignInWithPhone) {
+        throw new Error('firebase_not_loaded');
+      }
+      if (!window._fbAppVerifier) {
+        window._fbAppVerifier = new window._fbRecaptchaVerifier(window._fbAuth, 'recaptcha-container', { size: 'invisible' });
+      }
+      return window._fbSignInWithPhone(window._fbAuth, phone, window._fbAppVerifier);
+    })
     .then(function(confirmationResult) {
       _fbConfirmationResult = confirmationResult;
       showVerifyCode(phone);
     })
     .catch(function(e) {
       console.error('firebase phone error:', e);
-      // Limpiar verifier para el próximo intento
       window._fbAppVerifier = null;
       var msg = 'Error al enviar SMS. Intenta de nuevo.';
+      if (e.message === 'firebase_not_loaded') msg = 'Firebase no cargó. Recarga la página e intenta de nuevo.';
       if (e.code === 'auth/invalid-phone-number') msg = 'Número de teléfono inválido.';
       if (e.code === 'auth/too-many-requests')    msg = 'Demasiados intentos. Espera unos minutos.';
       errEl.textContent = msg;
