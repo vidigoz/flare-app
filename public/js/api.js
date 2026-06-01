@@ -118,6 +118,18 @@ function postLike(id) {
   return apiFetch('/api/like?id=' + encodeURIComponent(id), { method: 'PATCH' });
 }
 
+function postIdentity(identity) {
+  return apiFetch('/api/identity', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_id: identity.device_id, username: identity.username }),
+  });
+}
+
+function fetchIdentity(deviceId) {
+  return apiFetch('/api/identity?device_id=' + encodeURIComponent(deviceId));
+}
+
 function startPoll() {
   fetchFlares();
   pollTimer = setInterval(fetchFlares, 15000);

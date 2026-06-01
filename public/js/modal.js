@@ -175,6 +175,8 @@ document.getElementById('bsub').addEventListener('click', function(){
   var isFirstFlare = !IDENTITY;
   if (!IDENTITY) {
     IDENTITY = createIdentity();
+    // Registrar en DB de forma asíncrona — no bloquea la publicación
+    postIdentity(IDENTITY).catch(function() {});
   }
 
   // Actualizar flares_hoy
