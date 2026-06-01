@@ -63,6 +63,39 @@ function saveIdentity(identity) {
 // IDENTITY es null si Tier 1, objeto si Tier 2
 var IDENTITY = getOrCreateIdentity();
 
+// Si no hay identidad local, buscar perfiles en DB por device_id
+var PENDING_PROFILES = null; // perfiles encontrados en DB pendientes de selección
+(function() {
+  if (IDENTITY) return; // ya tiene identidad local, no hace falta buscar
+  var deviceId = getDeviceFingerprint();
+  fetch('/api/identity?device_id=' + encodeURIComponent(deviceId))
+    .then(function(r) { return r.json(); })
+    .then(function(profiles) {
+      if (!profiles || !profiles.length) return;
+      if (profiles.length === 1) {
+        // Auto-recuperar silenciosamente
+        IDENTITY = {
+          username:   profiles[0].username,
+          device_id:  profiles[0].device_id,
+          floins:     0,
+          flares_hoy: 0,
+          fecha_hoy:  new Date().toDateString(),
+          racha_dias: 0,
+          created_at: profiles[0].created_at,
+        };
+        saveIdentity(IDENTITY);
+        // Actualizar UI si el panel ya está abierto
+        if (typeof renderProfile === 'function' && typeof profileOpen !== 'undefined' && profileOpen) {
+          renderProfile();
+        }
+      } else {
+        // Varios perfiles — guardar para mostrar selector en el panel
+        PENDING_PROFILES = profiles;
+      }
+    })
+    .catch(function() {});
+})();
+
 CATS = [
   {id:'food',     lbl:'Comida y Bebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
   {id:'sale',     lbl:'Ventas',           icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦']},

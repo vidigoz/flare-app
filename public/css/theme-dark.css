@@ -631,3 +631,23 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 
 /* ── VERSIÓN EN MENÚ OPCIONES ───────────────────── */
 .psetting-version{text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);margin-top:auto;padding-top:16px;padding-bottom:4px;letter-spacing:.5px}
+
+/* ── SELECTOR DE PERFILES ───────────────────────── */
+.profile-selector-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s, background .15s;
+  margin-bottom: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.profile-selector-item:active { border-color: var(--neon); background: rgba(0,245,160,.06); }
+.profile-selector-avatar { font-size: 24px; flex-shrink: 0; }
+.profile-selector-body { flex: 1; }
+.profile-selector-name { font-size: 15px; font-weight: 700; color: var(--neon); font-family: 'Space Mono',monospace; }
+.profile-selector-date { font-size: 10px; color: var(--dim); font-family: 'Space Mono',monospace; margin-top: 2px; }

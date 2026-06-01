@@ -33,10 +33,11 @@ export const handler = async (event) => {
         SELECT id, username, device_id, tier, flares_count, created_at
         FROM users
         WHERE device_id = ${deviceId}
-        LIMIT 1
+        ORDER BY created_at DESC
       `;
 
-      return ok(rows[0] || null);
+      // Devuelve array — el cliente decide si auto-carga (1 perfil) o muestra selector (varios)
+      return ok(rows);
     }
 
     // ── POST — crear o recuperar perfil ──────────────

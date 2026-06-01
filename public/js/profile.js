@@ -18,6 +18,11 @@ function renderProfile() {
   var tier = getTier();
 
   if (tier === 1) {
+    // ¿Hay perfiles en DB pendientes de selección?
+    if (typeof PENDING_PROFILES !== 'undefined' && PENDING_PROFILES && PENDING_PROFILES.length) {
+      renderProfileSelector(box, PENDING_PROFILES);
+      return;
+    }
     box.innerHTML =
       '<div class="profile-tier-badge tier1">' +
         '<span class="tier-icon">👻</span>' +
@@ -110,6 +115,51 @@ function renderMyFlaresInProfile() {
     .catch(function() {
       box.innerHTML = '<div class="pempty">Error al cargar. Intenta de nuevo.</div>';
     });
+}
+
+function renderProfileSelector(box, profiles) {
+  var html =
+    '<div class="profile-tier-badge tier1">' +
+      '<span class="tier-icon">🔄</span>' +
+      '<span class="tier-label">Elige tu perfil</span>' +
+    '</div>' +
+    '<div class="profile-cta">' +
+      '<div class="profile-cta-title">Encontramos ' + profiles.length + ' perfiles en este dispositivo</div>' +
+      '<div class="profile-cta-desc">Selecciona el perfil que quieres usar. Podrás cambiarlo desde aquí cuando quieras.</div>' +
+    '</div>';
+
+  profiles.forEach(function(p, i) {
+    var fecha = new Date(p.created_at).toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' });
+    html +=
+      '<button class="profile-selector-item" onclick="restoreProfile(' + i + ')">' +
+        '<div class="profile-selector-avatar">🤝</div>' +
+        '<div class="profile-selector-body">' +
+          '<div class="profile-selector-name">@' + esc(p.username) + '</div>' +
+          '<div class="profile-selector-date">Creado el ' + fecha + '</div>' +
+        '</div>' +
+        '<span class="psetting-arrow">›</span>' +
+      '</button>';
+  });
+
+  box.innerHTML = html;
+}
+
+function restoreProfile(index) {
+  var p = PENDING_PROFILES[index];
+  if (!p) return;
+  IDENTITY = {
+    username:   p.username,
+    device_id:  p.device_id,
+    floins:     0,
+    flares_hoy: 0,
+    fecha_hoy:  new Date().toDateString(),
+    racha_dias: 0,
+    created_at: p.created_at,
+  };
+  saveIdentity(IDENTITY);
+  PENDING_PROFILES = null;
+  notif('✅ Perfil @' + p.username + ' restaurado');
+  renderProfile();
 }
 
 /* openProfile() y closeProfile() son llamadas desde panel.js vía psetting-profile */
