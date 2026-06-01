@@ -104,7 +104,7 @@ export default async () => {
             title, emoji,
             cat, cat_lbl, cat_color, cat_icon,
             type, body_text, biz_name,
-            expires_at
+            expires_at, username, tier
           ) VALUES (
             ${id},
             ${parseFloat(f.lat)},
@@ -118,7 +118,7 @@ export default async () => {
             'text',
             ${f.description || null},
             ${f.biz_name || null},
-            ${expiresAt}
+            ${expiresAt}, 'flare_admin', 2
           )
         `;
 
