@@ -59,7 +59,7 @@ function renderProfile() {
     '</div>' +
     '<div class="profile-validate">' +
       '<div class="profile-validate-title">🔒 Desbloquea más funciones</div>' +
-      '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre y publicar sin límite.</div>' +
+      '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre, publicar sin límite y guardar tu perfil de Flare para recuperarlo en cualquier dispositivo.</div>' +
       '<button class="profile-validate-btn" onclick="notif(\'Próximamente — registro por teléfono 📱\')">Validar con mi número</button>' +
     '</div>' +
     '<div class="profile-divider"></div>' +
