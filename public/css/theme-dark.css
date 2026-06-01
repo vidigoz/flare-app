@@ -651,3 +651,27 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .profile-selector-body { flex: 1; }
 .profile-selector-name { font-size: 15px; font-weight: 700; color: var(--neon); font-family: 'Space Mono',monospace; }
 .profile-selector-date { font-size: 10px; color: var(--dim); font-family: 'Space Mono',monospace; margin-top: 2px; }
+
+/* ── Verificación Tier 3 ── */
+.profile-verify-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.profile-verify-back { background: none; border: none; color: var(--dim); font-size: 13px; cursor: pointer; padding: 4px 0; font-family: 'Space Mono',monospace; }
+.profile-verify-back:hover { color: var(--neon); }
+.profile-verify-title { font-size: 15px; font-weight: 700; color: var(--txt); font-family: 'Space Mono',monospace; }
+.profile-verify-body { display: flex; flex-direction: column; gap: 12px; }
+.profile-verify-desc { font-size: 13px; color: var(--dim); line-height: 1.5; }
+.profile-verify-field { display: flex; align-items: center; gap: 8px; }
+.profile-verify-prefix { font-size: 14px; color: var(--txt); font-family: 'Space Mono',monospace; white-space: nowrap; }
+.profile-verify-input { flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; color: var(--txt); font-size: 16px; font-family: 'Space Mono',monospace; padding: 10px 12px; outline: none; width: 100%; }
+.profile-verify-input:focus { border-color: var(--neon); }
+.profile-verify-code-input { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); border-radius: 8px; color: var(--neon); font-size: 28px; font-family: 'Space Mono',monospace; padding: 12px; text-align: center; letter-spacing: 6px; outline: none; width: 100%; }
+.profile-verify-code-input:focus { border-color: var(--neon); }
+.profile-verify-err { font-size: 12px; color: var(--danger); font-family: 'Space Mono',monospace; padding: 6px 0; }
+.profile-verify-username-section { display: flex; flex-direction: column; gap: 4px; }
+.profile-verify-username-label { font-size: 12px; color: var(--dim); }
+.profile-verify-username-hint { font-size: 11px; color: rgba(255,255,255,.3); }
+.profile-verify-resend { background: none; border: none; color: var(--dim); font-size: 12px; cursor: pointer; text-align: center; padding: 4px; font-family: 'Space Mono',monospace; text-decoration: underline; }
+.profile-verify-resend:hover { color: var(--neon); }
+.profile-verify-success { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 24px 0; text-align: center; }
+.profile-verify-success-icon { font-size: 48px; }
+.profile-verify-success-title { font-size: 18px; font-weight: 700; color: var(--neon); font-family: 'Space Mono',monospace; }
+.profile-verify-success-desc { font-size: 13px; color: var(--dim); line-height: 1.6; max-width: 260px; }

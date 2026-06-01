@@ -313,6 +313,28 @@
   </div>
 </div>
 
+<!-- Firebase SDK (Phone Auth) -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQQ-wpR0au2zuCN7oZ7tBlIsNmtT5eSDU",
+    authDomain: "flaremap-8469b.firebaseapp.com",
+    projectId: "flaremap-8469b",
+    appId: "1:743792163874:web:0f7fa1ddd90ace4b365e7b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  auth.languageCode = 'es';
+
+  // Exponemos al scope global para que profile.js pueda usarlos
+  window._fbAuth = auth;
+  window._fbRecaptchaVerifier = RecaptchaVerifier;
+  window._fbSignInWithPhone = signInWithPhoneNumber;
+</script>
+
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>
 <script src="js/markers.js"></script>

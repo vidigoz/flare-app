@@ -45,6 +45,11 @@
   to = "/.netlify/functions/support"
   status = 200
 
+[[redirects]]
+  from = "/api/verify/firebase"
+  to = "/.netlify/functions/verify-firebase"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

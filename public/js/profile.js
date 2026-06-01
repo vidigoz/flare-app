@@ -65,7 +65,7 @@ function renderProfile() {
     '<div class="profile-validate">' +
       '<div class="profile-validate-title">🔒 Desbloquea más funciones</div>' +
       '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre, publicar sin límite y guardar tu perfil de Flare para recuperarlo en cualquier dispositivo.</div>' +
-      '<button class="profile-validate-btn" onclick="notif(\'Próximamente — registro por teléfono 📱\')">Validar con mi número</button>' +
+      '<button class="profile-validate-btn" onclick="showVerifyPhone()">Validar con mi número</button>' +
     '</div>' +
     '<div class="profile-divider"></div>' +
     '<div class="profile-section-title">📍 Mis Flares</div>' +
@@ -163,3 +163,204 @@ function restoreProfile(index) {
 }
 
 /* openProfile() y closeProfile() son llamadas desde panel.js vía psetting-profile */
+
+/* ── Tier 3: Verificación por teléfono (Firebase Phone Auth) ── */
+
+var _fbConfirmationResult = null; // resultado de signInWithPhoneNumber
+
+function showVerifyPhone() {
+  var box = document.getElementById('profile-content');
+  if (!box) return;
+  box.innerHTML =
+    '<div class="profile-verify-header">' +
+      '<button class="profile-verify-back" onclick="renderProfile()">← Volver</button>' +
+      '<div class="profile-verify-title">Verificar número</div>' +
+    '</div>' +
+    '<div class="profile-verify-body">' +
+      '<div class="profile-verify-desc">Ingresa tu número de celular. Te enviaremos un código de 6 dígitos por SMS.</div>' +
+      '<div class="profile-verify-field">' +
+        '<span class="profile-verify-prefix">🇲🇽 +52</span>' +
+        '<input id="verify-phone-input" class="profile-verify-input" type="tel" inputmode="numeric" maxlength="10" placeholder="10 dígitos">' +
+      '</div>' +
+      '<div id="verify-phone-err" class="profile-verify-err" style="display:none"></div>' +
+      '<div id="recaptcha-container"></div>' +
+      '<button class="profile-validate-btn" id="verify-send-btn" onclick="doSendCode()">Enviar código</button>' +
+    '</div>';
+
+  var input = document.getElementById('verify-phone-input');
+  if (input) input.focus();
+}
+
+function doSendCode() {
+  var input = document.getElementById('verify-phone-input');
+  var errEl = document.getElementById('verify-phone-err');
+  var btn   = document.getElementById('verify-send-btn');
+  if (!input) return;
+
+  var digits = input.value.replace(/\D/g, '');
+  if (digits.length !== 10) {
+    errEl.textContent = 'Ingresa exactamente 10 dígitos';
+    errEl.style.display = 'block';
+    return;
+  }
+  var phone = '+52' + digits;
+
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  if (!window._fbAuth || !window._fbRecaptchaVerifier || !window._fbSignInWithPhone) {
+    errEl.textContent = 'Firebase no cargó. Recarga la página e intenta de nuevo.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Enviar código';
+    return;
+  }
+
+  // Crear reCAPTCHA invisible si no existe
+  if (!window._fbAppVerifier) {
+    window._fbAppVerifier = new window._fbRecaptchaVerifier(window._fbAuth, 'recaptcha-container', { size: 'invisible' });
+  }
+
+  window._fbSignInWithPhone(window._fbAuth, phone, window._fbAppVerifier)
+    .then(function(confirmationResult) {
+      _fbConfirmationResult = confirmationResult;
+      showVerifyCode(phone);
+    })
+    .catch(function(e) {
+      console.error('firebase phone error:', e);
+      // Limpiar verifier para el próximo intento
+      window._fbAppVerifier = null;
+      var msg = 'Error al enviar SMS. Intenta de nuevo.';
+      if (e.code === 'auth/invalid-phone-number') msg = 'Número de teléfono inválido.';
+      if (e.code === 'auth/too-many-requests')    msg = 'Demasiados intentos. Espera unos minutos.';
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enviar código';
+    });
+}
+
+function showVerifyCode(phone) {
+  var box = document.getElementById('profile-content');
+  if (!box) return;
+  var hint = phone.slice(0, 4) + '****' + phone.slice(-2);
+  box.innerHTML =
+    '<div class="profile-verify-header">' +
+      '<button class="profile-verify-back" onclick="showVerifyPhone()">← Cambiar número</button>' +
+      '<div class="profile-verify-title">Ingresa el código</div>' +
+    '</div>' +
+    '<div class="profile-verify-body">' +
+      '<div class="profile-verify-desc">Enviamos un SMS a <strong>' + esc(hint) + '</strong>. Ingresa el código de 6 dígitos.</div>' +
+      '<input id="verify-code-input" class="profile-verify-code-input" type="tel" inputmode="numeric" maxlength="6" placeholder="000000">' +
+      '<div id="verify-code-err" class="profile-verify-err" style="display:none"></div>' +
+      '<div class="profile-verify-username-section">' +
+        '<div class="profile-verify-username-label">¿Quieres cambiar tu nombre? (opcional)</div>' +
+        '<input id="verify-username-input" class="profile-verify-input" type="text" maxlength="30" placeholder="' + esc((IDENTITY && IDENTITY.username) || '') + '">' +
+        '<div class="profile-verify-username-hint">Solo letras minúsculas, números y guion bajo</div>' +
+      '</div>' +
+      '<button class="profile-validate-btn" id="verify-confirm-btn" onclick="doConfirmCode()">Verificar</button>' +
+      '<button class="profile-verify-resend" onclick="showVerifyPhone()">Reenviar código</button>' +
+    '</div>';
+
+  var input = document.getElementById('verify-code-input');
+  if (input) {
+    input.focus();
+    input.addEventListener('input', function() {
+      if (this.value.length === 6) document.getElementById('verify-confirm-btn').click();
+    });
+  }
+}
+
+function doConfirmCode() {
+  var codeEl     = document.getElementById('verify-code-input');
+  var usernameEl = document.getElementById('verify-username-input');
+  var errEl      = document.getElementById('verify-code-err');
+  var btn        = document.getElementById('verify-confirm-btn');
+  if (!codeEl) return;
+
+  var code     = codeEl.value.trim();
+  var username = usernameEl ? usernameEl.value.trim().toLowerCase() : '';
+
+  if (code.length !== 6) {
+    errEl.textContent = 'El código debe tener 6 dígitos';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (username && !/^[a-z0-9_]{3,30}$/.test(username)) {
+    errEl.textContent = 'Nombre inválido: solo minúsculas, números y _ (mínimo 3 caracteres)';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!_fbConfirmationResult) {
+    errEl.textContent = 'Sesión expirada. Vuelve a enviar el código.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  _fbConfirmationResult.confirm(code)
+    .then(function(result) {
+      return result.user.getIdToken();
+    })
+    .then(function(idToken) {
+      var deviceId = (IDENTITY && IDENTITY.device_id) ? IDENTITY.device_id : getDeviceFingerprint();
+      var payload  = { device_id: deviceId, id_token: idToken };
+      if (username) payload.username = username;
+      return apiFetch('/api/verify/firebase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    })
+    .then(function(res) {
+      if (res.error) {
+        errEl.textContent = res.error;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Verificar';
+        return;
+      }
+      if (res.user) {
+        IDENTITY = {
+          username:   res.user.username,
+          device_id:  res.user.device_id,
+          phone:      res.user.phone,
+          tier:       3,
+          floins:     IDENTITY ? (IDENTITY.floins || 0) : 0,
+          flares_hoy: IDENTITY ? (IDENTITY.flares_hoy || 0) : 0,
+          fecha_hoy:  IDENTITY ? (IDENTITY.fecha_hoy || new Date().toDateString()) : new Date().toDateString(),
+          racha_dias: IDENTITY ? (IDENTITY.racha_dias || 0) : 0,
+          created_at: res.user.created_at,
+        };
+        saveIdentity(IDENTITY);
+      }
+      _fbConfirmationResult = null;
+      showVerifySuccess();
+    })
+    .catch(function(e) {
+      console.error('confirm error:', e);
+      var msg = 'Código incorrecto. Intenta de nuevo.';
+      if (e.code === 'auth/code-expired') msg = 'El código expiró. Solicita uno nuevo.';
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Verificar';
+    });
+}
+
+function showVerifySuccess() {
+  var box = document.getElementById('profile-content');
+  if (!box) return;
+  var username = (IDENTITY && IDENTITY.username) || '';
+  box.innerHTML =
+    '<div class="profile-verify-success">' +
+      '<div class="profile-verify-success-icon">✅</div>' +
+      '<div class="profile-verify-success-title">¡Número verificado!</div>' +
+      '<div class="profile-verify-success-desc">Tu perfil <strong>@' + esc(username) + '</strong> ahora está protegido. Puedes recuperarlo en cualquier dispositivo con tu número de celular.</div>' +
+      '<button class="profile-validate-btn" onclick="renderProfile()">Ver mi perfil</button>' +
+    '</div>';
+}
