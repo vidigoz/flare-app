@@ -171,6 +171,21 @@ document.getElementById('bsub').addEventListener('click', function(){
   btn.disabled = true;
   btn.textContent = '⏳ Publicando...';
 
+  // Crear identidad si es el primer flare (Tier 1 → Tier 2)
+  var isFirstFlare = !IDENTITY;
+  if (!IDENTITY) {
+    IDENTITY = createIdentity();
+  }
+
+  // Actualizar flares_hoy
+  var hoy = new Date().toDateString();
+  if (IDENTITY.fecha_hoy !== hoy) {
+    IDENTITY.flares_hoy = 0;
+    IDENTITY.fecha_hoy = hoy;
+  }
+  IDENTITY.flares_hoy++;
+  saveIdentity(IDENTITY);
+
   var payload = {
     lat: pending.lat,
     lng: pending.lng,
@@ -182,7 +197,8 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_icon: selCat.icon,
     type: 'text',
     uid: MY_ID,
-    owner_uid: MY_ID,
+    owner_uid: IDENTITY.device_id || MY_ID,
+    username: IDENTITY.username,
     local_date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
     biz_name: document.getElementById('f-biz').value.trim() || null,
     body_text: document.getElementById('f-txt').value.trim() || null,
@@ -204,8 +220,8 @@ document.getElementById('bsub').addEventListener('click', function(){
       mine.push(row.id);
       if(mine.length > 50) mine = mine.slice(-50);
       localStorage.setItem('flare_mine', JSON.stringify(mine));
-      if(!localStorage.getItem('flare_first_published')){
-        obCelebrate();
+      if(isFirstFlare || !localStorage.getItem('flare_first_published')){
+        obCelebrate(isFirstFlare);
       }
     })
     .catch(function(e) {

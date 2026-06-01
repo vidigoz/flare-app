@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(git stash *)",
+      "Bash(node --check public/js/config.js)",
+      "Bash(node --check public/js/api.js)",
+      "Bash(node --check public/js/markers.js)",
+      "Bash(node --check public/js/interactions.js)",
+      "Bash(node --check public/js/panel.js)",
+      "Bash(git fetch *)"
+    ]
+  }
+}

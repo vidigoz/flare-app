@@ -9,7 +9,7 @@ import { neon } from "@neondatabase/serverless";
 // Que equivale a: 8pm, 12am, 4am, 8am, 12pm, 4pm hora Tecate (PDT UTC-7)
 export const config = {
   //schedule: "0 */4 * * *"
-  schedule: "0 15,21 * * *"
+  schedule: "0 15,22 * * *"
 
 };
 

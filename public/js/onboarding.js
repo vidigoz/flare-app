@@ -33,12 +33,21 @@ function obSkip(){
   obComplete();
 }
 
-function obCelebrate(){
+function obCelebrate(isFirstFlare){
   if(localStorage.getItem('flare_first_published')) return;
   localStorage.setItem('flare_first_published','1');
   obCurrentStep = 4;
 
   obHideTips();
+
+  if(isFirstFlare && IDENTITY) {
+    var titleEl = document.querySelector('#ob-celebrate .ob-title');
+    var descEl  = document.querySelector('#ob-celebrate .ob-desc');
+    if(titleEl) titleEl.innerHTML = '¡Bienvenido a <span>Flare</span>!';
+    if(descEl)  descEl.innerHTML  =
+      'Tu nombre asignado es <strong style="color:var(--neon)">' + esc(IDENTITY.username) + '</strong>.<br>' +
+      'Valida tu perfil con tu número para escoger tu nombre y desbloquear más funciones.';
+  }
 
   var wrap = document.getElementById('ob-wrap');
   wrap.style.display = 'block';
@@ -46,17 +55,12 @@ function obCelebrate(){
   cel.style.display = 'flex';
 
   obLaunchConfetti();
+}
 
-  setTimeout(function(){
-    var fill = document.getElementById('ob-progress-fill');
-    if(fill) fill.style.width = '100%';
-  }, 100);
-
-  setTimeout(function(){
-    cel.style.display = 'none';
-    wrap.style.display = 'none';
-    localStorage.setItem('flare_onboarding_complete','1');
-  }, 4200);
+function obCloseCelebrate() {
+  document.getElementById('ob-celebrate').style.display = 'none';
+  document.getElementById('ob-wrap').style.display = 'none';
+  localStorage.setItem('flare_onboarding_complete','1');
 }
 
 function obLaunchConfetti(){

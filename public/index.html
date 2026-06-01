@@ -103,11 +103,37 @@
       <div class="ph-sub" id="ph-sub">0 flares en el área visible</div>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
-      <button class="ph-mine" id="ph-mine" title="Mis flares">📍</button>
-      <button class="ph-support" id="ph-support" title="Soporte">📨</button>
-      <button class="ph-help" id="ph-help" title="Manual de uso">?</button>
+      <button class="ph-gear" id="ph-gear" title="Opciones">⚙️</button>
       <button class="ph-x" id="panel-close">✕</button>
     </div>
+  </div>
+
+  <!-- Vista: Menú de opciones (engrane) -->
+  <div id="panel-settings" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding:16px;gap:10px;padding-bottom:max(16px,env(safe-area-inset-bottom))">
+    <button class="psetting-item" id="psetting-profile">
+      <span class="psetting-ico">🤝</span>
+      <div class="psetting-body">
+        <div class="psetting-title">Perfil</div>
+        <div class="psetting-desc">Tu identidad y tus flares publicados</div>
+      </div>
+      <span class="psetting-arrow">›</span>
+    </button>
+    <button class="psetting-item" id="psetting-support">
+      <span class="psetting-ico">📨</span>
+      <div class="psetting-body">
+        <div class="psetting-title">Contacto</div>
+        <div class="psetting-desc">Reporta un problema o envíanos un mensaje</div>
+      </div>
+      <span class="psetting-arrow">›</span>
+    </button>
+    <button class="psetting-item" id="psetting-help">
+      <span class="psetting-ico">📖</span>
+      <div class="psetting-body">
+        <div class="psetting-title">Tutorial</div>
+        <div class="psetting-desc">Cómo usar Flare</div>
+      </div>
+      <span class="psetting-arrow">›</span>
+    </button>
   </div>
 
   <!-- Vista: Flares -->
@@ -140,6 +166,11 @@
   <!-- Vista: Mis Flares -->
   <div id="panel-mine" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))">
     <div id="mine-list"></div>
+  </div>
+
+  <!-- Vista: Perfil -->
+  <div id="panel-profile" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))">
+    <div id="profile-content"></div>
   </div>
 </div>
 
@@ -204,10 +235,11 @@
   <!-- Celebración al publicar primer flare -->
   <div class="ob-celebrate-wrap" id="ob-celebrate" style="display:none">
     <div class="ob-card ob-card-celebrate">
-      <div class="ob-celebrate-icon">🔥</div>
+      <button class="ob-celebrate-close" onclick="obCloseCelebrate()">✕</button>
+      <div class="ob-celebrate-icon" id="ob-fire">🔥</div>
       <div class="ob-title">¡Tu primer flare <span>está en vivo!</span></div>
-      <div class="ob-desc">Otros pueden verlo y darle like para mantenerlo vivo más tiempo.</div>
-      <div class="ob-progress-bar"><div class="ob-progress-fill" id="ob-progress-fill"></div></div>
+      <div class="ob-desc" id="ob-celebrate-desc">Otros pueden verlo y darle like para mantenerlo vivo más tiempo.</div>
+      <button class="ob-profile-btn" onclick="obCloseCelebrate();openPanel();setTimeout(function(){document.getElementById('psetting-profile').click()},50)">Ver mi perfil →</button>
     </div>
   </div>
 </div>
@@ -285,6 +317,7 @@
 <script src="js/markers.js"></script>
 <script src="js/interactions.js"></script>
 <script src="js/panel.js"></script>
+<script src="js/profile.js"></script>
 <script src="js/modal.js"></script>
 <script src="js/map.js"></script>
 <script src="js/onboarding.js"></script>

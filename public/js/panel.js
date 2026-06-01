@@ -54,7 +54,9 @@ function renderPanel(){
 
   var vigLabels = {nuevo:'🟢 Nuevo',maduro:'🟡 Maduro',expirando:'🔴 Expirando'};
   var vigSuffix = vigFilter!=='all' ? ' · '+vigLabels[vigFilter] : '';
-  document.getElementById('ph-sub').textContent = vp.length+' flare'+(vp.length!==1?'s':'')+' en vista'+vigSuffix;
+  if(document.getElementById('panel-flares').style.display !== 'none') {
+    document.getElementById('ph-sub').textContent = vp.length+' flare'+(vp.length!==1?'s':'')+' en vista'+vigSuffix;
+  }
 
   var box = document.getElementById('plist');
   if(!vp.length){
@@ -298,50 +300,66 @@ function loadManual() {
   });
 }
 
+/* ── helpers de navegación del panel ── */
+var manualOpen = false;
+var mineOpen   = false;
+
+function showView(viewId) {
+  ['panel-flares','panel-settings','panel-manual','panel-mine','panel-profile'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById(viewId);
+  if (target) target.style.display = (viewId === 'panel-manual') ? 'block' : 'flex';
+}
+
+function goFlares() {
+  manualOpen = false; mineOpen = false;
+  showView('panel-flares');
+  document.getElementById('ph-ttl').innerHTML = 'Flares en <span>Vista</span>';
+  document.getElementById('ph-sub').textContent = filteredVisible().length + ' flares en vista';
+  document.getElementById('ph-gear').classList.remove('active');
+}
+
 /* ── panel button listeners ── */
 document.getElementById('pbtn').addEventListener('click', function(){ togglePanel(); });
 document.getElementById('pov').addEventListener('click', function(){ closePanel(); });
 document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
 document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
 
-/* ── Support modal ── */
-document.getElementById('ph-support').addEventListener('click', function(){ openSupportModal(); });
-
-/* ── Manual toggle ── */
-var manualOpen = false;
-document.getElementById('ph-help').addEventListener('click', function(){
-  manualOpen = !manualOpen;
-  if(manualOpen) { mineOpen = false; document.getElementById('ph-mine').classList.remove('active'); }
-  this.classList.toggle('active', manualOpen);
-  document.getElementById('panel-flares').style.display  = manualOpen ? 'none' : 'flex';
-  document.getElementById('panel-manual').style.display  = manualOpen ? 'block' : 'none';
-  document.getElementById('panel-mine').style.display    = 'none';
-  document.getElementById('ph-ttl').innerHTML = manualOpen
-    ? 'Manual de <span>Uso</span>'
-    : 'Flares en <span>Vista</span>';
-  document.getElementById('ph-sub').textContent = manualOpen
-    ? 'Guía completa de Flare'
-    : (Object.keys(pins).length + ' flares activos');
-  if(manualOpen && !document.getElementById('panel-manual').dataset.loaded) {
-    loadManual();
-    document.getElementById('panel-manual').dataset.loaded = '1';
+/* ── Engrane: abre/cierra menú de opciones ── */
+document.getElementById('ph-gear').addEventListener('click', function() {
+  var gearActive = this.classList.contains('active');
+  if (gearActive) {
+    goFlares();
+  } else {
+    showView('panel-settings');
+    document.getElementById('ph-ttl').innerHTML = 'Flare <span>Opciones</span>';
+    document.getElementById('ph-sub').textContent = '';
+    this.classList.add('active');
   }
 });
 
-/* ── Mis Flares toggle ── */
-var mineOpen = false;
-document.getElementById('ph-mine').addEventListener('click', function(){
-  mineOpen = !mineOpen;
-  if(mineOpen) { manualOpen = false; document.getElementById('ph-help').classList.remove('active'); }
-  this.classList.toggle('active', mineOpen);
-  document.getElementById('panel-flares').style.display  = mineOpen ? 'none' : 'flex';
-  document.getElementById('panel-manual').style.display  = 'none';
-  document.getElementById('panel-mine').style.display    = mineOpen ? 'flex' : 'none';
-  document.getElementById('ph-ttl').innerHTML = mineOpen
-    ? 'Mis <span>Flares</span>'
-    : 'Flares en <span>Vista</span>';
-  document.getElementById('ph-sub').textContent = mineOpen
-    ? 'Tus flares publicados'
-    : (Object.keys(pins).length + ' flares activos');
-  if(mineOpen) renderMyFlares();
+/* ── Ítems del menú de opciones ── */
+document.getElementById('psetting-profile').addEventListener('click', function() {
+  showView('panel-profile');
+  document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
+  document.getElementById('ph-sub').textContent = typeof getTier === 'function' ? (getTier() === 1 ? 'Visitante' : 'Anónimo') : '';
+  if (typeof renderProfile === 'function') renderProfile();
+});
+
+document.getElementById('psetting-support').addEventListener('click', function() {
+  goFlares();
+  openSupportModal();
+});
+
+document.getElementById('psetting-help').addEventListener('click', function() {
+  showView('panel-manual');
+  document.getElementById('ph-ttl').innerHTML = 'Tutorial de <span>Flare</span>';
+  document.getElementById('ph-sub').textContent = 'Guía completa';
+  manualOpen = true;
+  if (!document.getElementById('panel-manual').dataset.loaded) {
+    loadManual();
+    document.getElementById('panel-manual').dataset.loaded = '1';
+  }
 });

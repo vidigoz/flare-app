@@ -95,6 +95,7 @@ function rowToPin(row) {
     type: row.type,
     text: bodyText,
     bizName: bizName,
+    username: row.username || null,
     image: row.image_url || null,
     video: row.video_url || null,
     createdAt: new Date(row.created_at).getTime(),

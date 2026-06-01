@@ -187,11 +187,14 @@ export const handler = async (event) => {
       const durMin = Math.min(Math.max(parseInt(d.dur_min) || 60, 1), 720);
       const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
       const ownerUid = String(d.owner_uid || "").slice(0, 64) || null;
+      const username = d.username ? String(d.username).slice(0, 30) : null;
+      const tier = username ? 2 : 1;
 
       const [row] = await sql`
         INSERT INTO flares (
           id, lat, lng, title, emoji, cat, cat_lbl, cat_color, cat_icon,
-          type, body_text, biz_name, image_url, video_url, expires_at, owner_uid
+          type, body_text, biz_name, image_url, video_url, expires_at, owner_uid,
+          username, tier
         ) VALUES (
           ${id},
           ${lat},
@@ -208,7 +211,9 @@ export const handler = async (event) => {
           ${d.image_url || null},
           ${d.video_url || null},
           ${expiresAt},
-          ${ownerUid}
+          ${ownerUid},
+          ${username},
+          ${tier}
         )
         RETURNING *
       `;

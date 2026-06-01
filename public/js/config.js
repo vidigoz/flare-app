@@ -1,6 +1,69 @@
 /* ── config.js — globals, CATS, identity, helpers ── */
 
 var CATS = [
+  /* populated below */
+];
+/* ── IDENTIDAD ANÓNIMA ──────────────────────────── */
+var WORDS = [
+  'coyote','liebre','chispa','rayo','flama','brisa','aguila',
+  'gecko','lobo','puma','zorro','halcon','vibora','iguana',
+  'jaguar','ocelote','ceniza','vapor','destello','rafaga',
+  'relampago','trueno','llama','brasa','fuego','humo'
+];
+
+function generateUsername() {
+  var word = WORDS[Math.floor(Math.random() * WORDS.length)];
+  var code = Math.random().toString(36).substring(2, 8);
+  return word + '_' + code;
+}
+
+function getDeviceFingerprint() {
+  var raw = [
+    navigator.userAgent,
+    screen.width + 'x' + screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.language,
+  ].join('|');
+  var hash = 0;
+  for (var i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'fp_' + Math.abs(hash).toString(36);
+}
+
+function getTier() {
+  var identity = JSON.parse(localStorage.getItem('flare_identity') || 'null');
+  return identity ? 2 : 1;
+}
+
+function getOrCreateIdentity() {
+  var identity = JSON.parse(localStorage.getItem('flare_identity') || 'null');
+  return identity;
+}
+
+function createIdentity() {
+  var identity = {
+    username: generateUsername(),
+    device_id: getDeviceFingerprint(),
+    floins: 0,
+    flares_hoy: 0,
+    fecha_hoy: new Date().toDateString(),
+    racha_dias: 0,
+    created_at: new Date().toISOString()
+  };
+  localStorage.setItem('flare_identity', JSON.stringify(identity));
+  return identity;
+}
+
+function saveIdentity(identity) {
+  localStorage.setItem('flare_identity', JSON.stringify(identity));
+}
+
+// IDENTITY es null si Tier 1, objeto si Tier 2
+var IDENTITY = getOrCreateIdentity();
+
+CATS = [
   {id:'food',     lbl:'Comida y Bebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
   {id:'sale',     lbl:'Ventas',           icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦']},
   {id:'event',    lbl:'Evento',           icon:'🎉', color:'#a000f5', emojis:['🎉','🎵','🎸','🎭','🎪','🏆','🎤','🎬','🎊','🕺']},

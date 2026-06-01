@@ -37,6 +37,10 @@ function openMaps(lat, lng) {
 }
 
 function doLike(id){
+  if (getTier() === 1) {
+    notif('Publica tu primer flare para dar likes 🔥', 'err');
+    return;
+  }
   var pin = pins[id];
   if(!pin) return;
   if(pin.liked){ notif('Ya le diste ❤️ a este flare 😉','err'); return; }
