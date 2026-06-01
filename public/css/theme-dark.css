@@ -230,7 +230,8 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .prow-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px}
 .prow-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid transparent}
 .prow-body{flex:1;min-width:0}
-.prow-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.prow-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.prow-username{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;margin-bottom:3px}
 .prow-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .ptag{font-size:9px;font-family:'Space Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--dim);white-space:nowrap}
 .ptag.cat{font-weight:700}

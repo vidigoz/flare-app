@@ -12,6 +12,7 @@ function openPanel(){
 }
 function closePanel(){
   panelOpen = false;
+  goFlares();
   document.getElementById('panel').classList.remove('open');
   document.getElementById('pov').classList.remove('on');
   document.getElementById('pbtn').style.display = 'flex';
@@ -84,6 +85,7 @@ function renderPanel(){
       +'<div class="prow-body">'
       +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
       +'<div class="prow-name">'+esc(pin.title)+'</div>'
+      +(pin.username?'<div class="prow-username">@'+esc(pin.username)+'</div>':'')
       +'<div class="prow-tags">'
       +'<span class="ptag cat" style="border-color:'+cat.color+'55;color:'+cat.color+'">'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span>'
       +'<span class="ptag">'+tl[pin.type]+'</span>'
