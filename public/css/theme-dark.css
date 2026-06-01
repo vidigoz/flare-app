@@ -628,3 +628,6 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .psetting-title { font-size: 15px; font-weight: 700; color: var(--text); font-family: 'Syne',sans-serif; }
 .psetting-desc { font-size: 11px; color: var(--dim); font-family: 'Space Mono',monospace; margin-top: 2px; line-height: 1.4; }
 .psetting-arrow { font-size: 20px; color: var(--dim); flex-shrink: 0; }
+
+/* ── VERSIÓN EN MENÚ OPCIONES ───────────────────── */
+.psetting-version{text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);margin-top:auto;padding-top:16px;padding-bottom:4px;letter-spacing:.5px}

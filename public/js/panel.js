@@ -365,3 +365,9 @@ document.getElementById('psetting-help').addEventListener('click', function() {
     document.getElementById('panel-manual').dataset.loaded = '1';
   }
 });
+
+/* ── Versión de la app ── */
+fetch('/version.json').then(function(r){ return r.json(); }).then(function(d){
+  var el = document.getElementById('app-version');
+  if(el) el.textContent = 'Flare v' + d.version;
+}).catch(function(){});
