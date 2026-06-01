@@ -18,18 +18,12 @@ function generateUsername() {
 }
 
 function getDeviceFingerprint() {
-  var raw = [
-    navigator.userAgent,
-    screen.width + 'x' + screen.height,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-    navigator.language,
-  ].join('|');
-  var hash = 0;
-  for (var i = 0; i < raw.length; i++) {
-    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
-    hash |= 0;
-  }
-  return 'fp_' + Math.abs(hash).toString(36);
+  // Persistido en localStorage para que sea estable entre sesiones
+  var stored = localStorage.getItem('flare_device_id');
+  if (stored) return stored;
+  var id = 'fp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  localStorage.setItem('flare_device_id', id);
+  return id;
 }
 
 function getTier() {
