@@ -103,39 +103,11 @@
       <div class="ph-sub" id="ph-sub">0 flares en el área visible</div>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
-      <button class="ph-gear" id="ph-gear" title="Opciones">⚙️</button>
+      <button class="ph-gear" id="ph-gear" title="Perfil">👤</button>
       <button class="ph-x" id="panel-close">✕</button>
     </div>
   </div>
 
-  <!-- Vista: Menú de opciones (engrane) -->
-  <div id="panel-settings" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding:16px;gap:10px;padding-bottom:max(16px,env(safe-area-inset-bottom))">
-    <button class="psetting-item" id="psetting-profile">
-      <span class="psetting-ico">🤝</span>
-      <div class="psetting-body">
-        <div class="psetting-title">Perfil</div>
-        <div class="psetting-desc">Tu identidad y tus flares publicados</div>
-      </div>
-      <span class="psetting-arrow">›</span>
-    </button>
-    <button class="psetting-item" id="psetting-support">
-      <span class="psetting-ico">📨</span>
-      <div class="psetting-body">
-        <div class="psetting-title">Contacto</div>
-        <div class="psetting-desc">Reporta un problema o envíanos un mensaje</div>
-      </div>
-      <span class="psetting-arrow">›</span>
-    </button>
-    <button class="psetting-item" id="psetting-help">
-      <span class="psetting-ico">📖</span>
-      <div class="psetting-body">
-        <div class="psetting-title">Tutorial</div>
-        <div class="psetting-desc">Cómo usar Flare</div>
-      </div>
-      <span class="psetting-arrow">›</span>
-    </button>
-    <div class="psetting-version" id="app-version">Flare v—</div>
-  </div>
 
   <!-- Vista: Flares -->
   <div id="panel-flares">
@@ -172,6 +144,7 @@
   <!-- Vista: Perfil -->
   <div id="panel-profile" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))">
     <div id="profile-content"></div>
+    <div class="psetting-version" id="app-version">Flare v—</div>
   </div>
 </div>
 

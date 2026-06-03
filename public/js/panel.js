@@ -307,7 +307,7 @@ var manualOpen = false;
 var mineOpen   = false;
 
 function showView(viewId) {
-  ['panel-flares','panel-settings','panel-manual','panel-mine','panel-profile'].forEach(function(id) {
+  ['panel-flares','panel-manual','panel-mine','panel-profile'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -329,40 +329,17 @@ document.getElementById('pov').addEventListener('click', function(){ closePanel(
 document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
 document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
 
-/* ── Engrane: abre/cierra menú de opciones ── */
+/* ── Perfil: abre/cierra vista de perfil ── */
 document.getElementById('ph-gear').addEventListener('click', function() {
-  var gearActive = this.classList.contains('active');
-  if (gearActive) {
+  var profileActive = this.classList.contains('active');
+  if (profileActive) {
     goFlares();
   } else {
-    showView('panel-settings');
-    document.getElementById('ph-ttl').innerHTML = 'Flare <span>Opciones</span>';
-    document.getElementById('ph-sub').textContent = '';
+    showView('panel-profile');
+    document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
+    document.getElementById('ph-sub').textContent = typeof getTier === 'function' ? (getTier() === 1 ? 'Visitante' : 'Anónimo') : '';
     this.classList.add('active');
-  }
-});
-
-/* ── Ítems del menú de opciones ── */
-document.getElementById('psetting-profile').addEventListener('click', function() {
-  showView('panel-profile');
-  document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
-  document.getElementById('ph-sub').textContent = typeof getTier === 'function' ? (getTier() === 1 ? 'Visitante' : 'Anónimo') : '';
-  if (typeof renderProfile === 'function') renderProfile();
-});
-
-document.getElementById('psetting-support').addEventListener('click', function() {
-  goFlares();
-  openSupportModal();
-});
-
-document.getElementById('psetting-help').addEventListener('click', function() {
-  showView('panel-manual');
-  document.getElementById('ph-ttl').innerHTML = 'Tutorial de <span>Flare</span>';
-  document.getElementById('ph-sub').textContent = 'Guía completa';
-  manualOpen = true;
-  if (!document.getElementById('panel-manual').dataset.loaded) {
-    loadManual();
-    document.getElementById('panel-manual').dataset.loaded = '1';
+    if (typeof renderProfile === 'function') renderProfile();
   }
 });
 

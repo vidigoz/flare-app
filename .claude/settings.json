@@ -8,7 +8,8 @@
       "Bash(node --check public/js/markers.js)",
       "Bash(node --check public/js/interactions.js)",
       "Bash(node --check public/js/panel.js)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(npm uninstall *)"
     ]
   }
 }

@@ -11,6 +11,34 @@ function closeProfile() {
   profileOpen = false;
 }
 
+function profileQuickLinks() {
+  return '<div class="profile-divider"></div>' +
+    '<div class="profile-quick-links">' +
+      '<button class="profile-quick-btn" onclick="openSupportModal()">' +
+        '<span class="profile-quick-ico">📨</span>' +
+        '<span class="profile-quick-lbl">Contacto</span>' +
+      '</button>' +
+      '<button class="profile-quick-btn" onclick="openTutorial()">' +
+        '<span class="profile-quick-ico">📖</span>' +
+        '<span class="profile-quick-lbl">Tutorial</span>' +
+      '</button>' +
+    '</div>';
+}
+
+function openTutorial() {
+  if (typeof showView === 'function') {
+    showView('panel-manual');
+    document.getElementById('ph-ttl').innerHTML = 'Tutorial de <span>Flare</span>';
+    document.getElementById('ph-sub').textContent = 'Guía completa';
+    document.getElementById('ph-gear').classList.remove('active');
+    if (typeof manualOpen !== 'undefined') manualOpen = true;
+    if (!document.getElementById('panel-manual').dataset.loaded) {
+      if (typeof loadManual === 'function') loadManual();
+      document.getElementById('panel-manual').dataset.loaded = '1';
+    }
+  }
+}
+
 function renderProfile() {
   var box = document.getElementById('profile-content');
   if (!box) return;
@@ -34,7 +62,8 @@ function renderProfile() {
         '<button class="profile-cta-btn" onclick="closePanel();setTimeout(function(){document.getElementById(\'fab\').click()},200)">' +
           '⚡ Crear mi primer flare' +
         '</button>' +
-      '</div>';
+      '</div>' +
+      profileQuickLinks();
     return;
   }
 
@@ -69,7 +98,8 @@ function renderProfile() {
     '</div>' +
     '<div class="profile-divider"></div>' +
     '<div class="profile-section-title">📍 Mis Flares</div>' +
-    '<div id="mine-list-profile"></div>';
+    '<div id="mine-list-profile"></div>' +
+    profileQuickLinks();
 
   renderMyFlaresInProfile();
 }
