@@ -4,6 +4,59 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-02 — Avatares, repost y herramientas DEV
+
+**Objetivo:** mejorar el perfil de usuario y agregar herramientas de prueba controladas desde admin.
+
+**Implementado:**
+- Avatares automáticos para perfiles al crear/restaurar identidad local.
+- Copia pública de 56 avatares en `public/avatares/` para que Netlify los sirva.
+- Perfil muestra flares propios de las últimas 24 horas aunque estén vencidos.
+- Flares vencidos aparecen apagados con etiqueta `Vencido` y botón `Republicar`.
+- Republicar reactiva el flare por 1 hora, reinicia `created_at`, `expires_at`, `likes`, `reports_count` y `hidden`.
+- Limpieza de flares pasa de borrar al vencer (`expires_at`) a borrar después de 24 horas desde `created_at`.
+- Tier 2 cambió de `Anónimo` a `Sin validar` con icono `✕`.
+- Admin agrega toggle `DEV Custom Duration`.
+- La categoría `DEV` aparece en Crear Flare solo si el toggle está activo.
+- Publicar con duración personalizada requiere categoría `DEV`, minutos entre 1 y 720, y `ADMIN_SECRET`.
+
+**SQL recomendado:**
+```sql
+CREATE TABLE IF NOT EXISTS admin_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO admin_settings (key, value)
+VALUES ('dev_duration_mode', 'off')
+ON CONFLICT (key) DO NOTHING;
+
+CREATE INDEX IF NOT EXISTS flares_owner_created_idx
+ON flares (owner_uid, created_at DESC);
+
+CREATE OR REPLACE FUNCTION delete_expired_flares()
+RETURNS void AS $$
+  DELETE FROM flares
+  WHERE created_at < NOW() - INTERVAL '24 hours';
+$$ LANGUAGE sql;
+```
+
+**Archivos clave:**
+- `netlify/functions/admin-config.js`
+- `netlify/functions/flares.js`
+- `public/admin.html`
+- `public/index.html`
+- `public/js/config.js`
+- `public/js/modal.js`
+- `public/js/profile.js`
+- `public/css/theme-dark.css`
+- `schema.sql`
+
+**Estado:** implementado y pusheado a `dev` y `main`.
+
+---
+
 ## 2026-05-31 — Sistema de perfiles Tier 1 / Tier 2
 
 **Objetivo:** Identidad progresiva — visitante anónimo → publicador con username automático.
