@@ -13,7 +13,8 @@ import {
 const FLAG_KEY       = "non_register_flare_limit";
 const DAILY_FLAG_KEY = "daily_flare_limit";
 const LIKE_RL_KEY    = "like_rate_limit";
-const VALID_KEYS     = [FLAG_KEY, DAILY_FLAG_KEY, LIKE_RL_KEY];
+const DEV_DUR_KEY    = "dev_duration_mode";
+const VALID_KEYS     = [FLAG_KEY, DAILY_FLAG_KEY, LIKE_RL_KEY, DEV_DUR_KEY];
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -24,21 +25,32 @@ export const handler = async (event) => {
     return err(405, "Method not allowed");
   }
 
-  const secret = process.env.ADMIN_SECRET;
-  const provided = event.headers["x-admin-key"];
-  if (!secret || provided !== secret) {
-    return err(401, "No autorizado");
-  }
-
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
     await ensureAdminSettingsTable(sql);
 
     if (event.httpMethod === "GET") {
-      const [v1, v2, v3] = await Promise.all([
+      const p = event.queryStringParameters || {};
+      if (p.public === "1") {
+        const value = await getAdminSetting(sql, DEV_DUR_KEY, "off");
+        return {
+          statusCode: 200,
+          headers: { ...cors(), "Content-Type": "application/json" },
+          body: JSON.stringify({ dev_duration_mode: value !== "off" }),
+        };
+      }
+
+      const secret = process.env.ADMIN_SECRET;
+      const provided = event.headers["x-admin-key"];
+      if (!secret || provided !== secret) {
+        return err(401, "No autorizado");
+      }
+
+      const [v1, v2, v3, v4] = await Promise.all([
         getAdminSetting(sql, FLAG_KEY, "on"),
         getAdminSetting(sql, DAILY_FLAG_KEY, "on"),
         getAdminSetting(sql, LIKE_RL_KEY, "on"),
+        getAdminSetting(sql, DEV_DUR_KEY, "off"),
       ]);
       return {
         statusCode: 200,
@@ -47,8 +59,15 @@ export const handler = async (event) => {
           non_register_flare_limit: v1 !== "off",
           daily_flare_limit:        v2 !== "off",
           like_rate_limit:          v3 !== "off",
+          dev_duration_mode:        v4 !== "off",
         }),
       };
+    }
+
+    const secret = process.env.ADMIN_SECRET;
+    const provided = event.headers["x-admin-key"];
+    if (!secret || provided !== secret) {
+      return err(401, "No autorizado");
     }
 
     let body;

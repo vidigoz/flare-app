@@ -40,5 +40,6 @@ CREATE TABLE IF NOT EXISTS admin_settings (
 -- ================================================
 CREATE OR REPLACE FUNCTION delete_expired_flares()
 RETURNS void AS $$
-  DELETE FROM flares WHERE expires_at < NOW();
+  DELETE FROM flares
+  WHERE created_at < NOW() - INTERVAL '24 hours';
 $$ LANGUAGE sql;

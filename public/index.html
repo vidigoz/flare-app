@@ -181,6 +181,13 @@
         <textarea id="f-txt" rows="4" placeholder="Cuéntanos más... puedes poner links, teléfonos, etc."></textarea>
         <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:6px;line-height:1.6">💡 Los links y teléfonos se vuelven clickeables automáticamente</div>
       </div>
+      <div class="fg dev-duration-fields" id="dev-duration-fields" style="display:none">
+        <label>Duración DEV</label>
+        <input type="number" id="f-dev-dur" placeholder="Minutos de duración" min="1" max="720" inputmode="numeric">
+        <div style="height:8px"></div>
+        <input type="password" id="f-dev-secret" placeholder="Contraseña admin">
+        <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--danger);margin-top:6px;line-height:1.6">Solo para pruebas DEV. Requiere ADMIN_SECRET.</div>
+      </div>
       <button class="bsub" id="bsub">⚡ Publicar Flare (1 hora)</button>
     </div>
   </div>

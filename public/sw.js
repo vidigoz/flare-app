@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flare-v82';
+const CACHE_NAME = 'flare-v85';
 
 const CDN_HOSTS = [
   'unpkg.com',

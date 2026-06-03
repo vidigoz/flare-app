@@ -11,6 +11,33 @@ var WORDS = [
   'relampago','trueno','llama','brasa','fuego','humo'
 ];
 
+var AVATAR_GROUPS = [
+  ['avatars_extraidos1', ['09','10','11','12','23','24','25','26','27']],
+  ['avatars_extraidos2', ['10','11','12','13','14','28','29','30','31','32']],
+  ['avatars_extraidos3', ['12','13','14','15','16','32','33','34','35','36']],
+  ['avatars_extraidos4', ['08','09','10','24','25','26']],
+  ['avatars_extraidos5', ['09','10','11','12','13','27','28','29','30']],
+  ['avatars_extraidos6', ['07','08','09','10','11','25','26','27','28']],
+  ['avatars_extraidos7', ['10','26','29']]
+];
+
+var AVATAR_URLS = [];
+AVATAR_GROUPS.forEach(function(group) {
+  group[1].forEach(function(num) {
+    AVATAR_URLS.push('/avatares/' + group[0] + '/avatar_' + num + '.png');
+  });
+});
+
+function randomAvatarUrl() {
+  return AVATAR_URLS[Math.floor(Math.random() * AVATAR_URLS.length)] || '';
+}
+
+function ensureIdentityAvatar(identity) {
+  if (!identity) return identity;
+  if (!identity.avatar_url) identity.avatar_url = randomAvatarUrl();
+  return identity;
+}
+
 function generateUsername() {
   var word = WORDS[Math.floor(Math.random() * WORDS.length)];
   var code = Math.random().toString(36).substring(2, 8);
@@ -33,6 +60,10 @@ function getTier() {
 
 function getOrCreateIdentity() {
   var identity = JSON.parse(localStorage.getItem('flare_identity') || 'null');
+  if (identity && !identity.avatar_url) {
+    ensureIdentityAvatar(identity);
+    saveIdentity(identity);
+  }
   return identity;
 }
 
@@ -44,6 +75,7 @@ function createIdentity() {
     flares_hoy: 0,
     fecha_hoy: new Date().toDateString(),
     racha_dias: 0,
+    avatar_url: randomAvatarUrl(),
     created_at: new Date().toISOString()
   };
   localStorage.setItem('flare_identity', JSON.stringify(identity));
@@ -75,8 +107,10 @@ var PENDING_PROFILES = null; // perfiles encontrados en DB pendientes de selecci
           flares_hoy: 0,
           fecha_hoy:  new Date().toDateString(),
           racha_dias: 0,
+          avatar_url: profiles[0].avatar_url || randomAvatarUrl(),
           created_at: profiles[0].created_at,
         };
+        ensureIdentityAvatar(IDENTITY);
         saveIdentity(IDENTITY);
         // Actualizar UI si el panel ya está abierto
         if (typeof renderProfile === 'function' && typeof profileOpen !== 'undefined' && profileOpen) {
@@ -89,6 +123,8 @@ var PENDING_PROFILES = null; // perfiles encontrados en DB pendientes de selecci
     })
     .catch(function() {});
 })();
+
+var DEV_CAT = {id:'dev', lbl:'DEV', icon:'🧪', color:'#ff4060', emojis:['🧪','⚙️','🛠️','⏱️','🔥','⚡','📍','🧭','🔧','✅']};
 
 CATS = [
   {id:'food',     lbl:'Comida y Bebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
@@ -112,10 +148,59 @@ var myWatchId = null;
 var TILES = {};
 var mapMode = localStorage.getItem('flare_mapmode') || 'night';
 var popupInteracting = false;
+var DEV_DURATION_MODE = false;
+
+function setDevDurationMode(enabled) {
+  DEV_DURATION_MODE = !!enabled;
+  var hasDev = CATS.some(function(cat){ return cat.id === DEV_CAT.id; });
+  if (DEV_DURATION_MODE && !hasDev) CATS.push(DEV_CAT);
+  if (!DEV_DURATION_MODE && hasDev) {
+    CATS = CATS.filter(function(cat){ return cat.id !== DEV_CAT.id; });
+    if (selCat && selCat.id === DEV_CAT.id) {
+      selCat = CATS[0];
+      selEmoji = selCat.emojis[0];
+    }
+  }
+  if (typeof buildCG === 'function' && document.getElementById('mover') && document.getElementById('mover').classList.contains('on')) {
+    buildCG();
+    buildEG();
+    if (typeof updateDevDurationFields === 'function') updateDevDurationFields();
+  }
+}
+
+function loadPublicConfig() {
+  fetch('/api/admin/config?public=1')
+    .then(function(r){ if(!r.ok) throw new Error('config'); return r.json(); })
+    .then(function(d){ setDevDurationMode(!!d.dev_duration_mode); })
+    .catch(function(){ setDevDurationMode(false); });
+}
+
+loadPublicConfig();
 
 /* ── User identity ── */
 var MY_ID = localStorage.getItem('flare_uid');
 if (!MY_ID) { MY_ID = 'u' + Date.now() + Math.random().toString(36).slice(2,8); localStorage.setItem('flare_uid', MY_ID); }
+
+function getOwnerUid() {
+  return (IDENTITY && IDENTITY.device_id) ? IDENTITY.device_id : MY_ID;
+}
+
+function getLocalDateString() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function noteIdentityFlarePublished() {
+  if (!IDENTITY) return;
+  var hoy = new Date().toDateString();
+  if (IDENTITY.fecha_hoy !== hoy) {
+    IDENTITY.flares_hoy = 0;
+    IDENTITY.fecha_hoy = hoy;
+  }
+  IDENTITY.flares_hoy++;
+  saveIdentity(IDENTITY);
+}
+
 var likedIds = JSON.parse(localStorage.getItem('flare_liked') || '[]');
 function saveLiked() { localStorage.setItem('flare_liked', JSON.stringify(likedIds)); }
 function hasLiked(id) { return likedIds.indexOf(id) !== -1; }

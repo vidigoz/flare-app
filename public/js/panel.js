@@ -158,14 +158,14 @@ function flyToPin(id){
 function loadMyFlares(cb) {
   var box = document.getElementById('mine-list');
   box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
-  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(MY_ID))
+  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(getOwnerUid()))
     .then(function(rows) { cb(null, rows); })
     .catch(function(e) { cb(e, []); });
 }
 
 function deleteMyFlare(id) {
   if(!confirm('¿Eliminar este flare del mapa?')) return;
-  fetch('/api/flares/delete?id=' + encodeURIComponent(id) + '&uid=' + encodeURIComponent(MY_ID), {
+  fetch('/api/flares/delete?id=' + encodeURIComponent(id) + '&uid=' + encodeURIComponent(getOwnerUid()), {
     method: 'DELETE'
   })
   .then(function(r){ return r.json(); })
@@ -174,6 +174,7 @@ function deleteMyFlare(id) {
     if(pins[id]){ clusterGroup.removeLayer(pins[id].marker); delete pins[id]; }
     notif('Flare eliminado 🗑️');
     renderMyFlares();
+    if (typeof renderMyFlaresInProfile === 'function' && profileOpen) renderMyFlaresInProfile();
     if(panelOpen) renderPanel();
   })
   .catch(function(){ notif('Error al eliminar', 'err'); });
@@ -196,20 +197,25 @@ function renderMyFlares() {
     var html = '';
     rows.forEach(function(row){
       var pin = rowToPin(row);
-      var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+      var expiresMs = new Date(pin.expires_at).getTime();
+      var r = Math.max(0, expiresMs - Date.now());
+      var isExpired = expiresMs <= Date.now();
       var cat = CATS.find(function(c){ return c.id===pin.cat; })||CATS[0];
       var bc = r<10*60*1000?'var(--danger)':r<30*60*1000?'var(--amber)':'var(--neon)';
-      html += '<div class="prow">'
+      html += '<div class="prow profile-flare-row' + (isExpired ? ' profile-flare-expired' : '') + '">'
         +'<div class="prow-hdr">'
         +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
         +'<div class="prow-body">'
         +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
         +'<div class="prow-name">'+esc(pin.title)+'</div>'
         +'<div class="prow-tags">'
-        +'<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>'
+        +(isExpired ? '<span class="ptime profile-expired-badge">Vencido</span>' : '<span class="ptime" style="color:'+bc+'">⏱ '+fmtT(r)+'</span>')
         +'<span class="plikes">❤️ '+pin.likes+'</span>'
         +'</div></div>'
+        +'<div class="profile-flare-actions">'
+        +(isExpired ? '<button class="profile-repost-btn" data-repost-id="'+pin.id+'" onclick="repostMyFlare(\''+pin.id+'\')" title="Republicar">↻ Republicar</button>' : '')
         +'<button class="pd-report" onclick="deleteMyFlare(\''+pin.id+'\')" title="Eliminar flare">🗑️</button>'
+        +'</div>'
         +'</div></div>';
     });
     box.innerHTML = html;
@@ -337,7 +343,7 @@ document.getElementById('ph-gear').addEventListener('click', function() {
   } else {
     showView('panel-profile');
     document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
-    document.getElementById('ph-sub').textContent = typeof getTier === 'function' ? (getTier() === 1 ? 'Visitante' : 'Anónimo') : '';
+    document.getElementById('ph-sub').textContent = typeof getTier === 'function' ? (getTier() === 1 ? 'Visitante' : 'Sin validar') : '';
     this.classList.add('active');
     if (typeof renderProfile === 'function') renderProfile();
   }

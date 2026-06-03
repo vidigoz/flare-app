@@ -71,7 +71,9 @@ function setPending(lat, lng){
 function openModal(){
   obHideTips();
   document.getElementById('fab-wrap').style.display = 'none';
+  if (typeof loadPublicConfig === 'function') loadPublicConfig();
   buildCG(); buildEG();
+  updateDevDurationFields();
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
 }
@@ -94,6 +96,9 @@ function closeModal(){
   document.getElementById('f-biz').value='';
   document.getElementById('f-ttl').value='';
   document.getElementById('f-txt').value='';
+  document.getElementById('f-dev-dur').value='';
+  document.getElementById('f-dev-secret').value='';
+  updateDevDurationFields();
   var plus = document.querySelector('.ebtn-plus');
   if(plus){ plus.textContent='+'; plus.classList.remove('sel'); plus.style.borderColor=''; plus.style.background=''; plus.style.fontSize=''; }
   stopPlace();
@@ -107,9 +112,21 @@ function buildCG(){
   CATS.forEach(function(cat){
     var b = document.createElement('div'); b.className='cbtn'+(cat.id===selCat.id?' sel':''); b.style.setProperty('--cc', cat.color);
     b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
-    b.addEventListener('click', function(){ selCat=cat; selEmoji=cat.emojis[0]; buildCG(); buildEG(); });
+    b.addEventListener('click', function(){ selCat=cat; selEmoji=cat.emojis[0]; buildCG(); buildEG(); updateDevDurationFields(); });
     g.appendChild(b);
   });
+}
+
+function updateDevDurationFields(){
+  var fields = document.getElementById('dev-duration-fields');
+  if (!fields) return;
+  fields.style.display = selCat && selCat.id === 'dev' ? 'block' : 'none';
+  var btn = document.getElementById('bsub');
+  if (btn && !btn.disabled) btn.textContent = getPublishButtonText();
+}
+
+function getPublishButtonText(){
+  return selCat && selCat.id === 'dev' ? '🧪 Publicar Flare DEV' : '⚡ Publicar Flare (1 hora)';
 }
 
 function buildEG(){
@@ -166,6 +183,15 @@ document.getElementById('bsub').addEventListener('click', function(){
   if(!pending){ notif('Selecciona un punto en el mapa primero.','err'); return; }
   var ttl = document.getElementById('f-ttl').value.trim();
   if(!ttl){ notif('Ponle un título a tu flare.','err'); return; }
+  var isDev = selCat.id === 'dev';
+  var devDur = 60;
+  var devSecret = '';
+  if (isDev) {
+    devDur = parseInt(document.getElementById('f-dev-dur').value, 10);
+    devSecret = document.getElementById('f-dev-secret').value;
+    if (!devDur || devDur < 1 || devDur > 720) { notif('Pon una duración DEV entre 1 y 720 minutos.','err'); return; }
+    if (!devSecret) { notif('Ingresa la contraseña admin para publicar DEV.','err'); return; }
+  }
 
   var btn = document.getElementById('bsub');
   btn.disabled = true;
@@ -179,15 +205,6 @@ document.getElementById('bsub').addEventListener('click', function(){
     postIdentity(IDENTITY).catch(function() {});
   }
 
-  // Actualizar flares_hoy
-  var hoy = new Date().toDateString();
-  if (IDENTITY.fecha_hoy !== hoy) {
-    IDENTITY.flares_hoy = 0;
-    IDENTITY.fecha_hoy = hoy;
-  }
-  IDENTITY.flares_hoy++;
-  saveIdentity(IDENTITY);
-
   var payload = {
     lat: pending.lat,
     lng: pending.lng,
@@ -199,24 +216,26 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_icon: selCat.icon,
     type: 'text',
     uid: MY_ID,
-    owner_uid: IDENTITY.device_id || MY_ID,
+    owner_uid: getOwnerUid(),
     username: IDENTITY.username,
-    local_date: (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(),
+    local_date: getLocalDateString(),
     biz_name: document.getElementById('f-biz').value.trim() || null,
     body_text: document.getElementById('f-txt').value.trim() || null,
-    dur_min: 60,
+    dur_min: isDev ? devDur : 60,
   };
+  if (isDev) payload.admin_secret = devSecret;
 
   postFlare(payload)
     .then(function(row) {
+      noteIdentityFlarePublished();
       btn.disabled = false;
-      btn.textContent = '⚡ Publicar Flare (1 hora)';
+      btn.textContent = getPublishButtonText();
       var pin = rowToPin(row);
       pin.marker = makeMarker(pin);
       pins[pin.id] = pin;
       closeModal();
       map.flyTo([pin.lat, pin.lng], 15, {duration:1});
-      notif(pin.emoji+' "'+pin.title+'" lanzado por 1 hora!');
+      notif(pin.emoji+' "'+pin.title+'" lanzado por '+(isDev ? devDur+' min' : '1 hora')+'!');
       applyVigFilter();
       var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
       mine.push(row.id);
@@ -228,9 +247,11 @@ document.getElementById('bsub').addEventListener('click', function(){
     })
     .catch(function(e) {
       btn.disabled = false;
-      btn.textContent = '⚡ Publicar Flare (1 hora)';
+      btn.textContent = getPublishButtonText();
       if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
       else if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
+      else if(e.status === 401) notif('Contraseña admin incorrecta.','err');
+      else if(e.status === 403) notif('Modo DEV desactivado o no permitido.','err');
       else if(e.status === 400 && e.message.includes('normas')) notif('Contenido no permitido. Revisa el texto de tu flare.','err');
       else notif('Error al publicar: '+e.message,'err');
     });

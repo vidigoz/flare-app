@@ -67,19 +67,24 @@ function renderProfile() {
     return;
   }
 
-  var identity = IDENTITY || {};
+  var identity = ensureIdentityAvatar(IDENTITY || {});
+  if (IDENTITY) saveIdentity(IDENTITY);
+  var avatarUrl = identity.avatar_url || randomAvatarUrl();
   var hoy = new Date().toDateString();
   var flaresHoy = (identity.fecha_hoy === hoy) ? (identity.flares_hoy || 0) : 0;
   var flaresRestantes = Math.max(0, 3 - flaresHoy);
 
   box.innerHTML =
-    '<div class="profile-tier-badge tier2">' +
-      '<span class="tier-icon">🤝</span>' +
-      '<span class="tier-label">Anónimo</span>' +
-    '</div>' +
-    '<div class="profile-username">' +
-      '<div class="profile-username-label">Tu nombre</div>' +
-      '<div class="profile-username-value">@' + esc(identity.username || '?') + '</div>' +
+    '<div class="profile-main">' +
+      '<img class="profile-avatar" src="' + esc(avatarUrl) + '" alt="Avatar de perfil">' +
+      '<div class="profile-main-body">' +
+        '<div class="profile-tier-badge tier2 profile-tier-inline">' +
+          '<span class="tier-icon">✕</span>' +
+          '<span class="tier-label">Sin validar</span>' +
+        '</div>' +
+        '<div class="profile-username-label">Tu nombre</div>' +
+        '<div class="profile-username-value">@' + esc(identity.username || '?') + '</div>' +
+      '</div>' +
     '</div>' +
     '<div class="profile-stats">' +
       '<div class="profile-stat">' +
@@ -109,7 +114,7 @@ function renderMyFlaresInProfile() {
   if (!box) return;
 
   // Cargar desde API usando owner_uid
-  var ownerUid = (IDENTITY && IDENTITY.device_id) ? IDENTITY.device_id : MY_ID;
+  var ownerUid = getOwnerUid();
   box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
 
   apiFetch('/api/flares?owner_uid=' + encodeURIComponent(ownerUid))
@@ -121,22 +126,29 @@ function renderMyFlaresInProfile() {
       var html = '';
       rows.forEach(function(row) {
         var pin = rowToPin(row);
-        var r = Math.max(0, new Date(pin.expires_at).getTime() - Date.now());
+        var expiresMs = new Date(pin.expires_at).getTime();
+        var r = Math.max(0, expiresMs - Date.now());
+        var isExpired = expiresMs <= Date.now();
         var cat = CATS.find(function(c){ return c.id === pin.cat; }) || CATS[0];
         var bc = r < 10*60*1000 ? 'var(--danger)' : r < 30*60*1000 ? 'var(--amber)' : 'var(--neon)';
         html +=
-          '<div class="prow">' +
+          '<div class="prow profile-flare-row' + (isExpired ? ' profile-flare-expired' : '') + '">' +
             '<div class="prow-hdr">' +
               '<div class="prow-ico" style="background:' + cat.color + '18;border-color:' + cat.color + '55">' + pin.emoji + '</div>' +
               '<div class="prow-body">' +
                 (pin.bizName ? '<div class="prow-biz">🏪 ' + esc(pin.bizName) + '</div>' : '') +
                 '<div class="prow-name">' + esc(pin.title) + '</div>' +
                 '<div class="prow-tags">' +
-                  '<span class="ptime" style="color:' + bc + '">⏱ ' + fmtT(r) + '</span>' +
+                  (isExpired
+                    ? '<span class="ptime profile-expired-badge">Vencido</span>'
+                    : '<span class="ptime" style="color:' + bc + '">⏱ ' + fmtT(r) + '</span>') +
                   '<span class="plikes">❤️ ' + pin.likes + '</span>' +
                 '</div>' +
               '</div>' +
-              '<button class="pd-report" onclick="deleteMyFlare(\'' + pin.id + '\')" title="Eliminar">🗑️</button>' +
+              '<div class="profile-flare-actions">' +
+                (isExpired ? '<button class="profile-repost-btn" data-repost-id="' + pin.id + '" onclick="repostMyFlare(\'' + pin.id + '\')" title="Republicar">↻ Republicar</button>' : '') +
+                '<button class="pd-report" onclick="deleteMyFlare(\'' + pin.id + '\')" title="Eliminar">🗑️</button>' +
+              '</div>' +
             '</div>' +
           '</div>';
       });
@@ -144,6 +156,42 @@ function renderMyFlaresInProfile() {
     })
     .catch(function() {
       box.innerHTML = '<div class="pempty">Error al cargar. Intenta de nuevo.</div>';
+    });
+}
+
+function repostMyFlare(id) {
+  var btn = document.querySelector('[data-repost-id="' + id + '"]');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Publicando...';
+  }
+
+  repostFlare(id)
+    .then(function(row) {
+      noteIdentityFlarePublished();
+      var pin = rowToPin(row);
+      if (typeof clusterGroup !== 'undefined' && clusterGroup && typeof makeMarker === 'function') {
+        if (pins[pin.id] && pins[pin.id].marker) {
+          clusterGroup.removeLayer(pins[pin.id].marker);
+        }
+        pin.marker = makeMarker(pin);
+        pins[pin.id] = pin;
+        applyVigFilter();
+        refreshBadge();
+        if (panelOpen) { buildChips(); renderPanel(); }
+      }
+      notif(pin.emoji + ' "' + pin.title + '" republicado por 1 hora!');
+      renderProfile();
+    })
+    .catch(function(e) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '↻ Republicar';
+      }
+      if (e.status === 429 && e.message === 'daily_limit') openDailyLimitModal();
+      else if (e.status === 409) notif('Ese flare todavía está vigente.', 'err');
+      else if (e.status === 404) notif('Este flare ya no se puede republicar.', 'err');
+      else notif('Error al republicar: ' + e.message, 'err');
     });
 }
 
@@ -159,10 +207,11 @@ function renderProfileSelector(box, profiles) {
     '</div>';
 
   profiles.forEach(function(p, i) {
+    p.avatar_url = p.avatar_url || randomAvatarUrl();
     var fecha = new Date(p.created_at).toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' });
     html +=
       '<button class="profile-selector-item" onclick="restoreProfile(' + i + ')">' +
-        '<div class="profile-selector-avatar">🤝</div>' +
+        '<img class="profile-selector-avatar" src="' + esc(p.avatar_url) + '" alt="Avatar">' +
         '<div class="profile-selector-body">' +
           '<div class="profile-selector-name">@' + esc(p.username) + '</div>' +
           '<div class="profile-selector-date">Creado el ' + fecha + '</div>' +
@@ -184,8 +233,10 @@ function restoreProfile(index) {
     flares_hoy: 0,
     fecha_hoy:  new Date().toDateString(),
     racha_dias: 0,
+    avatar_url: p.avatar_url || randomAvatarUrl(),
     created_at: p.created_at,
   };
+  ensureIdentityAvatar(IDENTITY);
   saveIdentity(IDENTITY);
   PENDING_PROFILES = null;
   notif('✅ Perfil @' + p.username + ' restaurado');
@@ -361,8 +412,10 @@ function doConfirmCode() {
           flares_hoy: IDENTITY ? (IDENTITY.flares_hoy || 0) : 0,
           fecha_hoy:  IDENTITY ? (IDENTITY.fecha_hoy || new Date().toDateString()) : new Date().toDateString(),
           racha_dias: IDENTITY ? (IDENTITY.racha_dias || 0) : 0,
+          avatar_url: IDENTITY ? (IDENTITY.avatar_url || randomAvatarUrl()) : randomAvatarUrl(),
           created_at: res.user.created_at,
         };
+        ensureIdentityAvatar(IDENTITY);
         saveIdentity(IDENTITY);
       }
       _fbConfirmationResult = null;

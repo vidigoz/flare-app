@@ -114,6 +114,19 @@ function postFlare(data) {
   });
 }
 
+function repostFlare(id) {
+  return apiFetch('/api/flares', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      repost_id: id,
+      uid: MY_ID,
+      owner_uid: getOwnerUid(),
+      local_date: getLocalDateString(),
+    }),
+  });
+}
+
 function postLike(id) {
   return apiFetch('/api/like?id=' + encodeURIComponent(id), { method: 'PATCH' });
 }
@@ -122,7 +135,7 @@ function postIdentity(identity) {
   return apiFetch('/api/identity', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ device_id: identity.device_id, username: identity.username }),
+    body: JSON.stringify({ device_id: identity.device_id, username: identity.username, avatar_url: identity.avatar_url || null }),
   });
 }
 

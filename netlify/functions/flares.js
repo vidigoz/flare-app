@@ -29,6 +29,8 @@ export const handler = async (event) => {
       if (!rl.allowed) return tooMany(rl.retryAfter);
       const p = event.queryStringParameters || {};
 
+      await cleanupArchivedFlares(sql);
+
       /* Fetch por ID directo — para deep links */
       if (p.id) {
         const rows = await sql`
@@ -47,8 +49,9 @@ export const handler = async (event) => {
       if (p.owner_uid) {
         const rows = await sql`
           SELECT * FROM flares
-          WHERE owner_uid = ${p.owner_uid} AND expires_at > NOW()
-          ORDER BY expires_at DESC
+          WHERE owner_uid = ${p.owner_uid}
+            AND created_at >= NOW() - INTERVAL '24 hours'
+          ORDER BY created_at DESC
           LIMIT 50
         `;
         return {
@@ -73,9 +76,6 @@ export const handler = async (event) => {
 
       /* Ordenar por likes desc en zoom lejano para mostrar los más relevantes */
       const orderByLikes = zoom < 12;
-
-      // Limpieza liviana de expirados
-      await sql`DELETE FROM flares WHERE expires_at < NOW()`;
 
       const rows = orderByLikes
         ? await sql`
@@ -133,6 +133,47 @@ export const handler = async (event) => {
         };
       }
 
+      const repostId = d.repost_id ? String(d.repost_id).slice(0, 64) : null;
+      if (repostId) {
+        const ownerUid = String(d.owner_uid || "").slice(0, 64) || null;
+        if (!ownerUid) return err(400, "owner_uid requerido");
+
+        const rows = await sql`
+          SELECT id, owner_uid, expires_at
+          FROM flares
+          WHERE id = ${repostId}
+            AND owner_uid = ${ownerUid}
+            AND created_at >= NOW() - INTERVAL '24 hours'
+          LIMIT 1
+        `;
+
+        if (!rows.length) return err(404, "Flare no disponible para republicar");
+        if (new Date(rows[0].expires_at).getTime() > Date.now()) {
+          return err(409, "Este flare sigue vigente");
+        }
+
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        const [row] = await sql`
+          UPDATE flares
+          SET expires_at = ${expiresAt},
+              created_at = NOW(),
+              likes = 0,
+              hidden = FALSE,
+              reports_count = 0
+          WHERE id = ${repostId}
+            AND owner_uid = ${ownerUid}
+          RETURNING *
+        `;
+
+        await incrementDailyCount(sql, uid, localDate);
+
+        return {
+          statusCode: 200,
+          headers: { ...cors(), "Content-Type": "application/json" },
+          body: JSON.stringify(row),
+        };
+      }
+
       // Validacion — usar == null para no rechazar coordenada 0
       if (d.lat == null || d.lng == null || !d.title) {
         return err(400, "lat, lng y title son requeridos");
@@ -183,8 +224,23 @@ export const handler = async (event) => {
         console.error("Moderación OpenAI falló, continuando:", modErr.message);
       }
 
+      const requestedDurMin = parseInt(d.dur_min) || 60;
+      const isDevFlare = d.cat === "dev";
+      let durMin = 60;
+      if (isDevFlare || requestedDurMin !== 60) {
+        if (!isDevFlare) return err(403, "La duracion personalizada requiere categoria DEV");
+        const devModeEnabled = (await getAdminSetting(sql, DEV_DUR_KEY, "off")) !== "off";
+        if (!devModeEnabled) return err(403, "Modo DEV desactivado");
+        const adminSecret = process.env.ADMIN_SECRET;
+        const providedSecret = d.admin_secret ? String(d.admin_secret) : "";
+        if (!adminSecret || providedSecret !== adminSecret) return err(401, "Contrasena admin invalida");
+        if (requestedDurMin < 1 || requestedDurMin > 720) {
+          return err(400, "dur_min debe estar entre 1 y 720");
+        }
+        durMin = requestedDurMin;
+      }
+
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
-      const durMin = Math.min(Math.max(parseInt(d.dur_min) || 60, 1), 720);
       const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
       const ownerUid = String(d.owner_uid || "").slice(0, 64) || null;
       const username = d.username ? String(d.username).slice(0, 30) : null;
@@ -201,10 +257,10 @@ export const handler = async (event) => {
           ${lng},
           ${String(d.title).trim()},
           ${d.emoji || "📍"},
-          ${d.cat || "info"},
-          ${d.cat_lbl || "Informacion"},
-          ${d.cat_color || "#00f5a0"},
-          ${d.cat_icon || "ℹ️"},
+          ${isDevFlare ? "dev" : (d.cat || "info")},
+          ${isDevFlare ? "DEV" : (d.cat_lbl || "Informacion")},
+          ${isDevFlare ? "#ff4060" : (d.cat_color || "#00f5a0")},
+          ${isDevFlare ? "🧪" : (d.cat_icon || "ℹ️")},
           ${d.type || "text"},
           ${d.body_text || null},
           ${d.biz_name || null},
@@ -258,8 +314,16 @@ function tooMany(retryAfter) {
   };
 }
 
+async function cleanupArchivedFlares(sql) {
+  await sql`
+    DELETE FROM flares
+    WHERE created_at < NOW() - INTERVAL '24 hours'
+  `;
+}
+
 const NON_REGISTER_LIMIT_KEY = "non_register_flare_limit";
 const DAILY_LIMIT_KEY        = "daily_flare_limit";
+const DEV_DUR_KEY            = "dev_duration_mode";
 const DAILY_LIMIT_MAX        = 3;
 
 async function shouldEnforceNonRegisterFlareLimit(sql) {
