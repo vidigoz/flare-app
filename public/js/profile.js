@@ -445,8 +445,6 @@ function compressImage(file, maxPx, quality) {
 function doSignOut() {
   if (!window.confirm('¿Cerrar sesión? Tu perfil sigue guardado y podés recuperarlo con tu número.')) return;
   localStorage.removeItem('flare_identity');
-  localStorage.removeItem('flare_first_published');
-  localStorage.removeItem('flare_onboarding_complete');
   IDENTITY = null;
   notif('Sesión cerrada. Ingresá con tu número para volver.', 'err');
   renderProfile();

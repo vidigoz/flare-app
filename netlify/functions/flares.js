@@ -311,6 +311,11 @@ export const handler = async (event) => {
 
       await incrementDailyCount(sql, uid, localDate);
 
+      // Actualizar last_seen_at del usuario
+      if (ownerUid) {
+        sql`UPDATE users SET last_seen_at = NOW() WHERE device_id = ${ownerUid}`.catch(() => {});
+      }
+
       return {
         statusCode: 201,
         headers: { ...cors(), "Content-Type": "application/json" },

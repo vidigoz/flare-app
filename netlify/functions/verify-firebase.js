@@ -78,7 +78,7 @@ export const handler = async (event) => {
       // Si el device_id nuevo ya está en otro registro, liberarlo primero
       await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
       const [user] = await sql`
-        UPDATE users SET device_id = ${deviceId}
+        UPDATE users SET device_id = ${deviceId}, last_seen_at = NOW()
         WHERE phone = ${phone}
         RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
@@ -102,11 +102,10 @@ export const handler = async (event) => {
     if (existing.length) {
       if (newUsername) {
         [user] = await sql`
-          UPDATE users SET tier = 3, phone = ${phone}, username = ${newUsername}
+          UPDATE users SET tier = 3, phone = ${phone}, username = ${newUsername}, last_seen_at = NOW()
           WHERE device_id = ${deviceId}
           RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
         `;
-        // Actualizar username en flares vigentes o dentro de ventana de 24h
         await sql`
           UPDATE flares SET username = ${newUsername}
           WHERE owner_uid = ${deviceId}
@@ -114,7 +113,7 @@ export const handler = async (event) => {
         `;
       } else {
         [user] = await sql`
-          UPDATE users SET tier = 3, phone = ${phone}
+          UPDATE users SET tier = 3, phone = ${phone}, last_seen_at = NOW()
           WHERE device_id = ${deviceId}
           RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
         `;
@@ -122,8 +121,8 @@ export const handler = async (event) => {
     } else {
       const username = newUsername || ("flare_" + Math.random().toString(36).slice(2, 8));
       [user] = await sql`
-        INSERT INTO users (username, device_id, tier, phone)
-        VALUES (${username}, ${deviceId}, 3, ${phone})
+        INSERT INTO users (username, device_id, tier, phone, last_seen_at)
+        VALUES (${username}, ${deviceId}, 3, ${phone}, NOW())
         RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
       // Actualizar flares existentes con el username asignado
