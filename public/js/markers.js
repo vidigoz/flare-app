@@ -26,7 +26,7 @@ function makeMarker(pin){
   m.on('popupclose', function(){
     var el = m.getElement();
     if(el) el.classList.remove('mk-open');
-    setTimeout(fetchFlares, 50);
+    if(!window._likeInProgress) setTimeout(fetchFlares, 50);
   });
   clusterGroup.addLayer(m);
   setTimeout(function(){

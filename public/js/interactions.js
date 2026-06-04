@@ -51,10 +51,12 @@ function doLike(id){
   markLiked(id);
   var nowDying = getPinState(pin) === 'dying';
   var revived = wasDying && !nowDying;
+  window._likeInProgress = true;
   if(!pin.marker.isPopupOpen()) refreshMk(pin, revived);
   refreshPop(pin);
   setTimeout(function(){
     if(!pin.marker.isPopupOpen()) pin.marker.openPopup();
+    window._likeInProgress = false;
     var likeBtn = document.querySelector('.pop-like');
     if(likeBtn){ likeBtn.classList.add('like-fire'); setTimeout(function(){ likeBtn.classList.remove('like-fire'); }, 700); }
   }, 0);
