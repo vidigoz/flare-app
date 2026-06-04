@@ -275,7 +275,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'Space Mono',monospace}
 input[type=text],input[type=number],input[type=password],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s;resize:none;-webkit-appearance:none}
 input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
-.media-picker{position:relative}
+.media-picker input[type=file]{display:none}
 .media-pick-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--surface2);border:1px dashed rgba(0,245,160,.35);border-radius:10px;color:var(--neon);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;margin:0;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .media-pick-btn:active{background:rgba(0,245,160,.08)}
 .media-preview{align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:8px}

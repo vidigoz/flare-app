@@ -184,11 +184,11 @@
       <div class="fg">
         <label>Foto <span style="color:var(--dim);font-weight:400">(opcional)</span></label>
         <div class="media-picker">
-          <input type="file" id="f-img" accept="image/jpeg,image/png,image/webp" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
-          <button type="button" class="media-pick-btn" id="media-pick-btn">
+          <label class="media-pick-btn" for="f-img">
             <span>🖼️</span>
             <span>Agregar foto</span>
-          </button>
+          </label>
+          <input type="file" id="f-img" accept="image/jpeg,image/png,image/webp" style="display:none">
           <div class="media-preview" id="media-preview" style="display:none">
             <img id="media-preview-img" src="" alt="Vista previa">
             <div class="media-preview-meta">

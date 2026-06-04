@@ -112,10 +112,8 @@ document.getElementById('mover').addEventListener('click', function(e){ if(e.tar
 
 var mediaInput = document.getElementById('f-img');
 var mediaRemove = document.getElementById('media-remove');
-var mediaPickBtn = document.getElementById('media-pick-btn');
 if (mediaInput) mediaInput.addEventListener('change', handleImagePicked);
 if (mediaRemove) mediaRemove.addEventListener('click', resetImagePicker);
-if (mediaPickBtn && mediaInput) mediaPickBtn.addEventListener('click', function(){ mediaInput.click(); });
 
 function getSelectedImageFile(){
   var input = document.getElementById('f-img');
