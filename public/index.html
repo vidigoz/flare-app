@@ -350,5 +350,16 @@
     });
   }
 </script>
+
+<!-- Lightbox -->
+<div id="lightbox" style="display:none" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+</div>
+<script>
+function openLightbox(src){ var lb=document.getElementById('lightbox'); var img=document.getElementById('lightbox-img'); img.src=src; lb.style.display='flex'; document.addEventListener('keydown',_lbKey); }
+function closeLightbox(){ var lb=document.getElementById('lightbox'); lb.style.display='none'; document.getElementById('lightbox-img').src=''; document.removeEventListener('keydown',_lbKey); }
+function _lbKey(e){ if(e.key==='Escape') closeLightbox(); }
+</script>
 </body>
 </html>

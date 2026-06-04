@@ -103,7 +103,7 @@ function renderPanel(){
       +(isDying?'<div class="rescue-msg">🔴 Este flare está por expirar — ¡dale like para salvarlo!</div>':'')
       +(pin.bizName?'<div class="pd-biz">🏪 '+esc(pin.bizName)+'</div>':'')
       +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
-      +(pin.image?'<img class="pd-img" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy">':'')
+      +(pin.image?'<img class="pd-img img-zoomable" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" onclick="openLightbox(\''+esc(pin.image)+'\')">':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
       +(pin.liked?'❤️':'🤍')+' <span class="pd-like-count">'+pin.likes+'</span>'

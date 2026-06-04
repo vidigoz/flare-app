@@ -336,6 +336,12 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .pop-id{font-size:9px;font-family:'Space Mono',monospace;color:var(--dim);opacity:.45;text-align:center;padding:6px 0 2px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:opacity .15s}
 .pop-id:active{opacity:1;color:var(--neon)}
 
+/* LIGHTBOX */
+#lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(6px)}
+#lightbox-img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:10px;box-shadow:0 8px 48px rgba(0,0,0,.8);pointer-events:none}
+#lightbox-close{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:18px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:all}
+.img-zoomable{cursor:zoom-in}
+
 /* MARKER */
 .mk{display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative}
 .mk-b{width:28px;height:28px;background:var(--surface);border:2px solid var(--neon);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;position:relative;transition:all .3s}

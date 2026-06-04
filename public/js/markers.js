@@ -59,7 +59,7 @@ function popHTML(pin){
     +'<div>'+(pin.bizName?'<div class="pop-biz">🏪 '+esc(pin.bizName)+'</div>':'')+'<div class="pop-name">'+esc(pin.title)+'</div>'+(pin.username?'<div class="pop-username">@'+esc(pin.username)+'</div>':'')+'<div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
-    +(pin.image?'<img class="pop-img" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy">':'')
+    +(pin.image?'<img class="pop-img img-zoomable" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" onclick="event.stopPropagation();openLightbox(\''+esc(pin.image)+'\')">':'')
     +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
     +'<div class="pop-foot">'
     +'<button class="pop-btn pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'
