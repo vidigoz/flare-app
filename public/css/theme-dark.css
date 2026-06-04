@@ -563,6 +563,7 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 }
 .profile-tier-badge.tier1 { background: rgba(122,132,153,.08); color: var(--dim); }
 .profile-tier-badge.tier2 { background: rgba(0,245,160,.08); color: var(--neon); border-color: rgba(0,245,160,.2); }
+.profile-tier-badge.tier3 { background: rgba(0,245,160,.15); color: var(--neon); border-color: rgba(0,245,160,.4); font-weight:700; }
 .tier-icon { font-size: 18px; }
 
 .profile-main {

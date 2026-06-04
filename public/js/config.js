@@ -55,7 +55,8 @@ function getDeviceFingerprint() {
 
 function getTier() {
   var identity = JSON.parse(localStorage.getItem('flare_identity') || 'null');
-  return identity ? 2 : 1;
+  if (!identity) return 1;
+  return identity.tier === 3 ? 3 : 2;
 }
 
 function getOrCreateIdentity() {

@@ -78,10 +78,10 @@ function renderProfile() {
     '<div class="profile-main">' +
       '<img class="profile-avatar" src="' + esc(avatarUrl) + '" alt="Avatar de perfil">' +
       '<div class="profile-main-body">' +
-        '<div class="profile-tier-badge tier2 profile-tier-inline">' +
-          '<span class="tier-icon">✕</span>' +
-          '<span class="tier-label">Sin validar</span>' +
-        '</div>' +
+        (getTier() === 3
+          ? '<div class="profile-tier-badge tier3 profile-tier-inline"><span class="tier-icon">✓</span><span class="tier-label">Verificado</span></div>'
+          : '<div class="profile-tier-badge tier2 profile-tier-inline"><span class="tier-icon">✕</span><span class="tier-label">Sin validar</span></div>'
+        ) +
         '<div class="profile-username-label">Tu nombre</div>' +
         '<div class="profile-username-value">@' + esc(identity.username || '?') + '</div>' +
       '</div>' +
@@ -96,11 +96,16 @@ function renderProfile() {
         '<div class="profile-stat-lbl">Restantes hoy</div>' +
       '</div>' +
     '</div>' +
-    '<div class="profile-validate">' +
-      '<div class="profile-validate-title">🔒 Desbloquea más funciones</div>' +
-      '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre, publicar sin límite y guardar tu perfil de Flare para recuperarlo en cualquier dispositivo.</div>' +
-      '<button class="profile-validate-btn" onclick="showVerifyPhone()">Validar con mi número</button>' +
-    '</div>' +
+    (getTier() < 3 ?
+      '<div class="profile-validate">' +
+        '<div class="profile-validate-title">🔒 Desbloquea más funciones</div>' +
+        '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre, publicar sin límite y guardar tu perfil de Flare para recuperarlo en cualquier dispositivo.</div>' +
+        '<button class="profile-validate-btn" onclick="showVerifyPhone()">Validar con mi número</button>' +
+      '</div>'
+    : '<div class="profile-validate" style="border-color:rgba(0,245,160,.3);background:rgba(0,245,160,.06)">' +
+        '<div class="profile-validate-title">✅ Perfil verificado</div>' +
+        '<div class="profile-validate-desc">Tu número está vinculado. Podés recuperar tu perfil en cualquier dispositivo.</div>' +
+      '</div>') +
     '<div class="profile-divider"></div>' +
     '<div class="profile-section-title">📍 Mis Flares</div>' +
     '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
