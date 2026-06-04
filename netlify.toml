@@ -4,10 +4,16 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["@aws-sdk/client-s3"]
 
 [[redirects]]
   from = "/api/flares"
   to = "/.netlify/functions/flares"
+  status = 200
+
+[[redirects]]
+  from = "/api/media"
+  to = "/.netlify/functions/media"
   status = 200
 
 [[redirects]]
