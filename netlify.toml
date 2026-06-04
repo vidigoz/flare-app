@@ -67,6 +67,11 @@
   to = "/.netlify/functions/verify-firebase"
   status = 200
 
+[[redirects]]
+  from = "/api/profile/username"
+  to = "/.netlify/functions/update-username"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

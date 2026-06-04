@@ -95,6 +95,7 @@ function renderProfile() {
         ) +
         '<div class="profile-username-label">Tu nombre</div>' +
         '<div class="profile-username-value">@' + esc(identity.username || '?') + '</div>' +
+        (getTier() === 3 ? '<button class="profile-change-username-btn" onclick="showChangeUsername()">✏️ Cambiar</button>' : '') +
       '</div>' +
     '</div>' +
     '<div class="profile-stats">' +
@@ -281,6 +282,63 @@ function restoreProfile(index) {
 }
 
 /* openProfile() y closeProfile() son llamadas desde panel.js vía psetting-profile */
+
+/* ── Cambiar username (Tier 3) ── */
+
+function showChangeUsername() {
+  var box = document.getElementById('profile-content');
+  if (!box) return;
+  box.innerHTML =
+    '<div class="profile-verify-header">' +
+      '<button class="profile-verify-back" onclick="renderProfile()">← Volver</button>' +
+      '<div class="profile-verify-title">Cambiar nombre</div>' +
+    '</div>' +
+    '<div class="profile-verify-body">' +
+      '<div class="profile-verify-desc">Elige un nombre único. Puedes cambiarlo libremente la primera vez, después deberás esperar 7 días entre cambios.</div>' +
+      '<input id="change-username-input" class="profile-verify-input" type="text" maxlength="30" ' +
+        'placeholder="' + esc((IDENTITY && IDENTITY.username) || '') + '" ' +
+        'style="margin-top:12px" autocomplete="off" autocorrect="off" autocapitalize="off">' +
+      '<div class="profile-verify-username-hint">Solo letras minúsculas, números y _ (3-30 caracteres)</div>' +
+      '<div id="change-username-err" class="profile-verify-err" style="display:none"></div>' +
+      '<button class="profile-validate-btn" id="change-username-btn" onclick="doChangeUsername()" style="margin-top:12px">Guardar nombre</button>' +
+    '</div>';
+  var input = document.getElementById('change-username-input');
+  if (input) input.focus();
+}
+
+function doChangeUsername() {
+  var input  = document.getElementById('change-username-input');
+  var errEl  = document.getElementById('change-username-err');
+  var btn    = document.getElementById('change-username-btn');
+  if (!input) return;
+  var username = input.value.trim().toLowerCase();
+  if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+    errEl.textContent = 'Solo letras minúsculas, números y _ (mínimo 3 caracteres).';
+    errEl.style.display = 'block'; return;
+  }
+  if (username === (IDENTITY && IDENTITY.username)) {
+    errEl.textContent = 'Es el mismo nombre actual.';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  apiFetch('/api/profile/username', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_id: getOwnerUid(), username }),
+  })
+  .then(function(res) {
+    IDENTITY.username = res.username;
+    saveIdentity(IDENTITY);
+    notif('✓ Nombre actualizado a @' + res.username);
+    renderProfile();
+  })
+  .catch(function(e) {
+    errEl.textContent = e.message || 'Error al cambiar el nombre.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Guardar nombre';
+  });
+}
 
 /* ── Avatar personalizado (Tier 3) ── */
 
