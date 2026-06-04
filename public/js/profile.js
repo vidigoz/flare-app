@@ -118,7 +118,8 @@ function renderProfile() {
     : '<div class="profile-validate" style="border-color:rgba(0,245,160,.3);background:rgba(0,245,160,.06)">' +
         '<div class="profile-validate-title">✅ Perfil verificado</div>' +
         '<div class="profile-validate-desc">Tu número está vinculado. Podés recuperar tu perfil en cualquier dispositivo.</div>' +
-      '</div>') +
+      '</div>' +
+      '<button class="profile-signout-btn" onclick="doSignOut()">↩ Cerrar sesión</button>') +
     (typeof DEV_DURATION_MODE !== 'undefined' && DEV_DURATION_MODE ?
       '<div class="profile-dev-reset">' +
         '<div class="profile-dev-reset-title">🧪 DEV — Resetear tier</div>' +
@@ -276,6 +277,18 @@ function restoreProfile(index) {
 
 /* openProfile() y closeProfile() son llamadas desde panel.js vía psetting-profile */
 
+/* ── Cerrar sesión ── */
+
+function doSignOut() {
+  if (!window.confirm('¿Cerrar sesión? Tu perfil sigue guardado y podés recuperarlo con tu número.')) return;
+  localStorage.removeItem('flare_identity');
+  localStorage.removeItem('flare_first_published');
+  localStorage.removeItem('flare_onboarding_complete');
+  IDENTITY = null;
+  notif('Sesión cerrada. Ingresá con tu número para volver.', 'err');
+  renderProfile();
+}
+
 /* ── DEV: resetear tier para pruebas ── */
 
 function devResetTier(targetTier) {
@@ -418,6 +431,7 @@ function doRecoverConfirm() {
         };
         ensureIdentityAvatar(IDENTITY);
         saveIdentity(IDENTITY);
+        localStorage.setItem('flare_onboarding_complete', '1');
       }
       _fbRecoverConfirmation = null;
       var box = document.getElementById('profile-content');
@@ -430,8 +444,11 @@ function doRecoverConfirm() {
         '</div>';
     })
     .catch(function(e) {
-      var msg = 'Código incorrecto. Intenta de nuevo.';
+      console.error('recover confirm error:', e.code, e.message);
+      var msg = 'Error (' + (e.code || e.message || 'desconocido') + '). Intenta de nuevo.';
       if (e.code === 'auth/code-expired') msg = 'El código expiró. Solicita uno nuevo.';
+      if (e.code === 'auth/invalid-verification-code') msg = 'Código incorrecto. Verifica los 6 dígitos.';
+      if (e.code === 'auth/session-expired') msg = 'Sesión expirada. Vuelve a enviar el código.';
       errEl.textContent = msg; errEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Ingresar';
     });
@@ -615,9 +632,11 @@ function doConfirmCode() {
       showVerifySuccess();
     })
     .catch(function(e) {
-      console.error('confirm error:', e);
-      var msg = 'Código incorrecto. Intenta de nuevo.';
+      console.error('confirm error:', e.code, e.message);
+      var msg = 'Error (' + (e.code || e.message || 'desconocido') + '). Intenta de nuevo.';
       if (e.code === 'auth/code-expired') msg = 'El código expiró. Solicita uno nuevo.';
+      if (e.code === 'auth/invalid-verification-code') msg = 'Código incorrecto. Verifica los 6 dígitos.';
+      if (e.code === 'auth/session-expired') msg = 'Sesión expirada. Vuelve a enviar el código.';
       errEl.textContent = msg;
       errEl.style.display = 'block';
       btn.disabled = false;

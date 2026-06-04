@@ -270,7 +270,7 @@ loadLeaflet(function(){
 
     startPoll();
 
-    if(!localStorage.getItem('flare_onboarding_complete')){
+    if(!localStorage.getItem('flare_onboarding_complete') && !localStorage.getItem('flare_identity')){
       setTimeout(obStart, 800);
     }
   });

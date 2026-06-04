@@ -17,7 +17,7 @@ function closePanel(){
   document.getElementById('pov').classList.remove('on');
   document.getElementById('pbtn').style.display = 'flex';
   document.getElementById('fab-wrap').style.display = 'flex';
-  if(!localStorage.getItem('flare_onboarding_complete')){
+  if(!localStorage.getItem('flare_onboarding_complete') && !localStorage.getItem('flare_identity')){
     document.getElementById('ob-wrap').style.display = 'block';
     document.getElementById('ob-tip-fab').style.display = 'flex';
     document.getElementById('ob-tip-filters').style.display = 'block';
