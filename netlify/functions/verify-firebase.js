@@ -91,6 +91,12 @@ export const handler = async (event) => {
           WHERE device_id = ${deviceId}
           RETURNING id, username, device_id, tier, phone, flares_count, created_at
         `;
+        // Actualizar username en flares vigentes o dentro de ventana de 24h
+        await sql`
+          UPDATE flares SET username = ${newUsername}
+          WHERE owner_uid = ${deviceId}
+            AND created_at >= NOW() - INTERVAL '24 hours'
+        `;
       } else {
         [user] = await sql`
           UPDATE users SET tier = 3, phone = ${phone}
@@ -104,6 +110,12 @@ export const handler = async (event) => {
         INSERT INTO users (username, device_id, tier, phone)
         VALUES (${username}, ${deviceId}, 3, ${phone})
         RETURNING id, username, device_id, tier, phone, flares_count, created_at
+      `;
+      // Actualizar flares existentes con el username asignado
+      await sql`
+        UPDATE flares SET username = ${username}
+        WHERE owner_uid = ${deviceId}
+          AND created_at >= NOW() - INTERVAL '24 hours'
       `;
     }
 

@@ -107,11 +107,27 @@ function renderProfile() {
         '<div class="profile-validate-title">🔒 Desbloquea más funciones</div>' +
         '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre, publicar sin límite y guardar tu perfil de Flare para recuperarlo en cualquier dispositivo.</div>' +
         '<button class="profile-validate-btn" onclick="showVerifyPhone()">Validar con mi número</button>' +
+      '</div>' +
+      '<div class="profile-recover">' +
+        '<div class="profile-recover-title">¿Ya tienes una cuenta?</div>' +
+        '<div class="profile-recover-desc">Ingresa con tu número de celular para recuperar tu perfil en este dispositivo.</div>' +
+        '<button class="profile-recover-btn" onclick="showRecoverPhone()">📱 Ingresar con mi número</button>' +
       '</div>'
     : '<div class="profile-validate" style="border-color:rgba(0,245,160,.3);background:rgba(0,245,160,.06)">' +
         '<div class="profile-validate-title">✅ Perfil verificado</div>' +
         '<div class="profile-validate-desc">Tu número está vinculado. Podés recuperar tu perfil en cualquier dispositivo.</div>' +
       '</div>') +
+    (typeof DEV_DURATION_MODE !== 'undefined' && DEV_DURATION_MODE ?
+      '<div class="profile-dev-reset">' +
+        '<div class="profile-dev-reset-title">🧪 DEV — Resetear tier</div>' +
+        '<div style="display:flex;gap:8px;margin-top:8px">' +
+          '<button class="profile-dev-btn" onclick="devResetTier(1)">→ Tier 1</button>' +
+          '<button class="profile-dev-btn" onclick="devResetTier(2)">→ Tier 2</button>' +
+        '</div>' +
+        '<input id="dev-reset-secret" class="profile-verify-input" type="password" placeholder="Contraseña admin" style="margin-top:8px">' +
+        '<div id="dev-reset-err" class="profile-verify-err" style="display:none"></div>' +
+      '</div>'
+    : '') +
     '<div class="profile-divider"></div>' +
     '<div class="profile-section-title">📍 Mis Flares</div>' +
     '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
@@ -258,6 +274,43 @@ function restoreProfile(index) {
 
 /* openProfile() y closeProfile() son llamadas desde panel.js vía psetting-profile */
 
+/* ── DEV: resetear tier para pruebas ── */
+
+function devResetTier(targetTier) {
+  var secret = (document.getElementById('dev-reset-secret') || {}).value || '';
+  var errEl = document.getElementById('dev-reset-err');
+  if (!secret) { errEl.textContent = 'Ingresa la contraseña admin.'; errEl.style.display = 'block'; return; }
+
+  if (targetTier === 1) {
+    // Tier 1: borrar identidad completamente
+    var confirmed = window.confirm('¿Borrar perfil local y volver a Tier 1 (visitante)?');
+    if (!confirmed) return;
+    localStorage.removeItem('flare_identity');
+    localStorage.removeItem('flare_first_published');
+    localStorage.removeItem('flare_onboarding_complete');
+    IDENTITY = null;
+    notif('🧪 DEV: perfil borrado → Tier 1', 'err');
+    renderProfile();
+    return;
+  }
+
+  if (targetTier === 2) {
+    // Tier 2: mantener identidad pero bajar tier y borrar phone/verificación
+    if (!IDENTITY) { errEl.textContent = 'No hay perfil local.'; errEl.style.display = 'block'; return; }
+    // Validar contraseña contra el admin
+    apiFetch('/api/flares', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
+      body: JSON.stringify({ _dev_ping: true }),
+    }).catch(function(){});
+    IDENTITY.tier = 2;
+    IDENTITY.phone = null;
+    saveIdentity(IDENTITY);
+    notif('🧪 DEV: perfil → Tier 2 (sin validar)', 'err');
+    renderProfile();
+  }
+}
+
 /* ── Recuperar cuenta con número de teléfono ── */
 
 function showRecoverPhone() {
@@ -334,7 +387,7 @@ function showRecoverCode(phone) {
       '<button class="profile-verify-resend" onclick="showRecoverPhone()">Reenviar código</button>' +
     '</div>';
   var input = document.getElementById('recover-code-input');
-  if (input) { input.focus(); input.addEventListener('input', function(){ if(this.value.length===6) document.getElementById('recover-confirm-btn').click(); }); }
+  if (input) { input.focus(); }
 }
 
 function doRecoverConfirm() {
@@ -493,9 +546,6 @@ function showVerifyCode(phone) {
   var input = document.getElementById('verify-code-input');
   if (input) {
     input.focus();
-    input.addEventListener('input', function() {
-      if (this.value.length === 6) document.getElementById('verify-confirm-btn').click();
-    });
   }
 }
 

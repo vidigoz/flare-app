@@ -631,6 +631,10 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .profile-recover-desc { font-size: 11px; font-family: 'Space Mono',monospace; color: var(--dim); line-height: 1.5; margin-bottom: 12px; }
 .profile-recover-btn { width: 100%; background: transparent; border: 1px solid rgba(0,245,160,.4); color: var(--neon); border-radius: 8px; padding: 10px; font-family: 'Syne',sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; }
 .profile-recover-btn:active { background: rgba(0,245,160,.1); }
+.profile-dev-reset { background: rgba(255,64,96,.06); border: 1px dashed rgba(255,64,96,.35); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+.profile-dev-reset-title { font-size: 11px; font-weight: 700; color: var(--danger); font-family: 'Space Mono',monospace; letter-spacing: .5px; }
+.profile-dev-btn { flex: 1; background: rgba(255,64,96,.1); border: 1px solid rgba(255,64,96,.4); color: var(--danger); border-radius: 8px; padding: 8px; font-family: 'Syne',sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; }
+.profile-dev-btn:active { background: rgba(255,64,96,.2); }
 .profile-validate-btn {
   width: 100%; background: transparent;
   border: 1px solid var(--neon); color: var(--neon);

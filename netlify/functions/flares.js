@@ -107,11 +107,6 @@ export const handler = async (event) => {
 
     // ── POST ─────────────────────────────────────────
     if (event.httpMethod === "POST") {
-      const enforceLimit = await shouldEnforceNonRegisterFlareLimit(sql);
-      if (enforceLimit) {
-        const rl = rateLimit(ip, "create_flare", 20, 60 * 60 * 1000);
-        if (!rl.allowed) return tooMany(rl.retryAfter);
-      }
       let d;
       try {
         d = JSON.parse(event.body || "{}");
@@ -119,19 +114,43 @@ export const handler = async (event) => {
         return err(400, "JSON invalido");
       }
 
-      // Límite diario por uid de dispositivo
       const uid = d.uid || null;
-      // Usar la fecha local del cliente (YYYY-MM-DD) para que el reset sea a medianoche local
+
+      // Verificar tier real del usuario en DB
+      const ownerUidForTier = String(d.owner_uid || "").slice(0, 64) || null;
+      let userTier = 2;
+      if (ownerUidForTier) {
+        const userRow = await sql`SELECT tier FROM users WHERE device_id = ${ownerUidForTier} LIMIT 1`;
+        if (userRow.length) userTier = userRow[0].tier || 2;
+      }
+
+      const isTier3 = userTier >= 3;
+
+      // Rate limit por IP — Tier 3: 100/hora, Tier 1-2: 20/hora (si está habilitado)
+      if (isTier3) {
+        const rl = rateLimit(ip, "create_flare_t3", 100, 60 * 60 * 1000);
+        if (!rl.allowed) return tooMany(rl.retryAfter);
+      } else {
+        const enforceLimit = await shouldEnforceNonRegisterFlareLimit(sql);
+        if (enforceLimit) {
+          const rl = rateLimit(ip, "create_flare", 20, 60 * 60 * 1000);
+          if (!rl.allowed) return tooMany(rl.retryAfter);
+        }
+      }
+
+      // Límite diario — Tier 3 sin límite diario, Tier 1-2 hasta DAILY_LIMIT_MAX
       const localDate = /^\d{4}-\d{2}-\d{2}$/.test(d.local_date || "")
         ? d.local_date
-        : new Date().toISOString().slice(0, 10); // fallback a fecha UTC
-      const daily = await checkDailyLimit(sql, uid, localDate);
-      if (!daily.allowed) {
-        return {
-          statusCode: 429,
-          headers: { ...cors(), "Content-Type": "application/json" },
-          body: JSON.stringify({ error: "daily_limit", count: daily.count, max: DAILY_LIMIT_MAX }),
-        };
+        : new Date().toISOString().slice(0, 10);
+      if (!isTier3) {
+        const daily = await checkDailyLimit(sql, uid, localDate);
+        if (!daily.allowed) {
+          return {
+            statusCode: 429,
+            headers: { ...cors(), "Content-Type": "application/json" },
+            body: JSON.stringify({ error: "daily_limit", count: daily.count, max: DAILY_LIMIT_MAX }),
+          };
+        }
       }
 
       const repostId = d.repost_id ? String(d.repost_id).slice(0, 64) : null;
