@@ -49,9 +49,10 @@ export const handler = async (event) => {
   let d;
   try { d = JSON.parse(event.body || "{}"); } catch { return err(400, "JSON inválido"); }
 
-  const deviceId    = d.device_id ? String(d.device_id).slice(0, 64) : null;
-  const idToken     = d.id_token  ? String(d.id_token)               : null;
-  const newUsername = d.username  ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
+  const deviceId    = d.device_id   ? String(d.device_id).slice(0, 64) : null;
+  const idToken     = d.id_token    ? String(d.id_token)               : null;
+  const newUsername = d.username    ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
+  const isRecovery  = Boolean(d.is_recovery);
 
   if (!deviceId) return err(400, "device_id requerido");
   if (!idToken)  return err(400, "id_token requerido");
@@ -68,8 +69,20 @@ export const handler = async (event) => {
     const sql = getDb();
 
     const phoneTaken = await sql`
-      SELECT id FROM users WHERE phone = ${phone} AND device_id != ${deviceId} LIMIT 1
+      SELECT id, username, device_id, tier, phone, flares_count, created_at
+      FROM users WHERE phone = ${phone} AND device_id != ${deviceId} LIMIT 1
     `;
+
+    // Recuperación: el teléfono existe en otro device_id — transferir perfil a este dispositivo
+    if (phoneTaken.length && isRecovery) {
+      const [user] = await sql`
+        UPDATE users SET device_id = ${deviceId}
+        WHERE phone = ${phone}
+        RETURNING id, username, device_id, tier, phone, flares_count, created_at
+      `;
+      return ok({ verified: true, user });
+    }
+
     if (phoneTaken.length) return err(409, "Este número ya está asociado a otro perfil.");
 
     if (newUsername) {

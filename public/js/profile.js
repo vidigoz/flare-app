@@ -414,7 +414,7 @@ function doRecoverConfirm() {
       return apiFetch('/api/verify/firebase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_id: deviceId, id_token: idToken }),
+        body: JSON.stringify({ device_id: deviceId, id_token: idToken, is_recovery: true }),
       });
     })
     .then(function(res) {
