@@ -50,17 +50,31 @@ export const handler = async (event) => {
       if (p.owner_uid || p.username) {
         const ownerUid = p.owner_uid ? String(p.owner_uid).slice(0, 64) : null;
         const username = p.username  ? String(p.username).slice(0, 30)  : null;
-        const rows = await sql`
-          SELECT * FROM flares
-          WHERE (
-            ${ownerUid} IS NOT NULL AND owner_uid = ${ownerUid}
-            OR
-            ${username} IS NOT NULL AND username = ${username}
-          )
-          AND created_at >= NOW() - INTERVAL '24 hours'
-          ORDER BY created_at DESC
-          LIMIT 50
-        `;
+
+        let rows;
+        if (ownerUid && username) {
+          rows = await sql`
+            SELECT * FROM flares
+            WHERE (owner_uid = ${ownerUid} OR username = ${username})
+              AND created_at >= NOW() - INTERVAL '24 hours'
+            ORDER BY created_at DESC LIMIT 50
+          `;
+        } else if (ownerUid) {
+          rows = await sql`
+            SELECT * FROM flares
+            WHERE owner_uid = ${ownerUid}
+              AND created_at >= NOW() - INTERVAL '24 hours'
+            ORDER BY created_at DESC LIMIT 50
+          `;
+        } else {
+          rows = await sql`
+            SELECT * FROM flares
+            WHERE username = ${username}
+              AND created_at >= NOW() - INTERVAL '24 hours'
+            ORDER BY created_at DESC LIMIT 50
+          `;
+        }
+
         return {
           statusCode: 200,
           headers: { ...cors(), "Content-Type": "application/json" },
