@@ -4,6 +4,69 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-03 — UI: mejoras visuales en popup y panel de flares (v1.0.11)
+
+- **UI** — Imagen del flare se muestra al final, después del texto/descripción (popup y panel lateral).
+- **UI** — Imagen respeta el aspect ratio original: `height:auto` + `object-fit:contain`, sin recorte forzado.
+- **UI** — Imagen en popup reducida al 90% del ancho y centrada.
+- **UI** — Divisor verde neon (`rgba(0,245,160,.25)`) separa el contenido de los botones de acción en el popup.
+- **UI** — Labels de botones del popup en blanco sólido (`#fff`), eliminando la opacidad gris anterior.
+- **Fix** — OpenAI `omni-moderation-latest` devolvía 429 por cuenta sin saldo; solucionado agregando crédito.
+
+---
+
+## 2026-06-03 — Fotos moderadas con OpenAI y Cloudflare R2
+
+**Objetivo:** permitir fotos en flares sin publicar contenido no verificado.
+
+**Implementado:**
+- Nuevo endpoint `/api/media` para recibir imágenes como `data:image/...;base64`.
+- Validación server-side de formato real: `image/jpeg`, `image/png`, `image/webp`.
+- Límite default de 3 MB por imagen (`MEDIA_MAX_BYTES` opcional).
+- Moderación con OpenAI `omni-moderation-latest` antes de subir a storage.
+- Upload a Cloudflare R2 usando API compatible S3.
+- `/api/flares` solo acepta `image_url` si pertenece a `R2_PUBLIC_BASE_URL`.
+- Eliminar flares borra también su objeto en R2 cuando aplica.
+- Limpieza de flares archivados después de 24 horas intenta borrar imágenes de R2.
+- Modal de crear flare agrega selector, preview y botón para quitar foto.
+- Popup, panel lateral y perfil muestran foto/thumbnail cuando el flare tiene imagen.
+
+**Variables requeridas:**
+```env
+OPENAI_API_KEY=...
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=...
+R2_PUBLIC_BASE_URL=https://...
+```
+
+**Variables opcionales:**
+```env
+R2_KEY_PREFIX=flares
+MEDIA_MAX_BYTES=3145728
+```
+
+**SQL requerido:** ninguno si la tabla `flares` ya tiene `image_url`.
+
+**Archivos clave:**
+- `netlify/functions/media.js`
+- `netlify/functions/_utils/r2.js`
+- `netlify/functions/flares.js`
+- `netlify/functions/delete-flare.js`
+- `public/index.html`
+- `public/js/modal.js`
+- `public/js/api.js`
+- `public/js/markers.js`
+- `public/js/panel.js`
+- `public/js/profile.js`
+- `public/css/theme-dark.css`
+- `netlify.toml`
+
+**Estado:** implementado localmente, pendiente de configurar credenciales R2/OpenAI en Netlify y probar upload real.
+
+---
+
 ## 2026-06-02 — Avatares, repost y herramientas DEV
 
 **Objetivo:** mejorar el perfil de usuario y agregar herramientas de prueba controladas desde admin.

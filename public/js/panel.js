@@ -82,6 +82,7 @@ function renderPanel(){
     html += '<div class="prow'+(isOpen?' open':'')+(isDying?' prow-dying':'')+'" id="prow-'+pin.id+'" data-pid="'+pin.id+'">'
       +'<div class="prow-hdr">'
       +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
+      +(pin.image?'<img class="prow-thumb" src="'+esc(pin.image)+'" alt="Foto" loading="lazy">':'')
       +'<div class="prow-body">'
       +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
       +'<div class="prow-name">'+esc(pin.title)+'</div>'
@@ -102,6 +103,7 @@ function renderPanel(){
       +(isDying?'<div class="rescue-msg">🔴 Este flare está por expirar — ¡dale like para salvarlo!</div>':'')
       +(pin.bizName?'<div class="pd-biz">🏪 '+esc(pin.bizName)+'</div>':'')
       +(pin.text?'<div class="pd-txt">'+richText(pin.text)+'</div>':'')
+      +(pin.image?'<img class="pd-img" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy">':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
       +(pin.liked?'❤️':'🤍')+' <span class="pd-like-count">'+pin.likes+'</span>'
@@ -205,6 +207,7 @@ function renderMyFlares() {
       html += '<div class="prow profile-flare-row' + (isExpired ? ' profile-flare-expired' : '') + '">'
         +'<div class="prow-hdr">'
         +'<div class="prow-ico" style="background:'+cat.color+'18;border-color:'+cat.color+'55">'+pin.emoji+'</div>'
+        +(pin.image?'<img class="prow-thumb" src="'+esc(pin.image)+'" alt="Foto" loading="lazy">':'')
         +'<div class="prow-body">'
         +(pin.bizName?'<div class="prow-biz">🏪 '+esc(pin.bizName)+'</div>':'')
         +'<div class="prow-name">'+esc(pin.title)+'</div>'
