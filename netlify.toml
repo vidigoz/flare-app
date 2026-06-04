@@ -3,8 +3,7 @@
   functions = "netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["@aws-sdk/client-s3"]
+  node_bundler = "nft"
 
 [[redirects]]
   from = "/api/flares"
