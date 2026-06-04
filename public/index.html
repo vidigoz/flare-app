@@ -181,6 +181,25 @@
         <textarea id="f-txt" rows="4" placeholder="Cuéntanos más... puedes poner links, teléfonos, etc."></textarea>
         <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);margin-top:6px;line-height:1.6">💡 Los links y teléfonos se vuelven clickeables automáticamente</div>
       </div>
+      <div class="fg">
+        <label>Foto <span style="color:var(--dim);font-weight:400">(opcional)</span></label>
+        <div class="media-picker">
+          <input type="file" id="f-img" accept="image/jpeg,image/png,image/webp" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+          <button type="button" class="media-pick-btn" id="media-pick-btn">
+            <span>🖼️</span>
+            <span>Agregar foto</span>
+          </button>
+          <div class="media-preview" id="media-preview" style="display:none">
+            <img id="media-preview-img" src="" alt="Vista previa">
+            <div class="media-preview-meta">
+              <div id="media-preview-name" class="media-preview-name">Foto seleccionada</div>
+              <div class="media-preview-note">Se verifica antes de publicar</div>
+            </div>
+            <button type="button" id="media-remove" class="media-remove" title="Quitar foto">✕</button>
+          </div>
+          <div class="media-help">JPG, PNG o WebP · máximo 3 MB</div>
+        </div>
+      </div>
       <div class="fg dev-duration-fields" id="dev-duration-fields" style="display:none">
         <label>Duración DEV</label>
         <input type="number" id="f-dev-dur" placeholder="Minutos de duración" min="1" max="720" inputmode="numeric">

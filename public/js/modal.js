@@ -3,6 +3,8 @@
 var fabMenuOpen = false;
 var fab = document.getElementById('fab');
 var fabMenu = document.getElementById('fab-menu');
+var MEDIA_MAX_BYTES = 3 * 1024 * 1024;
+var mediaPreviewObjectUrl = null;
 
 function obSkipBtnSetVisible(visible){
   var btn = document.getElementById('ob-skip-btn');
@@ -96,6 +98,7 @@ function closeModal(){
   document.getElementById('f-biz').value='';
   document.getElementById('f-ttl').value='';
   document.getElementById('f-txt').value='';
+  resetImagePicker();
   document.getElementById('f-dev-dur').value='';
   document.getElementById('f-dev-secret').value='';
   updateDevDurationFields();
@@ -106,6 +109,61 @@ function closeModal(){
 
 document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+var mediaInput = document.getElementById('f-img');
+var mediaRemove = document.getElementById('media-remove');
+var mediaPickBtn = document.getElementById('media-pick-btn');
+if (mediaInput) mediaInput.addEventListener('change', handleImagePicked);
+if (mediaRemove) mediaRemove.addEventListener('click', resetImagePicker);
+if (mediaPickBtn && mediaInput) mediaPickBtn.addEventListener('click', function(){ mediaInput.click(); });
+
+function getSelectedImageFile(){
+  var input = document.getElementById('f-img');
+  return input && input.files && input.files[0] ? input.files[0] : null;
+}
+
+function validateImageFile(file){
+  if (!file) return null;
+  var okTypes = ['image/jpeg','image/png','image/webp'];
+  if (okTypes.indexOf(file.type) === -1) return 'Usa una imagen JPG, PNG o WebP.';
+  if (file.size > MEDIA_MAX_BYTES) return 'La foto debe pesar máximo 3 MB.';
+  return null;
+}
+
+function handleImagePicked(){
+  var file = getSelectedImageFile();
+  if (!file) { resetImagePicker(); return; }
+  var err = validateImageFile(file);
+  if (err) { notif(err, 'err'); resetImagePicker(); return; }
+
+  if (mediaPreviewObjectUrl) URL.revokeObjectURL(mediaPreviewObjectUrl);
+  mediaPreviewObjectUrl = URL.createObjectURL(file);
+  document.getElementById('media-preview-img').src = mediaPreviewObjectUrl;
+  document.getElementById('media-preview-name').textContent = file.name || 'Foto seleccionada';
+  document.getElementById('media-preview').style.display = 'flex';
+}
+
+function resetImagePicker(){
+  var input = document.getElementById('f-img');
+  var preview = document.getElementById('media-preview');
+  var img = document.getElementById('media-preview-img');
+  if (input) input.value = '';
+  if (preview) preview.style.display = 'none';
+  if (img) img.removeAttribute('src');
+  if (mediaPreviewObjectUrl) {
+    URL.revokeObjectURL(mediaPreviewObjectUrl);
+    mediaPreviewObjectUrl = null;
+  }
+}
+
+function fileToDataUrl(file){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(){ resolve(reader.result); };
+    reader.onerror = function(){ reject(new Error('No se pudo leer la imagen.')); };
+    reader.readAsDataURL(file);
+  });
+}
 
 function buildCG(){
   var g = document.getElementById('cgrid'); if(!g) return; g.innerHTML='';
@@ -192,10 +250,15 @@ document.getElementById('bsub').addEventListener('click', function(){
     if (!devDur || devDur < 1 || devDur > 720) { notif('Pon una duración DEV entre 1 y 720 minutos.','err'); return; }
     if (!devSecret) { notif('Ingresa la contraseña admin para publicar DEV.','err'); return; }
   }
+  var imageFile = getSelectedImageFile();
+  var imageError = validateImageFile(imageFile);
+  if (imageError) { notif(imageError, 'err'); return; }
+  var bodyText = document.getElementById('f-txt').value.trim() || null;
+  var bizName = document.getElementById('f-biz').value.trim() || null;
 
   var btn = document.getElementById('bsub');
   btn.disabled = true;
-  btn.textContent = '⏳ Publicando...';
+  btn.textContent = imageFile ? '🛡️ Verificando foto...' : '⏳ Publicando...';
 
   // Crear identidad si es el primer flare (Tier 1 → Tier 2)
   var isFirstFlare = !IDENTITY;
@@ -214,18 +277,35 @@ document.getElementById('bsub').addEventListener('click', function(){
     cat_lbl: selCat.lbl.replace('\n',' '),
     cat_color: selCat.color,
     cat_icon: selCat.icon,
-    type: 'text',
+    type: imageFile ? 'image' : 'text',
     uid: MY_ID,
     owner_uid: getOwnerUid(),
     username: IDENTITY.username,
     local_date: getLocalDateString(),
-    biz_name: document.getElementById('f-biz').value.trim() || null,
-    body_text: document.getElementById('f-txt').value.trim() || null,
+    biz_name: bizName,
+    body_text: bodyText,
     dur_min: isDev ? devDur : 60,
   };
   if (isDev) payload.admin_secret = devSecret;
 
-  postFlare(payload)
+  var publishTask = imageFile
+    ? fileToDataUrl(imageFile)
+        .then(function(dataUrl){
+          return postMedia({
+            data_url: dataUrl,
+            title: ttl,
+            body_text: bodyText,
+            uid: MY_ID,
+          });
+        })
+        .then(function(media){
+          payload.image_url = media.image_url;
+          btn.textContent = '⏳ Publicando...';
+          return postFlare(payload);
+        })
+    : postFlare(payload);
+
+  publishTask
     .then(function(row) {
       noteIdentityFlarePublished();
       btn.disabled = false;
@@ -249,9 +329,12 @@ document.getElementById('bsub').addEventListener('click', function(){
       btn.disabled = false;
       btn.textContent = getPublishButtonText();
       if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
+      else if(e.status === 429 && e.message && e.message.includes('OpenAI')) notif(e.message, 'err');
       else if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
       else if(e.status === 401) notif('Contraseña admin incorrecta.','err');
       else if(e.status === 403) notif('Modo DEV desactivado o no permitido.','err');
+      else if(e.status === 413) notif(e.message, 'err');
+      else if(e.message && e.message.toLowerCase().includes('imagen')) notif(e.message, 'err');
       else if(e.status === 400 && e.message.includes('normas')) notif('Contenido no permitido. Revisa el texto de tu flare.','err');
       else notif('Error al publicar: '+e.message,'err');
     });

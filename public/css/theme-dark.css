@@ -275,7 +275,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'Space Mono',monospace}
 input[type=text],input[type=number],input[type=password],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s;resize:none;-webkit-appearance:none}
 input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
-.media-picker input[type=file]{display:none}
+.media-picker{position:relative}
 .media-pick-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--surface2);border:1px dashed rgba(0,245,160,.35);border-radius:10px;color:var(--neon);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;margin:0;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .media-pick-btn:active{background:rgba(0,245,160,.08)}
 .media-preview{align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:8px}
@@ -312,7 +312,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .pop-cat{font-size:10px;font-family:'Space Mono',monospace;margin-top:2px}
 .pop-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden}
 .pop-fill{height:100%;border-radius:2px}
-.pop-img{display:block;width:90%;height:auto;object-fit:contain;border-radius:10px;border:1px solid var(--border);background:var(--surface2);margin-bottom:10px;margin-left:auto;margin-right:auto}
+.pop-img{display:block;width:100%;height:auto;object-fit:contain;border-radius:10px;border:1px solid var(--border);background:var(--surface2);margin-bottom:10px}
 .pop-txt{font-size:12px;color:#aab4ca;line-height:1.5;margin-bottom:10px}
 .pop-foot{display:flex;align-items:stretch;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,245,160,.25)}
 .pop-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .2s;-webkit-tap-highlight-color:transparent;min-height:44px}
