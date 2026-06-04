@@ -606,6 +606,7 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .profile-username-value { font-size: 18px; font-weight: 700; color: var(--neon); font-family: 'Space Mono',monospace; line-height: 1.25; overflow-wrap: anywhere; }
 
 .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.profile-stats:has(.profile-stat:only-child) { grid-template-columns: 1fr; }
 .profile-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
 .profile-stat-val { font-size: 24px; font-weight: 700; font-family: 'Space Mono',monospace; color: var(--text); }
 .profile-stat-lbl { font-size: 10px; color: var(--dim); font-family: 'Space Mono',monospace; margin-top: 2px; }

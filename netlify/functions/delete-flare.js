@@ -30,13 +30,34 @@ export const handler = async (event) => {
   const p = event.queryStringParameters || {};
   const id = String(p.id || "").trim();
   const uid = String(p.uid || "").trim();
+  const adminKey = event.headers["x-admin-key"] || "";
+  const secret = process.env.ADMIN_SECRET;
+
+  // Borrar TODOS los flares de un owner_uid (solo con admin key)
+  if (!id && uid && adminKey && secret && adminKey === secret) {
+    try {
+      const sql = neon(process.env.NETLIFY_DATABASE_URL);
+      const rows = await sql`SELECT id, image_url FROM flares WHERE owner_uid = ${uid}`;
+      for (const row of rows) {
+        if (row.image_url) await deleteR2ObjectByUrl(row.image_url);
+      }
+      const deleted = await sql`DELETE FROM flares WHERE owner_uid = ${uid} RETURNING id`;
+      return {
+        statusCode: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+        body: JSON.stringify({ deleted: deleted.length }),
+      };
+    } catch (e) {
+      console.error(e);
+      return err(500, "Error interno: " + e.message);
+    }
+  }
 
   if (!id || !uid) return err(400, "id y uid son requeridos");
 
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-    // Verificar que existe y pertenece al uid
     const existing = await sql`
       SELECT id, owner_uid, image_url FROM flares WHERE id = ${id}
     `;

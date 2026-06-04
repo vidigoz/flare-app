@@ -97,10 +97,12 @@ function renderProfile() {
         '<div class="profile-stat-val">' + flaresHoy + '</div>' +
         '<div class="profile-stat-lbl">Flares hoy</div>' +
       '</div>' +
-      '<div class="profile-stat">' +
-        '<div class="profile-stat-val" style="color:' + (flaresRestantes > 0 ? 'var(--neon)' : 'var(--danger)') + '">' + flaresRestantes + '</div>' +
-        '<div class="profile-stat-lbl">Restantes hoy</div>' +
-      '</div>' +
+      (getTier() < 3 ?
+        '<div class="profile-stat">' +
+          '<div class="profile-stat-val" style="color:' + (flaresRestantes > 0 ? 'var(--neon)' : 'var(--danger)') + '">' + flaresRestantes + '</div>' +
+          '<div class="profile-stat-lbl">Restantes hoy</div>' +
+        '</div>'
+      : '') +
     '</div>' +
     (getTier() < 3 ?
       '<div class="profile-validate">' +
@@ -282,7 +284,6 @@ function devResetTier(targetTier) {
   if (!secret) { errEl.textContent = 'Ingresa la contraseña admin.'; errEl.style.display = 'block'; return; }
 
   if (targetTier === 1) {
-    // Tier 1: borrar identidad completamente
     var confirmed = window.confirm('¿Borrar perfil local y volver a Tier 1 (visitante)?');
     if (!confirmed) return;
     localStorage.removeItem('flare_identity');
@@ -295,14 +296,7 @@ function devResetTier(targetTier) {
   }
 
   if (targetTier === 2) {
-    // Tier 2: mantener identidad pero bajar tier y borrar phone/verificación
     if (!IDENTITY) { errEl.textContent = 'No hay perfil local.'; errEl.style.display = 'block'; return; }
-    // Validar contraseña contra el admin
-    apiFetch('/api/flares', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
-      body: JSON.stringify({ _dev_ping: true }),
-    }).catch(function(){});
     IDENTITY.tier = 2;
     IDENTITY.phone = null;
     saveIdentity(IDENTITY);
