@@ -626,6 +626,11 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
   cursor: pointer; transition: opacity .2s;
 }
 .profile-cta-btn:active { opacity: .8; }
+.profile-recover { background: rgba(0,245,160,.05); border: 1px solid rgba(0,245,160,.15); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.profile-recover-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.profile-recover-desc { font-size: 11px; font-family: 'Space Mono',monospace; color: var(--dim); line-height: 1.5; margin-bottom: 12px; }
+.profile-recover-btn { width: 100%; background: transparent; border: 1px solid rgba(0,245,160,.4); color: var(--neon); border-radius: 8px; padding: 10px; font-family: 'Syne',sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; }
+.profile-recover-btn:active { background: rgba(0,245,160,.1); }
 .profile-validate-btn {
   width: 100%; background: transparent;
   border: 1px solid var(--neon); color: var(--neon);
