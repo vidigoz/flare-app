@@ -16,8 +16,8 @@ export const handler = async (event) => {
   try {
     const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-    const [users, flares, newUsers, activeUsers] = await Promise.all([
-      // Distribución por tier (total)
+    const [usersDb, flares, newUsersDb, activeUsersDb, tier2Stats] = await Promise.all([
+      // Tier 3 desde tabla users
       sql`
         SELECT tier, COUNT(*)::int AS total
         FROM users
@@ -32,21 +32,45 @@ export const handler = async (event) => {
         FROM flares
         WHERE created_at >= NOW() - (${days} || ' days')::interval
       `,
-      // Nuevos usuarios por tier en el período
+      // Nuevos Tier 3 en el período
       sql`
         SELECT tier, COUNT(*)::int AS nuevos
         FROM users
         WHERE created_at >= NOW() - (${days} || ' days')::interval
         GROUP BY tier ORDER BY tier
       `,
-      // Usuarios activos en el período por tier
+      // Activos Tier 3 en el período (last_seen_at o created_at)
       sql`
         SELECT tier, COUNT(*)::int AS activos
         FROM users
-        WHERE last_seen_at >= NOW() - (${days} || ' days')::interval
+        WHERE COALESCE(last_seen_at, created_at) >= NOW() - (${days} || ' days')::interval
         GROUP BY tier ORDER BY tier
       `,
+      // Tier 2: usuarios únicos que publicaron flares (owner_uid en flares, no en users)
+      sql`
+        SELECT
+          COUNT(DISTINCT owner_uid)::int AS total,
+          COUNT(DISTINCT CASE WHEN created_at >= NOW() - (${days} || ' days')::interval THEN owner_uid END)::int AS activos_periodo,
+          COUNT(DISTINCT CASE WHEN created_at >= NOW() - (${days} || ' days')::interval THEN owner_uid END)::int AS nuevos_periodo
+        FROM flares
+        WHERE owner_uid NOT IN (SELECT device_id FROM users WHERE device_id IS NOT NULL)
+          AND username IS NOT NULL
+      `,
     ]);
+
+    // Combinar Tier 2 (de flares) con Tier 3 (de users)
+    const users = [
+      { tier: 2, total: tier2Stats[0]?.total || 0 },
+      ...usersDb,
+    ];
+    const newUsers = [
+      { tier: 2, nuevos: tier2Stats[0]?.nuevos_periodo || 0 },
+      ...newUsersDb,
+    ];
+    const activeUsers = [
+      { tier: 2, activos: tier2Stats[0]?.activos_periodo || 0 },
+      ...activeUsersDb,
+    ];
 
     return {
       statusCode: 200,
