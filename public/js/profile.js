@@ -72,7 +72,7 @@ function renderProfile() {
   var avatarUrl = identity.avatar_url || randomAvatarUrl();
   var hoy = new Date().toDateString();
   var flaresHoy = (identity.fecha_hoy === hoy) ? (identity.flares_hoy || 0) : 0;
-  var flaresRestantes = Math.max(0, 3 - flaresHoy);
+  var flaresRestantes = Math.max(0, 10 - flaresHoy);
 
   box.innerHTML =
     '<div class="profile-main">' +
@@ -103,6 +103,7 @@ function renderProfile() {
     '</div>' +
     '<div class="profile-divider"></div>' +
     '<div class="profile-section-title">📍 Mis Flares</div>' +
+    '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
     '<div id="mine-list-profile"></div>' +
     profileQuickLinks();
 
@@ -147,7 +148,7 @@ function renderMyFlaresInProfile() {
                 '</div>' +
               '</div>' +
               '<div class="profile-flare-actions">' +
-                (isExpired ? '<button class="profile-repost-btn" data-repost-id="' + pin.id + '" onclick="repostMyFlare(\'' + pin.id + '\')" title="Republicar">↻ Republicar</button>' : '') +
+                (isExpired ? '<button class="profile-repost-btn" data-repost-id="' + pin.id + '" onclick="repostMyFlare(\'' + pin.id + '\')" title="Republicar">↻ Republicar</button>' : '<button class="pd-map" onclick="closePanel();flyToPin(\'' + pin.id + '\')" title="Ver en mapa">📍 Ver aquí</button>') +
                 '<button class="pd-report" onclick="deleteMyFlare(\'' + pin.id + '\')" title="Eliminar">🗑️</button>' +
               '</div>' +
             '</div>' +

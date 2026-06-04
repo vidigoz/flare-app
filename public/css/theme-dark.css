@@ -634,7 +634,8 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 }
 .profile-validate-btn:active { background: rgba(0,245,160,.1); }
 .profile-divider { height: 0.5px; background: var(--border); margin: 16px 0 12px; }
-.profile-section-title { font-size: 12px; font-weight: 700; color: var(--dim); font-family: 'Space Mono',monospace; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.profile-section-title { font-size: 12px; font-weight: 700; color: var(--dim); font-family: 'Space Mono',monospace; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.profile-flares-note { font-size: 10px; font-family: 'Space Mono',monospace; color: var(--dim); opacity: .6; line-height: 1.5; margin-bottom: 10px; }
 .profile-flare-expired .prow-ico,
 .profile-flare-expired .prow-thumb,
 .profile-flare-expired .prow-body { opacity: .45; filter: grayscale(1); }

@@ -109,7 +109,7 @@ export const handler = async (event) => {
     if (event.httpMethod === "POST") {
       const enforceLimit = await shouldEnforceNonRegisterFlareLimit(sql);
       if (enforceLimit) {
-        const rl = rateLimit(ip, "create_flare", 5, 60 * 60 * 1000);
+        const rl = rateLimit(ip, "create_flare", 20, 60 * 60 * 1000);
         if (!rl.allowed) return tooMany(rl.retryAfter);
       }
       let d;
@@ -350,7 +350,7 @@ async function cleanupArchivedFlares(sql) {
 const NON_REGISTER_LIMIT_KEY = "non_register_flare_limit";
 const DAILY_LIMIT_KEY        = "daily_flare_limit";
 const DEV_DUR_KEY            = "dev_duration_mode";
-const DAILY_LIMIT_MAX        = 3;
+const DAILY_LIMIT_MAX        = 10;
 
 async function shouldEnforceNonRegisterFlareLimit(sql) {
   try {
