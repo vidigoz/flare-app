@@ -80,7 +80,7 @@ export const handler = async (event) => {
       const [user] = await sql`
         UPDATE users SET device_id = ${deviceId}
         WHERE phone = ${phone}
-        RETURNING id, username, device_id, tier, phone, flares_count, created_at
+        RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
       return ok({ verified: true, user });
     }
@@ -104,7 +104,7 @@ export const handler = async (event) => {
         [user] = await sql`
           UPDATE users SET tier = 3, phone = ${phone}, username = ${newUsername}
           WHERE device_id = ${deviceId}
-          RETURNING id, username, device_id, tier, phone, flares_count, created_at
+          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
         `;
         // Actualizar username en flares vigentes o dentro de ventana de 24h
         await sql`
@@ -116,7 +116,7 @@ export const handler = async (event) => {
         [user] = await sql`
           UPDATE users SET tier = 3, phone = ${phone}
           WHERE device_id = ${deviceId}
-          RETURNING id, username, device_id, tier, phone, flares_count, created_at
+          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
         `;
       }
     } else {
@@ -124,7 +124,7 @@ export const handler = async (event) => {
       [user] = await sql`
         INSERT INTO users (username, device_id, tier, phone)
         VALUES (${username}, ${deviceId}, 3, ${phone})
-        RETURNING id, username, device_id, tier, phone, flares_count, created_at
+        RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
       // Actualizar flares existentes con el username asignado
       await sql`

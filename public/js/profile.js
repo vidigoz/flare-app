@@ -368,6 +368,12 @@ function pickProfileAvatar() {
         var img = document.getElementById('profile-avatar-img');
         if (img) img.src = res.image_url;
         notif('Foto de perfil actualizada ✓');
+        // Persistir en DB
+        apiFetch('/api/profile/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device_id: getOwnerUid(), avatar_url: res.image_url }),
+        }).catch(function(){});
       })
       .catch(function(e) {
         notif(e.message || 'Error al subir la foto.', 'err');
@@ -552,7 +558,7 @@ function doRecoverConfirm() {
           tier:       3,
           flares_hoy: 0,
           fecha_hoy:  new Date().toDateString(),
-          avatar_url: randomAvatarUrl(),
+          avatar_url: res.user.avatar_url || (IDENTITY && IDENTITY.avatar_url) || null,
         };
         ensureIdentityAvatar(IDENTITY);
         saveIdentity(IDENTITY);
@@ -747,7 +753,7 @@ function doConfirmCode() {
           flares_hoy: IDENTITY ? (IDENTITY.flares_hoy || 0) : 0,
           fecha_hoy:  IDENTITY ? (IDENTITY.fecha_hoy || new Date().toDateString()) : new Date().toDateString(),
           racha_dias: IDENTITY ? (IDENTITY.racha_dias || 0) : 0,
-          avatar_url: IDENTITY ? (IDENTITY.avatar_url || randomAvatarUrl()) : randomAvatarUrl(),
+          avatar_url: res.user.avatar_url || (IDENTITY && IDENTITY.avatar_url) || null,
           created_at: res.user.created_at,
         };
         ensureIdentityAvatar(IDENTITY);

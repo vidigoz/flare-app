@@ -72,6 +72,11 @@
   to = "/.netlify/functions/update-username"
   status = 200
 
+[[redirects]]
+  from = "/api/profile/avatar"
+  to = "/.netlify/functions/update-avatar"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
