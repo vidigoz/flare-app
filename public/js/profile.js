@@ -150,11 +150,14 @@ function renderMyFlaresInProfile() {
   var box = document.getElementById('mine-list-profile');
   if (!box) return;
 
-  // Cargar desde API usando owner_uid
   var ownerUid = getOwnerUid();
+  var username = (IDENTITY && IDENTITY.username && getTier() === 3) ? IDENTITY.username : null;
   box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
 
-  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(ownerUid))
+  var params = 'owner_uid=' + encodeURIComponent(ownerUid);
+  if (username) params += '&username=' + encodeURIComponent(username);
+
+  apiFetch('/api/flares?' + params)
     .then(function(rows) {
       if (!rows.length) {
         box.innerHTML = '<div class="pempty"><div class="pe-ico" style="font-size:24px">📍</div>No has publicado ningún flare todavía.</div>';

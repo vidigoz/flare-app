@@ -46,12 +46,18 @@ export const handler = async (event) => {
         };
       }
 
-      /* Fetch por owner_uid — para "Mis Flares", incluye activos e incluye hidden propios */
-      if (p.owner_uid) {
+      /* Fetch por owner_uid y/o username — para "Mis Flares" */
+      if (p.owner_uid || p.username) {
+        const ownerUid = p.owner_uid ? String(p.owner_uid).slice(0, 64) : null;
+        const username = p.username  ? String(p.username).slice(0, 30)  : null;
         const rows = await sql`
           SELECT * FROM flares
-          WHERE owner_uid = ${p.owner_uid}
-            AND created_at >= NOW() - INTERVAL '24 hours'
+          WHERE (
+            ${ownerUid} IS NOT NULL AND owner_uid = ${ownerUid}
+            OR
+            ${username} IS NOT NULL AND username = ${username}
+          )
+          AND created_at >= NOW() - INTERVAL '24 hours'
           ORDER BY created_at DESC
           LIMIT 50
         `;

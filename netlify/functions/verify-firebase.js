@@ -75,6 +75,7 @@ export const handler = async (event) => {
 
     // Recuperación: el teléfono existe en otro device_id — transferir perfil a este dispositivo
     if (phoneTaken.length && isRecovery) {
+      const oldDeviceId = phoneTaken[0].device_id;
       // Si el device_id nuevo ya está en otro registro, liberarlo primero
       await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
       const [user] = await sql`
@@ -82,6 +83,14 @@ export const handler = async (event) => {
         WHERE phone = ${phone}
         RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
+      // Transferir flares del device_id anterior al nuevo
+      if (oldDeviceId) {
+        await sql`
+          UPDATE flares SET owner_uid = ${deviceId}
+          WHERE owner_uid = ${oldDeviceId}
+            AND created_at >= NOW() - INTERVAL '24 hours'
+        `;
+      }
       return ok({ verified: true, user });
     }
 
