@@ -34,7 +34,10 @@ function randomAvatarUrl() {
 
 function ensureIdentityAvatar(identity) {
   if (!identity) return identity;
-  if (!identity.avatar_url) identity.avatar_url = randomAvatarUrl();
+  if (!identity.avatar_url) {
+    identity.avatar_url = randomAvatarUrl();
+    if (identity.username) saveIdentity(identity); // solo si ya tiene identidad real
+  }
   return identity;
 }
 

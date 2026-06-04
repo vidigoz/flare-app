@@ -75,7 +75,7 @@ function renderProfile() {
 
   var identity = ensureIdentityAvatar(IDENTITY || {});
   if (IDENTITY) saveIdentity(IDENTITY);
-  var avatarUrl = identity.avatar_url || randomAvatarUrl();
+  var avatarUrl = identity.avatar_url;
   var hoy = new Date().toDateString();
   var flaresHoy = (identity.fecha_hoy === hoy) ? (identity.flares_hoy || 0) : 0;
   var flaresRestantes = Math.max(0, 10 - flaresHoy);
@@ -338,6 +338,38 @@ function doChangeUsername() {
     errEl.style.display = 'block';
     btn.disabled = false; btn.textContent = 'Guardar nombre';
   });
+}
+
+/* ── Migrar avatar Tier 2 → R2 al verificar ── */
+
+function migrateAvatarToR2(avatarUrl) {
+  if (!avatarUrl || avatarUrl.includes('r2.dev') || avatarUrl.includes('pub-')) return;
+  // Cargar la imagen local y subirla a R2
+  var img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    try {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      apiFetch('/api/media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data_url: dataUrl, title: 'Avatar de perfil', uid: MY_ID }),
+      }).then(function(res) {
+        IDENTITY.avatar_url = res.image_url;
+        saveIdentity(IDENTITY);
+        apiFetch('/api/profile/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device_id: getOwnerUid(), avatar_url: res.image_url }),
+        }).catch(function(){});
+      }).catch(function(){});
+    } catch(e) {}
+  };
+  img.onerror = function() {};
+  img.src = avatarUrl;
 }
 
 /* ── Avatar personalizado (Tier 3) ── */
@@ -744,6 +776,7 @@ function doConfirmCode() {
         return;
       }
       if (res.user) {
+        var prevAvatar = IDENTITY && IDENTITY.avatar_url;
         IDENTITY = {
           username:   res.user.username,
           device_id:  res.user.device_id,
@@ -753,11 +786,15 @@ function doConfirmCode() {
           flares_hoy: IDENTITY ? (IDENTITY.flares_hoy || 0) : 0,
           fecha_hoy:  IDENTITY ? (IDENTITY.fecha_hoy || new Date().toDateString()) : new Date().toDateString(),
           racha_dias: IDENTITY ? (IDENTITY.racha_dias || 0) : 0,
-          avatar_url: res.user.avatar_url || (IDENTITY && IDENTITY.avatar_url) || null,
+          avatar_url: res.user.avatar_url || prevAvatar || null,
           created_at: res.user.created_at,
         };
         ensureIdentityAvatar(IDENTITY);
         saveIdentity(IDENTITY);
+        // Migrar avatar de Tier 2 a R2 si es URL local y no tiene ya uno en R2
+        if (!res.user.avatar_url && IDENTITY.avatar_url) {
+          migrateAvatarToR2(IDENTITY.avatar_url);
+        }
       }
       _fbConfirmationResult = null;
       showVerifySuccess();
