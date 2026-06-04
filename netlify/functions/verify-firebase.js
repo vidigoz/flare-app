@@ -75,6 +75,8 @@ export const handler = async (event) => {
 
     // Recuperación: el teléfono existe en otro device_id — transferir perfil a este dispositivo
     if (phoneTaken.length && isRecovery) {
+      // Si el device_id nuevo ya está en otro registro, liberarlo primero
+      await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
       const [user] = await sql`
         UPDATE users SET device_id = ${deviceId}
         WHERE phone = ${phone}
