@@ -1,25 +1,41 @@
 // netlify/functions/verify-firebase.js
 // POST /api/verify/firebase  { device_id, id_token, username? }
-// Verifica el idToken de Firebase Phone Auth y promueve usuario a Tier 3
+// Verifica el idToken de Firebase Phone Auth via Google REST API (sin firebase-admin)
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
 }
 
-function getFirebaseAdmin() {
-  if (getApps().length) return getApps()[0];
-  return initializeApp({
-    credential: cert({
-      projectId:   process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey:  (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
-    }),
+async function verifyFirebaseToken(idToken) {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  if (!projectId) throw new Error("FIREBASE_PROJECT_ID no configurado");
+
+  // Google Identity Toolkit — verifica el token sin firebase-admin
+  const url = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken }),
   });
+
+  const data = await res.json();
+  if (!res.ok || data.error) {
+    const code = data.error?.message || "TOKEN_INVALID";
+    const e = new Error(code);
+    e.code = code;
+    throw e;
+  }
+
+  const user = data.users?.[0];
+  if (!user) throw new Error("TOKEN_INVALID");
+
+  return {
+    uid: user.localId,
+    phone_number: user.phoneNumber || null,
+  };
 }
 
 export const handler = async (event) => {
@@ -33,34 +49,29 @@ export const handler = async (event) => {
   let d;
   try { d = JSON.parse(event.body || "{}"); } catch { return err(400, "JSON inválido"); }
 
-  const deviceId   = d.device_id  ? String(d.device_id).slice(0, 64)  : null;
-  const idToken    = d.id_token   ? String(d.id_token)                 : null;
+  const deviceId    = d.device_id ? String(d.device_id).slice(0, 64) : null;
+  const idToken     = d.id_token  ? String(d.id_token)               : null;
   const newUsername = d.username  ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
 
-  if (!deviceId)  return err(400, "device_id requerido");
-  if (!idToken)   return err(400, "id_token requerido");
+  if (!deviceId) return err(400, "device_id requerido");
+  if (!idToken)  return err(400, "id_token requerido");
 
   if (newUsername && !/^[a-z0-9_]{3,30}$/.test(newUsername)) {
     return err(400, "username inválido: solo letras minúsculas, números y _ (3-30 caracteres)");
   }
 
   try {
-    // Verificar token con Firebase Admin
-    getFirebaseAdmin();
-    const decoded = await getAuth().verifyIdToken(idToken);
+    const decoded = await verifyFirebaseToken(idToken);
     const phone   = decoded.phone_number;
-
     if (!phone) return err(400, "El token no contiene número de teléfono");
 
     const sql = getDb();
 
-    // ¿Este teléfono ya está en otro perfil?
     const phoneTaken = await sql`
       SELECT id FROM users WHERE phone = ${phone} AND device_id != ${deviceId} LIMIT 1
     `;
     if (phoneTaken.length) return err(409, "Este número ya está asociado a otro perfil.");
 
-    // ¿El username está tomado por otro?
     if (newUsername) {
       const usernameTaken = await sql`
         SELECT id FROM users WHERE username = ${newUsername} AND device_id != ${deviceId} LIMIT 1
@@ -68,7 +79,6 @@ export const handler = async (event) => {
       if (usernameTaken.length) return err(409, "Ese nombre ya está en uso. Elige otro.");
     }
 
-    // Buscar perfil existente
     const existing = await sql`
       SELECT id, username, device_id, tier, phone FROM users WHERE device_id = ${deviceId} LIMIT 1
     `;
@@ -99,11 +109,11 @@ export const handler = async (event) => {
 
     return ok({ verified: true, user });
   } catch (e) {
-    console.error("verify-firebase error:", e);
-    if (e.code === "auth/id-token-expired") return err(401, "Sesión expirada. Vuelve a verificar.");
-    if (e.code === "auth/argument-error")   return err(401, "Token inválido.");
+    console.error("verify-firebase error:", e.code, e.message);
+    if (e.code === "TOKEN_EXPIRED" || e.message === "TOKEN_EXPIRED") return err(401, "Sesión expirada. Vuelve a verificar.");
+    if (e.code === "TOKEN_INVALID" || e.message === "TOKEN_INVALID") return err(401, "Código incorrecto. Intenta de nuevo.");
     if (e.message && e.message.includes("unique")) return err(409, "Este número ya está registrado.");
-    return err(500, "Error interno");
+    return err(500, "Error interno: " + e.message);
   }
 };
 
