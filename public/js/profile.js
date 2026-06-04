@@ -82,7 +82,12 @@ function renderProfile() {
 
   box.innerHTML =
     '<div class="profile-main">' +
-      '<img class="profile-avatar" src="' + esc(avatarUrl) + '" alt="Avatar de perfil">' +
+      (getTier() === 3
+        ? '<div class="profile-avatar-wrap" onclick="pickProfileAvatar()">' +
+            '<img class="profile-avatar" src="' + esc(avatarUrl) + '" alt="Avatar de perfil" id="profile-avatar-img">' +
+            '<div class="profile-avatar-edit">📷</div>' +
+          '</div>'
+        : '<img class="profile-avatar" src="' + esc(avatarUrl) + '" alt="Avatar de perfil">') +
       '<div class="profile-main-body">' +
         (getTier() === 3
           ? '<div class="profile-tier-badge tier3 profile-tier-inline"><span class="tier-icon">✓</span><span class="tier-label">Verificado</span></div>'
@@ -276,6 +281,68 @@ function restoreProfile(index) {
 }
 
 /* openProfile() y closeProfile() son llamadas desde panel.js vía psetting-profile */
+
+/* ── Avatar personalizado (Tier 3) ── */
+
+function pickProfileAvatar() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/webp';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+  input.addEventListener('change', function() {
+    var file = input.files && input.files[0];
+    document.body.removeChild(input);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { notif('La imagen debe pesar máximo 5 MB.', 'err'); return; }
+    notif('Subiendo foto de perfil...');
+    compressImage(file, 400, 0.85)
+      .then(function(dataUrl) {
+        return apiFetch('/api/media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data_url: dataUrl, title: 'Avatar de perfil', uid: MY_ID }),
+        });
+      })
+      .then(function(res) {
+        IDENTITY.avatar_url = res.image_url;
+        saveIdentity(IDENTITY);
+        var img = document.getElementById('profile-avatar-img');
+        if (img) img.src = res.image_url;
+        notif('Foto de perfil actualizada ✓');
+      })
+      .catch(function(e) {
+        notif(e.message || 'Error al subir la foto.', 'err');
+      });
+  });
+  input.click();
+}
+
+function compressImage(file, maxPx, quality) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onerror = function() { reject(new Error('No se pudo leer la imagen.')); };
+    reader.onload = function() {
+      var img = new Image();
+      img.onerror = function() { resolve(reader.result); };
+      img.onload = function() {
+        var w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        } catch(ex) { resolve(reader.result); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 /* ── Cerrar sesión ── */
 
