@@ -159,31 +159,35 @@ function resetImagePicker(){
 function fileToDataUrl(file){
   return new Promise(function(resolve, reject){
     console.log('[flare] fileToDataUrl start, file:', file.name, file.size, file.type);
-    var img = new Image();
-    var url = URL.createObjectURL(file);
-    img.onload = function(){
-      URL.revokeObjectURL(url);
-      var MAX = 1280;
-      var w = img.width, h = img.height;
-      console.log('[flare] img loaded', w, 'x', h);
-      if (w > MAX || h > MAX) {
-        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-        else { w = Math.round(w * MAX / h); h = MAX; }
-      }
-      try {
-        var canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-        console.log('[flare] canvas ok, dataUrl length:', dataUrl.length);
-        resolve(dataUrl);
-      } catch(ex) {
-        console.error('[flare] canvas error:', ex);
-        reject(new Error('No se pudo comprimir la imagen: ' + ex.message));
-      }
+    var reader = new FileReader();
+    reader.onerror = function(){ reject(new Error('No se pudo leer la imagen.')); };
+    reader.onload = function(){
+      var dataUrl = reader.result;
+      var img = new Image();
+      img.onerror = function(){ resolve(dataUrl); }; // si falla comprimir, enviar original
+      img.onload = function(){
+        var MAX = 1280;
+        var w = img.width, h = img.height;
+        console.log('[flare] img loaded', w, 'x', h);
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          var compressed = canvas.toDataURL('image/jpeg', 0.82);
+          console.log('[flare] compressed ok, length:', compressed.length);
+          resolve(compressed);
+        } catch(ex) {
+          console.warn('[flare] canvas failed, sending original:', ex.message);
+          resolve(dataUrl);
+        }
+      };
+      img.src = dataUrl;
     };
-    img.onerror = function(e){ URL.revokeObjectURL(url); console.error('[flare] img error', e); reject(new Error('No se pudo leer la imagen.')); };
-    img.src = url;
+    reader.readAsDataURL(file);
   });
 }
 
