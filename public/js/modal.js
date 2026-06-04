@@ -158,22 +158,31 @@ function resetImagePicker(){
 
 function fileToDataUrl(file){
   return new Promise(function(resolve, reject){
+    console.log('[flare] fileToDataUrl start, file:', file.name, file.size, file.type);
     var img = new Image();
     var url = URL.createObjectURL(file);
     img.onload = function(){
       URL.revokeObjectURL(url);
       var MAX = 1280;
       var w = img.width, h = img.height;
+      console.log('[flare] img loaded', w, 'x', h);
       if (w > MAX || h > MAX) {
         if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
         else { w = Math.round(w * MAX / h); h = MAX; }
       }
-      var canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        console.log('[flare] canvas ok, dataUrl length:', dataUrl.length);
+        resolve(dataUrl);
+      } catch(ex) {
+        console.error('[flare] canvas error:', ex);
+        reject(new Error('No se pudo comprimir la imagen: ' + ex.message));
+      }
     };
-    img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen.')); };
+    img.onerror = function(e){ URL.revokeObjectURL(url); console.error('[flare] img error', e); reject(new Error('No se pudo leer la imagen.')); };
     img.src = url;
   });
 }
@@ -304,6 +313,8 @@ document.getElementById('bsub').addEventListener('click', function(){
   var publishTask = imageFile
     ? fileToDataUrl(imageFile)
         .then(function(dataUrl){
+          console.log('[flare] dataUrl ok, size:', dataUrl.length, 'mime:', dataUrl.slice(0,30));
+          btn.textContent = '🛡️ Verificando foto...';
           return postMedia({
             data_url: dataUrl,
             title: ttl,
@@ -312,6 +323,7 @@ document.getElementById('bsub').addEventListener('click', function(){
           });
         })
         .then(function(media){
+          console.log('[flare] media ok:', media.image_url);
           payload.image_url = media.image_url;
           btn.textContent = '⏳ Publicando...';
           return postFlare(payload);
@@ -339,6 +351,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       }
     })
     .catch(function(e) {
+      console.error('[flare] error:', e.status, e.message, e);
       btn.disabled = false;
       btn.textContent = getPublishButtonText();
       if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
