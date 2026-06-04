@@ -312,7 +312,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .pop-cat{font-size:10px;font-family:'Space Mono',monospace;margin-top:2px}
 .pop-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden}
 .pop-fill{height:100%;border-radius:2px}
-.pop-img{display:block;width:100%;height:auto;object-fit:contain;border-radius:10px;border:1px solid var(--border);background:var(--surface2);margin-bottom:10px}
+.pop-img{display:block;width:90%;height:auto;object-fit:contain;border-radius:10px;border:1px solid var(--border);background:var(--surface2);margin-bottom:10px;margin-left:auto;margin-right:auto}
 .pop-txt{font-size:12px;color:#aab4ca;line-height:1.5;margin-bottom:10px}
 .pop-foot{display:flex;align-items:stretch;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,245,160,.25)}
 .pop-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .2s;-webkit-tap-highlight-color:transparent;min-height:44px}

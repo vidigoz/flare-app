@@ -9,7 +9,8 @@
       "Bash(node --check public/js/interactions.js)",
       "Bash(node --check public/js/panel.js)",
       "Bash(git fetch *)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

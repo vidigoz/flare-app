@@ -3,6 +3,7 @@
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
+import { deleteR2ObjectByUrl } from "./_utils/r2.js";
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -37,7 +38,7 @@ export const handler = async (event) => {
 
     // Verificar que existe y pertenece al uid
     const existing = await sql`
-      SELECT id, owner_uid FROM flares WHERE id = ${id}
+      SELECT id, owner_uid, image_url FROM flares WHERE id = ${id}
     `;
 
     if (!existing.length) return err(404, "Flare no encontrado");
@@ -48,6 +49,10 @@ export const handler = async (event) => {
     `;
 
     if (!deleted.length) return err(404, "Flare no encontrado");
+
+    if (existing[0].image_url) {
+      await deleteR2ObjectByUrl(existing[0].image_url);
+    }
 
     return {
       statusCode: 200,

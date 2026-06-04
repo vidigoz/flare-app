@@ -4,17 +4,6 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
-## 2026-06-03 — UI: mejoras visuales en popup y panel de flares (v1.0.11)
-
-- **UI** — Imagen del flare se muestra al final, después del texto/descripción (popup y panel lateral).
-- **UI** — Imagen respeta el aspect ratio original: `height:auto` + `object-fit:contain`, sin recorte forzado.
-- **UI** — Imagen en popup reducida al 90% del ancho y centrada.
-- **UI** — Divisor verde neon (`rgba(0,245,160,.25)`) separa el contenido de los botones de acción en el popup.
-- **UI** — Labels de botones del popup en blanco sólido (`#fff`), eliminando la opacidad gris anterior.
-- **Fix** — OpenAI `omni-moderation-latest` devolvía 429 por cuenta sin saldo; solucionado agregando crédito.
-
----
-
 ## 2026-06-03 — Fotos moderadas con OpenAI y Cloudflare R2
 
 **Objetivo:** permitir fotos en flares sin publicar contenido no verificado.

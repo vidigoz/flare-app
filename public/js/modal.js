@@ -156,35 +156,9 @@ function resetImagePicker(){
 
 function fileToDataUrl(file){
   return new Promise(function(resolve, reject){
-    console.log('[flare] fileToDataUrl start, file:', file.name, file.size, file.type);
     var reader = new FileReader();
+    reader.onload = function(){ resolve(reader.result); };
     reader.onerror = function(){ reject(new Error('No se pudo leer la imagen.')); };
-    reader.onload = function(){
-      var dataUrl = reader.result;
-      var img = new Image();
-      img.onerror = function(){ resolve(dataUrl); }; // si falla comprimir, enviar original
-      img.onload = function(){
-        var MAX = 1280;
-        var w = img.width, h = img.height;
-        console.log('[flare] img loaded', w, 'x', h);
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        try {
-          var canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          var compressed = canvas.toDataURL('image/jpeg', 0.82);
-          console.log('[flare] compressed ok, length:', compressed.length);
-          resolve(compressed);
-        } catch(ex) {
-          console.warn('[flare] canvas failed, sending original:', ex.message);
-          resolve(dataUrl);
-        }
-      };
-      img.src = dataUrl;
-    };
     reader.readAsDataURL(file);
   });
 }
@@ -315,8 +289,6 @@ document.getElementById('bsub').addEventListener('click', function(){
   var publishTask = imageFile
     ? fileToDataUrl(imageFile)
         .then(function(dataUrl){
-          console.log('[flare] dataUrl ok, size:', dataUrl.length, 'mime:', dataUrl.slice(0,30));
-          btn.textContent = '🛡️ Verificando foto...';
           return postMedia({
             data_url: dataUrl,
             title: ttl,
@@ -325,7 +297,6 @@ document.getElementById('bsub').addEventListener('click', function(){
           });
         })
         .then(function(media){
-          console.log('[flare] media ok:', media.image_url);
           payload.image_url = media.image_url;
           btn.textContent = '⏳ Publicando...';
           return postFlare(payload);
@@ -353,7 +324,6 @@ document.getElementById('bsub').addEventListener('click', function(){
       }
     })
     .catch(function(e) {
-      console.error('[flare] error:', e.status, e.message, e);
       btn.disabled = false;
       btn.textContent = getPublishButtonText();
       if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
@@ -364,7 +334,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       else if(e.status === 413) notif(e.message, 'err');
       else if(e.message && e.message.toLowerCase().includes('imagen')) notif(e.message, 'err');
       else if(e.status === 400 && e.message.includes('normas')) notif('Contenido no permitido. Revisa el texto de tu flare.','err');
-      else notif(e.message || 'Error al publicar. Intenta de nuevo.','err');
+      else notif('Error al publicar: '+e.message,'err');
     });
 });
 

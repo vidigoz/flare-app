@@ -2,21 +2,12 @@
 
 function apiFetch(url, opts) {
   return fetch(url, opts).then(function(r) {
-    if (!r.ok) return r.text().then(function(t){
-      var msg = r.statusText;
-      try { msg = JSON.parse(t).error || msg; } catch(ex) {}
-      var e = new Error(msg || ('Error ' + r.status));
+    if (!r.ok) return r.json().then(function(d){
+      var e = new Error(d.error || r.statusText);
       e.status = r.status;
       throw e;
     });
     return r.json();
-  }).catch(function(e) {
-    if (!e.status) {
-      var net = new Error('Sin conexión o tiempo de espera agotado. Intenta de nuevo.');
-      net.status = 0;
-      throw net;
-    }
-    throw e;
   });
 }
 

@@ -135,6 +135,7 @@ function renderMyFlaresInProfile() {
           '<div class="prow profile-flare-row' + (isExpired ? ' profile-flare-expired' : '') + '">' +
             '<div class="prow-hdr">' +
               '<div class="prow-ico" style="background:' + cat.color + '18;border-color:' + cat.color + '55">' + pin.emoji + '</div>' +
+              (pin.image ? '<img class="prow-thumb" src="' + esc(pin.image) + '" alt="Foto" loading="lazy">' : '') +
               '<div class="prow-body">' +
                 (pin.bizName ? '<div class="prow-biz">🏪 ' + esc(pin.bizName) + '</div>' : '') +
                 '<div class="prow-name">' + esc(pin.title) + '</div>' +

@@ -6,6 +6,7 @@ import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
 import { ensureAdminSettingsTable, getAdminSetting } from "./_utils/settings.js";
 import { containsProfanity } from "./_utils/profanityList.js";
+import { deleteR2ObjectByUrl, isR2PublicUrl } from "./_utils/r2.js";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -195,6 +196,21 @@ export const handler = async (event) => {
         return err(400, "titulo demasiado largo");
       }
 
+      const imageUrl = d.image_url ? String(d.image_url).trim() : null;
+      const requestedType = d.type ? String(d.type).trim() : "text";
+      if (!["text", "image", "video"].includes(requestedType)) {
+        return err(400, "type invalido");
+      }
+      if (requestedType === "image" && !imageUrl) {
+        return err(400, "image_url requerida");
+      }
+      if (imageUrl) {
+        if (imageUrl.length > 1000 || !isR2PublicUrl(imageUrl)) {
+          return err(400, "Imagen no valida. Vuelve a subirla desde Flare.");
+        }
+      }
+      const flareType = imageUrl ? "image" : requestedType;
+
       const textoARevisar = `${String(d.title)} ${String(d.body_text || "")}`;
 
       // Capa 1: lista local — siempre bloquea
@@ -261,10 +277,10 @@ export const handler = async (event) => {
           ${isDevFlare ? "DEV" : (d.cat_lbl || "Informacion")},
           ${isDevFlare ? "#ff4060" : (d.cat_color || "#00f5a0")},
           ${isDevFlare ? "🧪" : (d.cat_icon || "ℹ️")},
-          ${d.type || "text"},
+          ${flareType},
           ${d.body_text || null},
           ${d.biz_name || null},
-          ${d.image_url || null},
+          ${imageUrl},
           ${d.video_url || null},
           ${expiresAt},
           ${ownerUid},
@@ -315,6 +331,16 @@ function tooMany(retryAfter) {
 }
 
 async function cleanupArchivedFlares(sql) {
+  const archivedImages = await sql`
+    SELECT image_url FROM flares
+    WHERE created_at < NOW() - INTERVAL '24 hours'
+      AND image_url IS NOT NULL
+  `;
+
+  await Promise.allSettled(
+    archivedImages.map((row) => deleteR2ObjectByUrl(row.image_url))
+  );
+
   await sql`
     DELETE FROM flares
     WHERE created_at < NOW() - INTERVAL '24 hours'
