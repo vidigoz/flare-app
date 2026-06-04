@@ -8,6 +8,9 @@
 [functions."media"]
   node_bundler = "nft"
 
+[functions."verify-firebase"]
+  node_bundler = "nft"
+
 
 [[redirects]]
   from = "/api/flares"
