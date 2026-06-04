@@ -2,12 +2,21 @@
 
 function apiFetch(url, opts) {
   return fetch(url, opts).then(function(r) {
-    if (!r.ok) return r.json().then(function(d){
-      var e = new Error(d.error || r.statusText);
+    if (!r.ok) return r.text().then(function(t){
+      var msg = r.statusText;
+      try { msg = JSON.parse(t).error || msg; } catch(ex) {}
+      var e = new Error(msg || ('Error ' + r.status));
       e.status = r.status;
       throw e;
     });
     return r.json();
+  }).catch(function(e) {
+    if (!e.status) {
+      var net = new Error('Sin conexión o tiempo de espera agotado. Intenta de nuevo.');
+      net.status = 0;
+      throw net;
+    }
+    throw e;
   });
 }
 
@@ -108,6 +117,14 @@ function rowToPin(row) {
 
 function postFlare(data) {
   return apiFetch('/api/flares', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+function postMedia(data) {
+  return apiFetch('/api/media', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

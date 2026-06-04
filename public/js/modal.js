@@ -158,10 +158,23 @@ function resetImagePicker(){
 
 function fileToDataUrl(file){
   return new Promise(function(resolve, reject){
-    var reader = new FileReader();
-    reader.onload = function(){ resolve(reader.result); };
-    reader.onerror = function(){ reject(new Error('No se pudo leer la imagen.')); };
-    reader.readAsDataURL(file);
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function(){
+      URL.revokeObjectURL(url);
+      var MAX = 1280;
+      var w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen.')); };
+    img.src = url;
   });
 }
 
@@ -336,7 +349,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       else if(e.status === 413) notif(e.message, 'err');
       else if(e.message && e.message.toLowerCase().includes('imagen')) notif(e.message, 'err');
       else if(e.status === 400 && e.message.includes('normas')) notif('Contenido no permitido. Revisa el texto de tu flare.','err');
-      else notif('Error al publicar: '+e.message,'err');
+      else notif(e.message || 'Error al publicar. Intenta de nuevo.','err');
     });
 });
 
