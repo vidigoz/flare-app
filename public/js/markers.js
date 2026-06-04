@@ -17,7 +17,7 @@ function makeMarker(pin){
   var state = getPinState(pin);
   var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[31,36],iconAnchor:[15,36]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
-  m.bindPopup(popHTML(pin), {maxWidth:300, autoPan:false});
+  m.bindPopup(popHTML(pin), {maxWidth:280, autoPan:false});
   m.on('popupopen', function(){
     refreshPop(pin);
     var el = m.getElement();
