@@ -150,15 +150,15 @@ function renderMyFlaresInProfile() {
   var box = document.getElementById('mine-list-profile');
   if (!box) return;
 
-  // Usar users.id (uid) si existe, sino device_id como fallback
-  var ownerUid = (IDENTITY && IDENTITY.uid) ? IDENTITY.uid : getOwnerUid();
-  var username = (IDENTITY && IDENTITY.username && getTier() === 3) ? IDENTITY.username : null;
+  // Solo por users.id — fuente de verdad
+  var uid = IDENTITY && IDENTITY.uid;
+  if (!uid) {
+    box.innerHTML = '<div class="pempty"><div class="pe-ico" style="font-size:24px">📍</div>No has publicado ningún flare todavía.</div>';
+    return;
+  }
   box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
 
-  var params = 'owner_uid=' + encodeURIComponent(ownerUid);
-  if (username) params += '&username=' + encodeURIComponent(username);
-
-  apiFetch('/api/flares?' + params)
+  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(uid))
     .then(function(rows) {
       if (!rows.length) {
         box.innerHTML = '<div class="pempty"><div class="pe-ico" style="font-size:24px">📍</div>No has publicado ningún flare todavía.</div>';
@@ -329,7 +329,7 @@ function doChangeUsername() {
   apiFetch('/api/profile/username', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ device_id: getOwnerUid(), username }),
+    body: JSON.stringify({ uid: IDENTITY.uid, username }),
   })
   .then(function(res) {
     IDENTITY.username = res.username;
@@ -367,11 +367,7 @@ function migrateAvatarToR2(avatarUrl) {
         apiFetch('/api/profile/avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            device_id: getOwnerUid(),
-            phone: IDENTITY && IDENTITY.phone ? IDENTITY.phone : null,
-            avatar_url: res.image_url,
-          }),
+          body: JSON.stringify({ uid: IDENTITY.uid, avatar_url: res.image_url }),
         }).catch(function(){});
       }).catch(function(){});
     } catch(e) {}
@@ -412,11 +408,7 @@ function pickProfileAvatar() {
         apiFetch('/api/profile/avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            device_id: getOwnerUid(),
-            phone: IDENTITY && IDENTITY.phone ? IDENTITY.phone : null,
-            avatar_url: res.image_url,
-          }),
+          body: JSON.stringify({ uid: IDENTITY.uid, avatar_url: res.image_url }),
         }).catch(function(){});
       })
       .catch(function(e) {
@@ -594,6 +586,7 @@ function doRecoverConfirm() {
       if (res.error) { errEl.textContent = res.error; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
       if (res.user) {
         IDENTITY = {
+          uid:        res.user.id,
           username:   res.user.username,
           device_id:  res.user.device_id,
           phone:      res.user.phone,
@@ -775,6 +768,7 @@ function doConfirmCode() {
       if (res.user) {
         var prevAvatar = IDENTITY && IDENTITY.avatar_url;
         IDENTITY = {
+          uid:        res.user.id,
           username:   res.user.username,
           device_id:  res.user.device_id,
           phone:      res.user.phone,

@@ -103,6 +103,10 @@ var IDENTITY = getOrCreateIdentity();
       var p = Array.isArray(profiles) ? profiles[0] : null;
       if (!p) return;
       var changed = false;
+      if (p.id && p.id !== IDENTITY.uid) {
+        IDENTITY.uid = p.id;
+        changed = true;
+      }
       if (p.avatar_url && p.avatar_url !== IDENTITY.avatar_url) {
         IDENTITY.avatar_url = p.avatar_url;
         changed = true;
@@ -120,40 +124,9 @@ var IDENTITY = getOrCreateIdentity();
     .catch(function() {});
 })();
 
-// Si no hay identidad local, buscar perfiles en DB por device_id
-var PENDING_PROFILES = null; // perfiles encontrados en DB pendientes de selección
-(function() {
-  if (IDENTITY) return; // ya tiene identidad local, no hace falta buscar
-  var deviceId = getDeviceFingerprint();
-  fetch('/api/identity?device_id=' + encodeURIComponent(deviceId))
-    .then(function(r) { return r.json(); })
-    .then(function(profiles) {
-      if (!profiles || !profiles.length) return;
-      if (profiles.length === 1) {
-        // Auto-recuperar silenciosamente
-        IDENTITY = {
-          username:   profiles[0].username,
-          device_id:  profiles[0].device_id,
-          floins:     0,
-          flares_hoy: 0,
-          fecha_hoy:  new Date().toDateString(),
-          racha_dias: 0,
-          avatar_url: profiles[0].avatar_url || randomAvatarUrl(),
-          created_at: profiles[0].created_at,
-        };
-        ensureIdentityAvatar(IDENTITY);
-        saveIdentity(IDENTITY);
-        // Actualizar UI si el panel ya está abierto
-        if (typeof renderProfile === 'function' && typeof profileOpen !== 'undefined' && profileOpen) {
-          renderProfile();
-        }
-      } else {
-        // Varios perfiles — guardar para mostrar selector en el panel
-        PENDING_PROFILES = profiles;
-      }
-    })
-    .catch(function() {});
-})();
+// La recuperación de perfil solo se hace por teléfono (Tier 3) vía "Ingresar con mi número".
+// No se busca por device_id — el device_id ya no identifica al usuario.
+var PENDING_PROFILES = null;
 
 var DEV_CAT = {id:'dev', lbl:'DEV', icon:'🧪', color:'#ff4060', emojis:['🧪','⚙️','🛠️','⏱️','🔥','⚡','📍','🧭','🔧','✅']};
 
@@ -212,8 +185,9 @@ loadPublicConfig();
 var MY_ID = localStorage.getItem('flare_uid');
 if (!MY_ID) { MY_ID = 'u' + Date.now() + Math.random().toString(36).slice(2,8); localStorage.setItem('flare_uid', MY_ID); }
 
+// owner_uid de un usuario = su users.id (uid). null si aún no tiene perfil (Tier 1).
 function getOwnerUid() {
-  return (IDENTITY && IDENTITY.device_id) ? IDENTITY.device_id : MY_ID;
+  return (IDENTITY && IDENTITY.uid) ? IDENTITY.uid : null;
 }
 
 function getLocalDateString() {

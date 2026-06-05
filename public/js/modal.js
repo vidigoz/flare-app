@@ -277,6 +277,7 @@ document.getElementById('bsub').addEventListener('click', function(){
     uid: MY_ID,
     owner_uid: getOwnerUid(),
     users_id: IDENTITY.uid || null,
+    device_id: getDeviceFingerprint(),
     username: IDENTITY.username,
     local_date: getLocalDateString(),
     biz_name: bizName,
@@ -334,11 +335,15 @@ document.getElementById('bsub').addEventListener('click', function(){
 
   publishTask
     .then(function(row) {
-      // Guardar users_id en IDENTITY si viene del backend
-      if (row.users_id && IDENTITY && !IDENTITY.uid) {
+      // Guardar users_id en IDENTITY
+      if (row.users_id && IDENTITY) {
         IDENTITY.uid = row.users_id;
+        // Si el device_id ya tenía un perfil, restaurar username y avatar del existente
+        if (row.existing_profile) {
+          IDENTITY.username = row.existing_profile.username;
+          IDENTITY.avatar_url = row.existing_profile.avatar_url || IDENTITY.avatar_url;
+        }
         saveIdentity(IDENTITY);
-        console.log('[users_id] guardado:', row.users_id);
       }
       noteIdentityFlarePublished();
       btn.disabled = false;

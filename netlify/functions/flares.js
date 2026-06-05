@@ -46,35 +46,15 @@ export const handler = async (event) => {
         };
       }
 
-      /* Fetch por owner_uid y/o username — para "Mis Flares" */
-      if (p.owner_uid || p.username) {
-        const ownerUid = p.owner_uid ? String(p.owner_uid).slice(0, 64) : null;
-        const username = p.username  ? String(p.username).slice(0, 30)  : null;
-
-        let rows;
-        if (ownerUid && username) {
-          rows = await sql`
-            SELECT * FROM flares
-            WHERE (owner_uid = ${ownerUid} OR username = ${username})
-              AND created_at >= NOW() - INTERVAL '24 hours'
-            ORDER BY created_at DESC LIMIT 50
-          `;
-        } else if (ownerUid) {
-          rows = await sql`
-            SELECT * FROM flares
-            WHERE owner_uid = ${ownerUid}
-              AND created_at >= NOW() - INTERVAL '24 hours'
-            ORDER BY created_at DESC LIMIT 50
-          `;
-        } else {
-          rows = await sql`
-            SELECT * FROM flares
-            WHERE username = ${username}
-              AND created_at >= NOW() - INTERVAL '24 hours'
-            ORDER BY created_at DESC LIMIT 50
-          `;
-        }
-
+      /* Fetch por owner_uid (users.id) — para "Mis Flares" */
+      if (p.owner_uid) {
+        const ownerUid = String(p.owner_uid).slice(0, 64);
+        const rows = await sql`
+          SELECT * FROM flares
+          WHERE owner_uid = ${ownerUid}
+            AND created_at >= NOW() - INTERVAL '24 hours'
+          ORDER BY created_at DESC LIMIT 50
+        `;
         return {
           statusCode: 200,
           headers: { ...cors(), "Content-Type": "application/json" },
@@ -136,11 +116,11 @@ export const handler = async (event) => {
 
       const uid = d.uid || null;
 
-      // Verificar tier real del usuario en DB
+      // Verificar tier real del usuario en DB (por users.id)
       const ownerUidForTier = String(d.owner_uid || "").slice(0, 64) || null;
       let userTier = 2;
       if (ownerUidForTier) {
-        const userRow = await sql`SELECT tier FROM users WHERE device_id = ${ownerUidForTier} LIMIT 1`;
+        const userRow = await sql`SELECT tier FROM users WHERE id = ${ownerUidForTier} LIMIT 1`;
         if (userRow.length) userTier = userRow[0].tier || 2;
       }
 
@@ -297,19 +277,24 @@ export const handler = async (event) => {
 
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
       const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
-      const deviceId  = String(d.owner_uid || "").slice(0, 64) || null;
+      const deviceId  = d.device_id ? String(d.device_id).slice(0, 64) : null; // solo para crear perfil Tier 2
       const username  = d.username ? String(d.username).slice(0, 30) : null;
       const avatarUrl = d.avatar_url ? String(d.avatar_url).slice(0, 500) : null;
       const isFirstFlare = Boolean(d.is_first_flare);
       const flaresTier = username ? 2 : 1;
 
-      // Si es el primer flare de un Tier 2, crear o recuperar registro en users
+      // users.id del autor — si ya existe se manda; si es primer flare se crea
       let usersId = d.users_id ? String(d.users_id).slice(0, 64) : null;
-      if (isFirstFlare && username && deviceId && !usersId) {
-        const existing = await sql`SELECT id FROM users WHERE device_id = ${deviceId} LIMIT 1`;
+      let existingProfile = null; // perfil existente si ya había uno con ese device_id
+      if (isFirstFlare && username && !usersId) {
+        // Detectar duplicado por device_id (mismo dispositivo ya tiene perfil)
+        const existing = deviceId
+          ? await sql`SELECT id, username, avatar_url FROM users WHERE device_id = ${deviceId} LIMIT 1`
+          : [];
         if (existing.length) {
           usersId = existing[0].id;
-          await sql`UPDATE users SET last_seen_at = NOW() WHERE id = ${usersId}`;
+          existingProfile = existing[0]; // devolver al frontend para que actualice localStorage
+          await sql`UPDATE users SET last_seen_at = NOW(), flares_count = flares_count + 1 WHERE id = ${usersId}`;
         } else {
           const [newUser] = await sql`
             INSERT INTO users (username, device_id, tier, avatar_url, flares_count, last_seen_at)
@@ -323,8 +308,9 @@ export const handler = async (event) => {
         sql`UPDATE users SET last_seen_at = NOW(), flares_count = flares_count + 1 WHERE id = ${usersId}`.catch(() => {});
       }
 
-      // owner_uid = users.id si existe, sino device_id (fallback Tier 1 o legacy)
-      const ownerUid = usersId || deviceId;
+      // owner_uid = users.id (la fuente de verdad)
+      const ownerUid = usersId;
+      if (!ownerUid) return err(400, "No se pudo determinar el autor del flare");
 
       const [row] = await sql`
         INSERT INTO flares (
@@ -357,7 +343,7 @@ export const handler = async (event) => {
       return {
         statusCode: 201,
         headers: { ...cors(), "Content-Type": "application/json" },
-        body: JSON.stringify({ ...row, users_id: usersId }),
+        body: JSON.stringify({ ...row, users_id: usersId, existing_profile: existingProfile }),
       };
     }
 

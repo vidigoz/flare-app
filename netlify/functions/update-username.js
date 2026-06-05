@@ -1,5 +1,5 @@
 // netlify/functions/update-username.js
-// POST /api/profile/username  { device_id, username }
+// POST /api/profile/username  { uid, username }
 // Cambia el username de un usuario Tier 3. Límite: 1 cambio cada 7 días (2 primeros cambios libres).
 
 import { neon } from "@neondatabase/serverless";
@@ -19,10 +19,10 @@ export const handler = async (event) => {
   let d;
   try { d = JSON.parse(event.body || "{}"); } catch { return err(400, "JSON inválido"); }
 
-  const deviceId   = d.device_id ? String(d.device_id).slice(0, 64) : null;
-  const newUsername = d.username  ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
+  const uid        = d.uid      ? String(d.uid).slice(0, 64) : null;
+  const newUsername = d.username ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
 
-  if (!deviceId)    return err(400, "device_id requerido");
+  if (!uid)         return err(400, "uid requerido");
   if (!newUsername) return err(400, "username requerido");
   if (!/^[a-z0-9_]{3,30}$/.test(newUsername)) {
     return err(400, "Solo letras minúsculas, números y _ (3-30 caracteres)");
@@ -34,7 +34,7 @@ export const handler = async (event) => {
     // Verificar que el usuario existe y es Tier 3
     const rows = await sql`
       SELECT id, username, tier, username_changes, username_changed_at
-      FROM users WHERE device_id = ${deviceId} LIMIT 1
+      FROM users WHERE id = ${uid} LIMIT 1
     `;
     if (!rows.length) return err(404, "Perfil no encontrado");
     const user = rows[0];
@@ -42,7 +42,7 @@ export const handler = async (event) => {
 
     // Verificar disponibilidad del username
     const taken = await sql`
-      SELECT id FROM users WHERE username = ${newUsername} AND device_id != ${deviceId} LIMIT 1
+      SELECT id FROM users WHERE username = ${newUsername} AND id != ${uid} LIMIT 1
     `;
     if (taken.length) return err(409, "Ese nombre ya está en uso. Elige otro.");
 
@@ -62,14 +62,14 @@ export const handler = async (event) => {
       SET username = ${newUsername},
           username_changes = COALESCE(username_changes, 0) + 1,
           username_changed_at = NOW()
-      WHERE device_id = ${deviceId}
+      WHERE id = ${uid}
       RETURNING id, username, username_changes, username_changed_at
     `;
 
     // Actualizar username en flares de las últimas 24h
     await sql`
       UPDATE flares SET username = ${newUsername}
-      WHERE owner_uid = ${deviceId}
+      WHERE owner_uid = ${uid}
         AND created_at >= NOW() - INTERVAL '24 hours'
     `;
 

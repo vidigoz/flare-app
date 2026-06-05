@@ -176,8 +176,10 @@ function flyToPin(id){
 
 function loadMyFlares(cb) {
   var box = document.getElementById('mine-list');
+  var uid = getOwnerUid();
+  if (!uid) { cb(null, []); return; }
   box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
-  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(getOwnerUid()))
+  apiFetch('/api/flares?owner_uid=' + encodeURIComponent(uid))
     .then(function(rows) { cb(null, rows); })
     .catch(function(e) { cb(e, []); });
 }
