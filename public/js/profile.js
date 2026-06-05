@@ -453,6 +453,11 @@ function doSignOut() {
               'flare_onboarding_complete','flare_mine','flare_liked','flare_mapmode'];
   keys.forEach(function(k) { localStorage.removeItem(k); });
   IDENTITY = null;
+  likedIds = [];
+  // Limpiar pin.liked en memoria para que el UI refleje Tier 1 antes del reload
+  if (typeof pins !== 'undefined') {
+    Object.values(pins).forEach(function(pin) { pin.liked = false; });
+  }
   notif('Sesión cerrada. Ingresá con tu número para volver.', 'err');
   // Recargar para generar nuevo device_id y estado limpio
   setTimeout(function() { window.location.reload(); }, 1500);
