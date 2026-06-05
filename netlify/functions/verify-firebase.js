@@ -73,8 +73,8 @@ export const handler = async (event) => {
       FROM users WHERE phone = ${phone} AND device_id != ${deviceId} LIMIT 1
     `;
 
-    // Recuperación: el teléfono existe en otro device_id — transferir perfil a este dispositivo
-    if (phoneTaken.length && isRecovery) {
+    // El teléfono existe en otro device_id — transferir perfil a este dispositivo (recovery o reingreso)
+    if (phoneTaken.length) {
       const oldDeviceId = phoneTaken[0].device_id;
       // Si el device_id nuevo ya está en otro registro, liberarlo primero
       await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
@@ -94,7 +94,6 @@ export const handler = async (event) => {
       return ok({ verified: true, user });
     }
 
-    if (phoneTaken.length) return err(409, "Este número ya está asociado a otro perfil.");
 
     if (newUsername) {
       const usernameTaken = await sql`
