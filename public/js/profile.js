@@ -150,7 +150,8 @@ function renderMyFlaresInProfile() {
   var box = document.getElementById('mine-list-profile');
   if (!box) return;
 
-  var ownerUid = getOwnerUid();
+  // Usar users.id (uid) si existe, sino device_id como fallback
+  var ownerUid = (IDENTITY && IDENTITY.uid) ? IDENTITY.uid : getOwnerUid();
   var username = (IDENTITY && IDENTITY.username && getTier() === 3) ? IDENTITY.username : null;
   box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
 

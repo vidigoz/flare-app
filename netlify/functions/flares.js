@@ -297,9 +297,34 @@ export const handler = async (event) => {
 
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
       const expiresAt = new Date(Date.now() + durMin * 60 * 1000).toISOString();
-      const ownerUid = String(d.owner_uid || "").slice(0, 64) || null;
-      const username = d.username ? String(d.username).slice(0, 30) : null;
-      const tier = username ? 2 : 1;
+      const deviceId  = String(d.owner_uid || "").slice(0, 64) || null;
+      const username  = d.username ? String(d.username).slice(0, 30) : null;
+      const avatarUrl = d.avatar_url ? String(d.avatar_url).slice(0, 500) : null;
+      const isFirstFlare = Boolean(d.is_first_flare);
+      const flaresTier = username ? 2 : 1;
+
+      // Si es el primer flare de un Tier 2, crear o recuperar registro en users
+      let usersId = d.users_id ? String(d.users_id).slice(0, 64) : null;
+      if (isFirstFlare && username && deviceId && !usersId) {
+        const existing = await sql`SELECT id FROM users WHERE device_id = ${deviceId} LIMIT 1`;
+        if (existing.length) {
+          usersId = existing[0].id;
+          await sql`UPDATE users SET last_seen_at = NOW() WHERE id = ${usersId}`;
+        } else {
+          const [newUser] = await sql`
+            INSERT INTO users (username, device_id, tier, avatar_url, flares_count, last_seen_at)
+            VALUES (${username}, ${deviceId}, 2, ${avatarUrl}, 1, NOW())
+            RETURNING id
+          `;
+          usersId = newUser.id;
+        }
+      } else if (usersId) {
+        // Flares subsecuentes — actualizar last_seen_at y flares_count
+        sql`UPDATE users SET last_seen_at = NOW(), flares_count = flares_count + 1 WHERE id = ${usersId}`.catch(() => {});
+      }
+
+      // owner_uid = users.id si existe, sino device_id (fallback Tier 1 o legacy)
+      const ownerUid = usersId || deviceId;
 
       const [row] = await sql`
         INSERT INTO flares (
@@ -307,9 +332,7 @@ export const handler = async (event) => {
           type, body_text, biz_name, image_url, video_url, expires_at, owner_uid,
           username, tier
         ) VALUES (
-          ${id},
-          ${lat},
-          ${lng},
+          ${id}, ${lat}, ${lng},
           ${String(d.title).trim()},
           ${d.emoji || "📍"},
           ${isDevFlare ? "dev" : (d.cat || "info")},
@@ -324,22 +347,17 @@ export const handler = async (event) => {
           ${expiresAt},
           ${ownerUid},
           ${username},
-          ${tier}
+          ${flaresTier}
         )
         RETURNING *
       `;
 
       await incrementDailyCount(sql, uid, localDate);
 
-      // Actualizar last_seen_at del usuario
-      if (ownerUid) {
-        sql`UPDATE users SET last_seen_at = NOW() WHERE device_id = ${ownerUid}`.catch(() => {});
-      }
-
       return {
         statusCode: 201,
         headers: { ...cors(), "Content-Type": "application/json" },
-        body: JSON.stringify(row),
+        body: JSON.stringify({ ...row, users_id: usersId }),
       };
     }
 

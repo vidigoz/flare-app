@@ -262,8 +262,6 @@ document.getElementById('bsub').addEventListener('click', function(){
   var isFirstFlare = !IDENTITY;
   if (!IDENTITY) {
     IDENTITY = createIdentity();
-    // Registrar en DB de forma asíncrona — no bloquea la publicación
-    postIdentity(IDENTITY).catch(function() {});
   }
 
   var payload = {
@@ -278,33 +276,68 @@ document.getElementById('bsub').addEventListener('click', function(){
     type: imageFile ? 'image' : 'text',
     uid: MY_ID,
     owner_uid: getOwnerUid(),
+    users_id: IDENTITY.uid || null,
     username: IDENTITY.username,
     local_date: getLocalDateString(),
     biz_name: bizName,
     body_text: bodyText,
     dur_min: isDev ? devDur : 60,
+    is_first_flare: isFirstFlare,
   };
   if (isDev) payload.admin_secret = devSecret;
 
-  var publishTask = imageFile
-    ? fileToDataUrl(imageFile)
-        .then(function(dataUrl){
-          return postMedia({
-            data_url: dataUrl,
-            title: ttl,
-            body_text: bodyText,
-            uid: MY_ID,
-          });
-        })
-        .then(function(media){
-          payload.image_url = media.image_url;
-          btn.textContent = '⏳ Publicando...';
-          return postFlare(payload);
-        })
-    : postFlare(payload);
+  // Si es el primer flare, subir avatar a R2 antes de publicar
+  var avatarUploadTask = isFirstFlare && IDENTITY.avatar_url && !IDENTITY.uid
+    ? (function() {
+        btn.textContent = '🖼️ Preparando perfil...';
+        return fetch(IDENTITY.avatar_url)
+          .then(function(r) { return r.blob(); })
+          .then(function(blob) {
+            return new Promise(function(resolve, reject) {
+              var reader = new FileReader();
+              reader.onload = function() { resolve(reader.result); };
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          })
+          .then(function(dataUrl) {
+            return postMedia({ data_url: dataUrl, title: 'Avatar', uid: MY_ID });
+          })
+          .then(function(res) {
+            IDENTITY.avatar_url = res.image_url;
+            payload.avatar_url = res.image_url;
+            saveIdentity(IDENTITY);
+          })
+          .catch(function() {}); // si falla el avatar no bloquea el flare
+      })()
+    : Promise.resolve();
+
+  var publishTask = avatarUploadTask.then(function() {
+    return imageFile
+      ? fileToDataUrl(imageFile)
+          .then(function(dataUrl){
+            return postMedia({
+              data_url: dataUrl,
+              title: ttl,
+              body_text: bodyText,
+              uid: MY_ID,
+            });
+          })
+          .then(function(media){
+            payload.image_url = media.image_url;
+            btn.textContent = '⏳ Publicando...';
+            return postFlare(payload);
+          })
+      : postFlare(payload);
+  });
 
   publishTask
     .then(function(row) {
+      // Guardar users_id en IDENTITY si viene del backend
+      if (row.users_id && IDENTITY && !IDENTITY.uid) {
+        IDENTITY.uid = row.users_id;
+        saveIdentity(IDENTITY);
+      }
       noteIdentityFlarePublished();
       btn.disabled = false;
       btn.textContent = getPublishButtonText();
