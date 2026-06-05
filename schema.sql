@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS flares (
   image_url      TEXT,
   video_url      TEXT,
   likes          INTEGER NOT NULL DEFAULT 0,
-  reports_count  INTEGER NOT NULL DEFAULT 0,
-  hidden         BOOLEAN NOT NULL DEFAULT FALSE,
+  reports_count  INTEGER DEFAULT 0,
+  hidden         BOOLEAN DEFAULT FALSE,
   owner_uid      TEXT,
   username       TEXT,
   tier           INTEGER DEFAULT 1,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS users (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   username             TEXT UNIQUE NOT NULL,
   device_id            TEXT,               -- no UNIQUE, se actualiza por dispositivo
-  tier                 INTEGER DEFAULT 3,
+  tier                 INTEGER DEFAULT 2,
   phone                TEXT UNIQUE,        -- fuente de verdad Tier 3
   email                TEXT UNIQUE,
   flares_count         INTEGER DEFAULT 0,
@@ -60,7 +60,7 @@ CREATE INDEX IF NOT EXISTS users_tier     ON users (tier);
 -- ── DAILY FLARE COUNT (límite diario Tier 1-2) ──
 CREATE TABLE IF NOT EXISTS user_daily_flares (
   uid      TEXT NOT NULL,
-  day      TEXT NOT NULL,
+  day      DATE NOT NULL DEFAULT CURRENT_DATE,
   count    INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (uid, day)
 );
@@ -81,13 +81,14 @@ ON CONFLICT (key) DO NOTHING;
 
 -- ── SUPPORT TICKETS ──────────────────────────────
 CREATE TABLE IF NOT EXISTS support_tickets (
-  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  motivo     TEXT NOT NULL,
+  id          TEXT PRIMARY KEY,
+  motivo      TEXT NOT NULL,
   descripcion TEXT NOT NULL,
-  email      TEXT,
-  flare_id   TEXT,
-  status     TEXT NOT NULL DEFAULT 'open',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  email       TEXT NOT NULL,
+  flare_id    TEXT,
+  ip          TEXT,
+  status      TEXT NOT NULL DEFAULT 'pendiente',
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ── FUNCIÓN DE LIMPIEZA ──────────────────────────
