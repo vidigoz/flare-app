@@ -26,17 +26,25 @@ export const handler = async (event) => {
       const rl = rateLimit(ip, "get_identity", 30, 60 * 1000);
       if (!rl.allowed) return tooMany(rl.retryAfter);
 
-      const deviceId = (event.queryStringParameters || {}).device_id;
-      if (!deviceId) return err(400, "device_id requerido");
+      const params = event.queryStringParameters || {};
+      const deviceId = params.device_id;
+      const phone    = params.phone;
 
-      const rows = await sql`
-        SELECT id, username, device_id, tier, flares_count, created_at
-        FROM users
-        WHERE device_id = ${deviceId}
-        ORDER BY created_at DESC
-      `;
+      if (!deviceId && !phone) return err(400, "device_id o phone requerido");
 
-      // Devuelve array — el cliente decide si auto-carga (1 perfil) o muestra selector (varios)
+      let rows;
+      if (phone) {
+        rows = await sql`
+          SELECT id, username, device_id, tier, phone, flares_count, avatar_url, created_at
+          FROM users WHERE phone = ${phone} LIMIT 1
+        `;
+      } else {
+        rows = await sql`
+          SELECT id, username, device_id, tier, phone, flares_count, avatar_url, created_at
+          FROM users WHERE device_id = ${deviceId} ORDER BY created_at DESC
+        `;
+      }
+
       return ok(rows);
     }
 

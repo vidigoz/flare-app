@@ -93,6 +93,33 @@ function saveIdentity(identity) {
 // IDENTITY es null si Tier 1, objeto si Tier 2
 var IDENTITY = getOrCreateIdentity();
 
+// Si es Tier 3, sincronizar avatar_url y username desde la DB al arrancar
+(function() {
+  if (!IDENTITY || IDENTITY.tier !== 3 || !IDENTITY.phone) return;
+  var phone = IDENTITY.phone;
+  fetch('/api/identity?phone=' + encodeURIComponent(phone))
+    .then(function(r) { return r.json(); })
+    .then(function(profiles) {
+      var p = Array.isArray(profiles) ? profiles[0] : null;
+      if (!p) return;
+      var changed = false;
+      if (p.avatar_url && p.avatar_url !== IDENTITY.avatar_url) {
+        IDENTITY.avatar_url = p.avatar_url;
+        changed = true;
+      }
+      if (p.username && p.username !== IDENTITY.username) {
+        IDENTITY.username = p.username;
+        changed = true;
+      }
+      if (changed) {
+        saveIdentity(IDENTITY);
+        if (typeof updateProfileBar === 'function') updateProfileBar();
+        if (typeof renderProfile === 'function' && typeof profileOpen !== 'undefined' && profileOpen) renderProfile();
+      }
+    })
+    .catch(function() {});
+})();
+
 // Si no hay identidad local, buscar perfiles en DB por device_id
 var PENDING_PROFILES = null; // perfiles encontrados en DB pendientes de selección
 (function() {
