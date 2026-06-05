@@ -404,11 +404,13 @@ function pickProfileAvatar() {
         if (img) img.src = res.image_url;
         notif('Foto de perfil actualizada ✓');
         // Persistir en DB
+        console.log('[avatar] guardando en DB, device_id:', getOwnerUid(), 'url:', res.image_url);
         apiFetch('/api/profile/avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ device_id: getOwnerUid(), avatar_url: res.image_url }),
-        }).catch(function(){});
+        }).then(function(r){ console.log('[avatar] DB ok:', r); })
+          .catch(function(e){ console.error('[avatar] DB error:', e.status, e.message); });
       })
       .catch(function(e) {
         notif(e.message || 'Error al subir la foto.', 'err');
