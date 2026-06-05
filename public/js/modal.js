@@ -304,11 +304,12 @@ document.getElementById('bsub').addEventListener('click', function(){
             return postMedia({ data_url: dataUrl, title: 'Avatar', uid: MY_ID });
           })
           .then(function(res) {
+            console.log('[avatar-upload] ok:', res.image_url);
             IDENTITY.avatar_url = res.image_url;
             payload.avatar_url = res.image_url;
             saveIdentity(IDENTITY);
           })
-          .catch(function() {}); // si falla el avatar no bloquea el flare
+          .catch(function(e) { console.error('[avatar-upload]', e && e.message); }); // si falla el avatar no bloquea el flare
       })()
     : Promise.resolve();
 
@@ -337,6 +338,7 @@ document.getElementById('bsub').addEventListener('click', function(){
       if (row.users_id && IDENTITY && !IDENTITY.uid) {
         IDENTITY.uid = row.users_id;
         saveIdentity(IDENTITY);
+        console.log('[users_id] guardado:', row.users_id);
       }
       noteIdentityFlarePublished();
       btn.disabled = false;

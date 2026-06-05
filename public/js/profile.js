@@ -587,7 +587,7 @@ function doRecoverConfirm() {
       return apiFetch('/api/verify/firebase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_id: deviceId, id_token: idToken, is_recovery: true }),
+        body: JSON.stringify({ id_token: idToken, is_recovery: true }),
       });
     })
     .then(function(res) {
@@ -718,11 +718,6 @@ function showVerifyCode(phone) {
       '<div class="profile-verify-desc">Enviamos un SMS a <strong>' + esc(hint) + '</strong>. Ingresa el código de 6 dígitos.</div>' +
       '<input id="verify-code-input" class="profile-verify-code-input" type="tel" inputmode="numeric" maxlength="6" placeholder="000000">' +
       '<div id="verify-code-err" class="profile-verify-err" style="display:none"></div>' +
-      '<div class="profile-verify-username-section">' +
-        '<div class="profile-verify-username-label">¿Quieres cambiar tu nombre? (opcional)</div>' +
-        '<input id="verify-username-input" class="profile-verify-input" type="text" maxlength="30" placeholder="' + esc((IDENTITY && IDENTITY.username) || '') + '">' +
-        '<div class="profile-verify-username-hint">Solo letras minúsculas, números y guion bajo</div>' +
-      '</div>' +
       '<button class="profile-validate-btn" id="verify-confirm-btn" onclick="doConfirmCode()">Verificar</button>' +
       '<button class="profile-verify-resend" onclick="showVerifyPhone()">Reenviar código</button>' +
     '</div>';
@@ -734,22 +729,15 @@ function showVerifyCode(phone) {
 }
 
 function doConfirmCode() {
-  var codeEl     = document.getElementById('verify-code-input');
-  var usernameEl = document.getElementById('verify-username-input');
-  var errEl      = document.getElementById('verify-code-err');
-  var btn        = document.getElementById('verify-confirm-btn');
+  var codeEl = document.getElementById('verify-code-input');
+  var errEl  = document.getElementById('verify-code-err');
+  var btn    = document.getElementById('verify-confirm-btn');
   if (!codeEl) return;
 
-  var code     = codeEl.value.trim();
-  var username = usernameEl ? usernameEl.value.trim().toLowerCase() : '';
+  var code = codeEl.value.trim();
 
   if (code.length !== 6) {
     errEl.textContent = 'El código debe tener 6 dígitos';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (username && !/^[a-z0-9_]{3,30}$/.test(username)) {
-    errEl.textContent = 'Nombre inválido: solo minúsculas, números y _ (mínimo 3 caracteres)';
     errEl.style.display = 'block';
     return;
   }
@@ -768,9 +756,8 @@ function doConfirmCode() {
       return result.user.getIdToken();
     })
     .then(function(idToken) {
-      var deviceId = (IDENTITY && IDENTITY.device_id) ? IDENTITY.device_id : getDeviceFingerprint();
-      var payload  = { device_id: deviceId, id_token: idToken };
-      if (username) payload.username = username;
+      var payload = { id_token: idToken };
+      if (IDENTITY && IDENTITY.uid) payload.users_id = IDENTITY.uid;
       return apiFetch('/api/verify/firebase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

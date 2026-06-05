@@ -1,6 +1,7 @@
 // netlify/functions/verify-firebase.js
-// POST /api/verify/firebase  { device_id, id_token, username? }
-// Fuente de verdad Tier 3: phone + username. device_id es secundario.
+// POST /api/verify/firebase  { users_id, id_token, username? }
+// Tier 2 → Tier 3: agrega phone al registro existente por users_id
+// Recovery: busca por phone y actualiza device_id
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
@@ -10,16 +11,12 @@ function getDb() {
 }
 
 async function verifyFirebaseToken(idToken) {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  if (!projectId) throw new Error("FIREBASE_PROJECT_ID no configurado");
-
   const url = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ idToken }),
   });
-
   const data = await res.json();
   if (!res.ok || data.error) {
     const code = data.error?.message || "TOKEN_INVALID";
@@ -27,10 +24,8 @@ async function verifyFirebaseToken(idToken) {
     e.code = code;
     throw e;
   }
-
   const user = data.users?.[0];
   if (!user) throw new Error("TOKEN_INVALID");
-
   return { uid: user.localId, phone_number: user.phoneNumber || null };
 }
 
@@ -45,12 +40,12 @@ export const handler = async (event) => {
   let d;
   try { d = JSON.parse(event.body || "{}"); } catch { return err(400, "JSON inválido"); }
 
-  const deviceId    = d.device_id ? String(d.device_id).slice(0, 64) : null;
-  const idToken     = d.id_token  ? String(d.id_token)               : null;
+  const usersId    = d.users_id   ? String(d.users_id)                            : null;
+  const idToken    = d.id_token   ? String(d.id_token)                            : null;
   const newUsername = d.username  ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
+  const isRecovery = Boolean(d.is_recovery);
 
-  if (!deviceId) return err(400, "device_id requerido");
-  if (!idToken)  return err(400, "id_token requerido");
+  if (!idToken) return err(400, "id_token requerido");
 
   if (newUsername && !/^[a-z0-9_]{3,30}$/.test(newUsername)) {
     return err(400, "username inválido: solo letras minúsculas, números y _ (3-30 caracteres)");
@@ -63,53 +58,70 @@ export const handler = async (event) => {
 
     const sql = getDb();
 
-    // Buscar perfil por teléfono — fuente de verdad para Tier 3
+    // ── CASO 1: Tier 2 → Tier 3 ──────────────────────────────
+    // El usuario ya tiene users.id desde Tier 2, solo agregar phone y subir tier
+    if (usersId && !isRecovery) {
+      // Verificar que el phone no esté ya en otro perfil
+      const phoneTaken = await sql`
+        SELECT id FROM users WHERE phone = ${phone} AND id != ${usersId} LIMIT 1
+      `;
+      if (phoneTaken.length) return err(409, "Este número ya está asociado a otro perfil.");
+
+      // Validar username si quiere cambiarlo
+      if (newUsername) {
+        const usernameTaken = await sql`
+          SELECT id FROM users WHERE username = ${newUsername} AND id != ${usersId} LIMIT 1
+        `;
+        if (usernameTaken.length) return err(409, "Ese nombre ya está en uso. Elige otro.");
+      }
+
+      let user;
+      if (newUsername) {
+        [user] = await sql`
+          UPDATE users SET phone = ${phone}, tier = 3, last_seen_at = NOW(), username = ${newUsername}
+          WHERE id = ${usersId}
+          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+        `;
+      } else {
+        [user] = await sql`
+          UPDATE users SET phone = ${phone}, tier = 3, last_seen_at = NOW()
+          WHERE id = ${usersId}
+          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+        `;
+      }
+
+      if (!user) return err(404, "Perfil no encontrado.");
+
+      // Actualizar username en flares si cambió
+      if (newUsername) {
+        await sql`
+          UPDATE flares SET username = ${newUsername}
+          WHERE owner_uid = ${usersId}
+            AND created_at >= NOW() - INTERVAL '24 hours'
+        `;
+      }
+
+      return ok({ verified: true, user });
+    }
+
+    // ── CASO 2: Recovery — buscar por phone ──────────────────
+    // El usuario no tiene users.id local (borró localStorage o es otro dispositivo)
     const byPhone = await sql`
       SELECT id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       FROM users WHERE phone = ${phone} LIMIT 1
     `;
 
     if (byPhone.length) {
-      // Perfil existe — actualizar device_id y devolver perfil
-      const oldDeviceId = byPhone[0].device_id;
       const [user] = await sql`
-        UPDATE users SET device_id = ${deviceId}, last_seen_at = NOW()
+        UPDATE users SET last_seen_at = NOW()
         WHERE phone = ${phone}
         RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
-      // Transferir flares recientes al nuevo device_id
-      if (oldDeviceId && oldDeviceId !== deviceId) {
-        await sql`
-          UPDATE flares SET owner_uid = ${deviceId}
-          WHERE owner_uid = ${oldDeviceId}
-            AND created_at >= NOW() - INTERVAL '24 hours'
-        `;
-      }
       return ok({ verified: true, user });
     }
 
-    // Perfil nuevo — primera verificación
-    if (newUsername) {
-      const usernameTaken = await sql`
-        SELECT id FROM users WHERE username = ${newUsername} LIMIT 1
-      `;
-      if (usernameTaken.length) return err(409, "Ese nombre ya está en uso. Elige otro.");
-    }
-
-    const username = newUsername || ("flare_" + Math.random().toString(36).slice(2, 8));
-    const [user] = await sql`
-      INSERT INTO users (username, device_id, tier, phone, last_seen_at)
-      VALUES (${username}, ${deviceId}, 3, ${phone}, NOW())
-      RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
-    `;
-
-    await sql`
-      UPDATE flares SET username = ${username}
-      WHERE owner_uid = ${deviceId}
-        AND created_at >= NOW() - INTERVAL '24 hours'
-    `;
-
-    return ok({ verified: true, user });
+    // Si llegamos aquí sin users_id y sin recovery, no hay perfil que actualizar
+    return err(404, "No encontramos tu perfil. Asegúrate de haber publicado al menos un flare antes de verificar.");
 
   } catch (e) {
     console.error("verify-firebase error:", e.code, e.message);
