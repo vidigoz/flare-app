@@ -4,6 +4,110 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-04 — Tarjeta de perfil en panel lateral y fixes de UI
+
+### Tarjeta de perfil en panel de flares
+- Nueva tarjeta entre el header y el buscador de lugar en el panel lateral
+- Muestra avatar, `@username`, tier (✓ Verificado / ○ Sin validar) y flares publicados hoy
+- Al tocarla navega al perfil igual que el ícono 👤
+- Solo visible cuando hay identidad (Tier 2 o 3)
+- Fix: subtítulo del header en vista de perfil ahora muestra "✓ Verificado" en vez de "Sin validar" para Tier 3
+
+---
+
+## 2026-06-04 — Mis Flares multi-dispositivo y fixes de flares por usuario
+
+### Mis Flares por dispositivo / username
+- **Tier 2** — Mis Flares carga por `owner_uid` (device_id), ligado al dispositivo
+- **Tier 3** — Mis Flares carga por `owner_uid` OR `username` — visible en cualquier dispositivo donde se inicie sesión, porque el username es único y persistente
+- Fix query Neon: `OR` separado en 3 casos (ownerUid+username / solo ownerUid / solo username) para evitar error con parámetros nullables en template literals
+- Al recuperar cuenta (`is_recovery`), se transfieren los flares de las últimas 24h del `device_id` anterior al nuevo (`owner_uid` actualizado en tabla `flares`)
+
+---
+
+## 2026-06-04 — Tiers, verificación, perfiles, estadísticas y UX (v1.0.14)
+
+### Límites y tiers
+- **Tier 3 sin límite diario** — rate limit propio de 100 flares/hora por IP, verificado en DB por `owner_uid`
+- **Tier 1-2** mantiene 10 flares/día y 20/hora
+- `getTier()` ahora lee `identity.tier` del localStorage — devuelve 3 correctamente
+- Badge cambia de "Sin validar ✕" a "Verificado ✓" post-verificación
+- Sección de validación se reemplaza por confirmación verde en Tier 3
+- "Restantes hoy" solo se muestra en Tier 1-2, no en Tier 3
+
+### Verificación de teléfono
+- Fix bundler `nft` para `verify-firebase` y `media` en Netlify (esbuild fallaba)
+- `verify-firebase` reemplaza `firebase-admin` por Google Identity REST API (`accounts:lookup`) — sin dependencias nativas
+- Fix reCAPTCHA: se destruye y recrea en cada intento evitando el error de div obsoleto
+- Fix recuperación: manda `is_recovery: true` para que el backend transfiera el perfil al nuevo `device_id` en vez de rechazar con 409
+- Fix `device_id` duplicado al recuperar desde mismo dispositivo: libera el `device_id` antes de asignarlo
+- Mensajes de error muestran código exacto de Firebase (`auth/invalid-verification-code`, etc.)
+- Auto-submit al 6to dígito eliminado — solo el botón confirma
+
+### Recuperación de cuenta
+- Botón "📱 Ingresar con mi número" en Tier 1 y Tier 2
+- Flujo completo: `showRecoverPhone` → `doRecoverSendCode` → `doRecoverConfirm`
+- Al recuperar exitosamente: marca `flare_onboarding_complete` para evitar onboarding
+- Onboarding no se muestra si hay `flare_identity` en localStorage (map.js y panel.js)
+
+### Cerrar sesión
+- Botón "↩ Cerrar sesión" en Tier 3 — limpia `flare_identity` sin tocar DB ni `flare_first_published`
+- Fix: `doSignOut` ya no borra `flare_first_published` ni `flare_onboarding_complete` para evitar celebrate y onboarding al volver
+
+### Avatar de perfil
+- Avatar asignado en Tier 2 se persiste inmediatamente en localStorage — no cambia aleatoriamente
+- `ensureIdentityAvatar` guarda en localStorage al asignar por primera vez
+- Al verificar (Tier 2 → Tier 3): avatar local se migra automáticamente a R2 via Canvas → base64 → `/api/media`
+- Nuevo endpoint `POST /api/profile/avatar` persiste `avatar_url` en `users`
+- `verify-firebase` devuelve `avatar_url` en todos los `RETURNING`
+- Foto de perfil personalizada para Tier 3: tap en avatar abre selector, comprime a 400px y sube a R2
+- CSS: ícono 📷 en esquina del avatar en Tier 3
+
+### Cambio de username
+- Botón "✏️ Cambiar" debajo del username en Tier 3
+- Primeros 2 cambios libres, del 3ro en adelante espera 7 días
+- Mensaje indica días exactos restantes
+- Nuevo endpoint `POST /api/profile/username` con validación de unicidad, tier e intervalo
+- Al cambiar, actualiza `username` en flares de las últimas 24h
+- SQL requerido: `username_changes INTEGER`, `username_changed_at TIMESTAMPTZ` en `users`
+
+### Popup y UI del mapa
+- Popup ancho fijo `min(280px, 100vw-48px)` responsive, `maxWidth:280` en Leaflet
+- Imagen en popup con caja fija 240px altura, `object-fit:contain` sin recortar
+- Like ya no cierra el popup: flag `_likeInProgress` bloquea `fetchFlares` en `popupclose`
+- FAB wrap con `pointer-events:none` — área transparente no bloquea toques al mapa
+- Lightbox: tap en imagen abre fullscreen, cierra con tap/✕/ESC (popup y panel lateral)
+
+### DEV mode en perfil
+- Bloque DEV reset de tier visible solo con `DEV_DURATION_MODE` activo
+- → Tier 1: borra identidad local con confirmación
+- → Tier 2: baja tier y limpia phone, mantiene username y avatar
+
+### Estadísticas en admin
+- Nuevo endpoint `GET /api/admin/stats?days=N` — requiere `x-admin-key`
+- Retorna: usuarios por tier (total, nuevos, activos), flares (total, activos, con imagen)
+- Tier 2 se cuenta desde `owner_uid` únicos en `flares` no registrados en `users`
+- Panel 📊 Estadísticas en admin con selector de período (1d a 1 año) y exportación CSV
+- `last_seen_at TIMESTAMPTZ` agregado a `users`, se actualiza al publicar flare y al verificar
+- SQL requerido: `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ DEFAULT NOW()`
+- SQL requerido: `ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`
+- SQL requerido: `ALTER TABLE users ADD COLUMN IF NOT EXISTS username_changes INTEGER DEFAULT 0`
+- SQL requerido: `ALTER TABLE users ADD COLUMN IF NOT EXISTS username_changed_at TIMESTAMPTZ`
+
+**Archivos clave:**
+- `netlify/functions/verify-firebase.js` — reescrito sin firebase-admin
+- `netlify/functions/update-username.js` — nuevo
+- `netlify/functions/update-avatar.js` — nuevo
+- `netlify/functions/admin-stats.js` — nuevo
+- `netlify/functions/flares.js` — tiers, last_seen_at
+- `public/js/profile.js` — tiers, avatar, username, recover, signout, DEV
+- `public/js/config.js` — getTier(), ensureIdentityAvatar()
+- `public/js/map.js` / `panel.js` — onboarding condicional
+- `public/css/theme-dark.css` — estilos tier3, avatar, signout, recover, dev
+- `public/admin.html` — sección estadísticas
+
+---
+
 ## 2026-06-03 — Fotos moderadas con OpenAI y Cloudflare R2
 
 **Objetivo:** permitir fotos en flares sin publicar contenido no verificado.

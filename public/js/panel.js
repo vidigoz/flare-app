@@ -1,6 +1,22 @@
 /* ── panel.js — panel open/close, buildChips, renderPanel, myFlares, manual ── */
 
 function togglePanel(){ panelOpen ? closePanel() : openPanel(); }
+
+function updateProfileBar() {
+  var card = document.getElementById('panel-profile-card');
+  if (!card) return;
+  if (!IDENTITY || !IDENTITY.username) { card.style.display = 'none'; return; }
+  var nameEl  = document.getElementById('ppc-name');
+  var tierEl  = document.getElementById('ppc-tier');
+  var avatarEl = document.getElementById('ppc-avatar');
+  var hoy = new Date().toDateString();
+  var flaresHoy = (IDENTITY.fecha_hoy === hoy) ? (IDENTITY.flares_hoy || 0) : 0;
+  if (nameEl)   nameEl.textContent  = '@' + IDENTITY.username;
+  if (tierEl)   tierEl.textContent  = (IDENTITY.tier === 3 ? '✓ Verificado' : '○ Sin validar') + ' · ' + flaresHoy + ' flare' + (flaresHoy !== 1 ? 's' : '') + ' hoy';
+  if (avatarEl) avatarEl.src        = IDENTITY.avatar_url || '';
+  card.style.display = 'flex';
+}
+
 function openPanel(){
   panelOpen = true;
   obHideTips();
@@ -8,6 +24,7 @@ function openPanel(){
   document.getElementById('pov').classList.add('on');
   document.getElementById('pbtn').style.display = 'none';
   document.getElementById('fab-wrap').style.display = 'none';
+  updateProfileBar();
   buildChips(); renderPanel();
 }
 function closePanel(){
@@ -346,7 +363,8 @@ document.getElementById('ph-gear').addEventListener('click', function() {
   } else {
     showView('panel-profile');
     document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
-    document.getElementById('ph-sub').textContent = typeof getTier === 'function' ? (getTier() === 1 ? 'Visitante' : 'Sin validar') : '';
+    var t = typeof getTier === 'function' ? getTier() : 1;
+    document.getElementById('ph-sub').textContent = t === 1 ? 'Visitante' : t === 3 ? '✓ Verificado' : 'Sin validar';
     this.classList.add('active');
     if (typeof renderProfile === 'function') renderProfile();
   }
