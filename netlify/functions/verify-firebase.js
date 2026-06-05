@@ -1,6 +1,6 @@
 // netlify/functions/verify-firebase.js
 // POST /api/verify/firebase  { device_id, id_token, username? }
-// Verifica el idToken de Firebase Phone Auth via Google REST API (sin firebase-admin)
+// Fuente de verdad Tier 3: phone + username. device_id es secundario.
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
@@ -13,7 +13,6 @@ async function verifyFirebaseToken(idToken) {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   if (!projectId) throw new Error("FIREBASE_PROJECT_ID no configurado");
 
-  // Google Identity Toolkit — verifica el token sin firebase-admin
   const url = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env.FIREBASE_API_KEY}`;
   const res = await fetch(url, {
     method: "POST",
@@ -32,10 +31,7 @@ async function verifyFirebaseToken(idToken) {
   const user = data.users?.[0];
   if (!user) throw new Error("TOKEN_INVALID");
 
-  return {
-    uid: user.localId,
-    phone_number: user.phoneNumber || null,
-  };
+  return { uid: user.localId, phone_number: user.phoneNumber || null };
 }
 
 export const handler = async (event) => {
@@ -49,10 +45,9 @@ export const handler = async (event) => {
   let d;
   try { d = JSON.parse(event.body || "{}"); } catch { return err(400, "JSON inválido"); }
 
-  const deviceId    = d.device_id   ? String(d.device_id).slice(0, 64) : null;
-  const idToken     = d.id_token    ? String(d.id_token)               : null;
-  const newUsername = d.username    ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
-  const isRecovery  = Boolean(d.is_recovery);
+  const deviceId    = d.device_id ? String(d.device_id).slice(0, 64) : null;
+  const idToken     = d.id_token  ? String(d.id_token)               : null;
+  const newUsername = d.username  ? String(d.username).slice(0, 30).toLowerCase().trim() : null;
 
   if (!deviceId) return err(400, "device_id requerido");
   if (!idToken)  return err(400, "id_token requerido");
@@ -68,24 +63,21 @@ export const handler = async (event) => {
 
     const sql = getDb();
 
-    const phoneTaken = await sql`
-      SELECT id, username, device_id, tier, phone, flares_count, created_at
-      FROM users WHERE phone = ${phone} AND device_id != ${deviceId} LIMIT 1
+    // Buscar perfil por teléfono — fuente de verdad para Tier 3
+    const byPhone = await sql`
+      SELECT id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+      FROM users WHERE phone = ${phone} LIMIT 1
     `;
 
-    // El teléfono existe en otro device_id — transferir perfil a este dispositivo
-    if (phoneTaken.length) {
-      const oldDeviceId = phoneTaken[0].device_id;
-      // Liberar device_id del dispositivo actual si lo tiene otro perfil
-      if (deviceId) {
-        await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
-      }
+    if (byPhone.length) {
+      // Perfil existe — actualizar device_id y devolver perfil
+      const oldDeviceId = byPhone[0].device_id;
       const [user] = await sql`
         UPDATE users SET device_id = ${deviceId}, last_seen_at = NOW()
         WHERE phone = ${phone}
         RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
-      // Transferir flares del device_id anterior al nuevo
+      // Transferir flares recientes al nuevo device_id
       if (oldDeviceId && oldDeviceId !== deviceId) {
         await sql`
           UPDATE flares SET owner_uid = ${deviceId}
@@ -96,59 +88,33 @@ export const handler = async (event) => {
       return ok({ verified: true, user });
     }
 
-
+    // Perfil nuevo — primera verificación
     if (newUsername) {
       const usernameTaken = await sql`
-        SELECT id FROM users WHERE username = ${newUsername} AND device_id != ${deviceId} LIMIT 1
+        SELECT id FROM users WHERE username = ${newUsername} LIMIT 1
       `;
       if (usernameTaken.length) return err(409, "Ese nombre ya está en uso. Elige otro.");
     }
 
-    const existing = await sql`
-      SELECT id, username, device_id, tier, phone FROM users WHERE device_id = ${deviceId} LIMIT 1
+    const username = newUsername || ("flare_" + Math.random().toString(36).slice(2, 8));
+    const [user] = await sql`
+      INSERT INTO users (username, device_id, tier, phone, last_seen_at)
+      VALUES (${username}, ${deviceId}, 3, ${phone}, NOW())
+      RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
     `;
 
-    let user;
-    if (existing.length) {
-      if (newUsername) {
-        [user] = await sql`
-          UPDATE users SET tier = 3, phone = ${phone}, username = ${newUsername}, last_seen_at = NOW()
-          WHERE device_id = ${deviceId}
-          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
-        `;
-        await sql`
-          UPDATE flares SET username = ${newUsername}
-          WHERE owner_uid = ${deviceId}
-            AND created_at >= NOW() - INTERVAL '24 hours'
-        `;
-      } else {
-        [user] = await sql`
-          UPDATE users SET tier = 3, phone = ${phone}, last_seen_at = NOW()
-          WHERE device_id = ${deviceId}
-          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
-        `;
-      }
-    } else {
-      const username = newUsername || ("flare_" + Math.random().toString(36).slice(2, 8));
-      [user] = await sql`
-        INSERT INTO users (username, device_id, tier, phone, last_seen_at)
-        VALUES (${username}, ${deviceId}, 3, ${phone}, NOW())
-        RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
-      `;
-      // Actualizar flares existentes con el username asignado
-      await sql`
-        UPDATE flares SET username = ${username}
-        WHERE owner_uid = ${deviceId}
-          AND created_at >= NOW() - INTERVAL '24 hours'
-      `;
-    }
+    await sql`
+      UPDATE flares SET username = ${username}
+      WHERE owner_uid = ${deviceId}
+        AND created_at >= NOW() - INTERVAL '24 hours'
+    `;
 
     return ok({ verified: true, user });
+
   } catch (e) {
     console.error("verify-firebase error:", e.code, e.message);
     if (e.code === "TOKEN_EXPIRED" || e.message === "TOKEN_EXPIRED") return err(401, "Sesión expirada. Vuelve a verificar.");
     if (e.code === "TOKEN_INVALID" || e.message === "TOKEN_INVALID") return err(401, "Código incorrecto. Intenta de nuevo.");
-    if (e.message && e.message.includes("unique")) return err(500, "Error de base de datos: " + e.message);
     return err(500, "Error interno: " + e.message);
   }
 };
