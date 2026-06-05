@@ -73,18 +73,20 @@ export const handler = async (event) => {
       FROM users WHERE phone = ${phone} AND device_id != ${deviceId} LIMIT 1
     `;
 
-    // El teléfono existe en otro device_id — transferir perfil a este dispositivo (recovery o reingreso)
+    // El teléfono existe en otro device_id — transferir perfil a este dispositivo
     if (phoneTaken.length) {
       const oldDeviceId = phoneTaken[0].device_id;
-      // Si el device_id nuevo ya está en otro registro, liberarlo primero
-      await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
+      // Liberar device_id del dispositivo actual si lo tiene otro perfil
+      if (deviceId) {
+        await sql`UPDATE users SET device_id = NULL WHERE device_id = ${deviceId} AND phone != ${phone}`;
+      }
       const [user] = await sql`
         UPDATE users SET device_id = ${deviceId}, last_seen_at = NOW()
         WHERE phone = ${phone}
         RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
       `;
       // Transferir flares del device_id anterior al nuevo
-      if (oldDeviceId) {
+      if (oldDeviceId && oldDeviceId !== deviceId) {
         await sql`
           UPDATE flares SET owner_uid = ${deviceId}
           WHERE owner_uid = ${oldDeviceId}
@@ -146,7 +148,7 @@ export const handler = async (event) => {
     console.error("verify-firebase error:", e.code, e.message);
     if (e.code === "TOKEN_EXPIRED" || e.message === "TOKEN_EXPIRED") return err(401, "Sesión expirada. Vuelve a verificar.");
     if (e.code === "TOKEN_INVALID" || e.message === "TOKEN_INVALID") return err(401, "Código incorrecto. Intenta de nuevo.");
-    if (e.message && e.message.includes("unique")) return err(409, "Este número ya está registrado.");
+    if (e.message && e.message.includes("unique")) return err(500, "Error de base de datos: " + e.message);
     return err(500, "Error interno: " + e.message);
   }
 };
