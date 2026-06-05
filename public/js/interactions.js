@@ -44,37 +44,41 @@ function doLike(id){
   var pin = pins[id];
   if(!pin) return;
   if(pin.liked){ notif('Ya le diste ❤️ a este flare 😉','err'); return; }
-  var wasDying = getPinState(pin) === 'dying';
-  pin.liked = true;
-  pin.likes++;
-  pin.expires_at = new Date(new Date(pin.expires_at).getTime() + 5*60*1000).toISOString();
-  markLiked(id);
-  var nowDying = getPinState(pin) === 'dying';
-  var revived = wasDying && !nowDying;
-  window._likeInProgress = true;
-  if(!pin.marker.isPopupOpen()) refreshMk(pin, revived);
-  refreshPop(pin);
-  setTimeout(function(){
-    if(!pin.marker.isPopupOpen()) pin.marker.openPopup();
-    window._likeInProgress = false;
-    var likeBtn = document.querySelector('.pop-like');
-    if(likeBtn){ likeBtn.classList.add('like-fire'); setTimeout(function(){ likeBtn.classList.remove('like-fire'); }, 700); }
-  }, 0);
-  if(panelOpen) renderPanel();
+  if(pin._liking) return; // evitar doble tap mientras espera respuesta
+
+  pin._liking = true;
+  var likeBtn = document.querySelector('.pop-like');
+  if(likeBtn) likeBtn.disabled = true;
+
   postLike(id).then(function(data) {
-    pin.expires_at = data.expires_at;
+    // Confirmado en DB — ahora actualizar estado local
+    pin._liking = false;
+    pin.liked = true;
     pin.likes = data.likes;
+    pin.expires_at = data.expires_at;
+    markLiked(id);
+
+    var wasDying = getPinState(pin) === 'dying';
+    var nowDying = false;
+    var revived = wasDying && !nowDying;
+    window._likeInProgress = true;
+    if(!pin.marker.isPopupOpen()) refreshMk(pin, revived);
     refreshPop(pin);
+    setTimeout(function(){
+      if(!pin.marker.isPopupOpen()) pin.marker.openPopup();
+      window._likeInProgress = false;
+      var btn = document.querySelector('.pop-like');
+      if(btn){ btn.classList.add('like-fire'); setTimeout(function(){ btn.classList.remove('like-fire'); }, 700); }
+    }, 0);
+    if(panelOpen) renderPanel();
+    if(revived) notif('💚 "'+pin.title+'" fue salvado!','like');
   }).catch(function(e) {
+    pin._liking = false;
+    if(likeBtn) likeBtn.disabled = false;
     if(e.status === 429) {
-      pin.liked = false;
-      pin.likes--;
-      pin.expires_at = new Date(new Date(pin.expires_at).getTime() - 5*60*1000).toISOString();
-      likedIds = likedIds.filter(function(x){ return x !== id; });
-      saveLiked();
-      refreshPop(pin);
       notif('Demasiados likes seguidos. Espera un momento 😅','err');
     } else {
+      notif('No se pudo guardar el like. Intenta de nuevo.','err');
       console.error('like error:', e);
     }
   });

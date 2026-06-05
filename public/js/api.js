@@ -22,6 +22,7 @@ function fetchFlares() {
     maxLng: b.getEast().toFixed(6),
     zoom:   Math.round(map.getZoom()),
   });
+  if (IDENTITY && IDENTITY.uid) params.set('uid', IDENTITY.uid);
   setSyncState('loading', 'actualizando...');
   apiFetch('/api/flares?' + params)
     .then(function(rows) {
@@ -48,7 +49,7 @@ function reconcilePins(rows) {
       var wasDying = getPinState(pin) === 'dying';
       pin.expires_at = row.expires_at;
       pin.likes = row.likes;
-      pin.liked = hasLiked(row.id);
+      pin.liked = row.user_liked || hasLiked(row.id);
       var nowDying = getPinState(pin) === 'dying';
       var revived = wasDying && !nowDying;
       refreshMk(pin, revived);
@@ -101,7 +102,7 @@ function rowToPin(row) {
     createdAt: new Date(row.created_at).getTime(),
     expires_at: row.expires_at,
     likes: row.likes,
-    liked: hasLiked(row.id),
+    liked: row.user_liked || hasLiked(row.id),
     marker: null,
   };
 }

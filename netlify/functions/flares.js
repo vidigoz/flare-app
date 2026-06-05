@@ -32,13 +32,23 @@ export const handler = async (event) => {
 
       await cleanupArchivedFlares(sql);
 
+      const uid = p.uid ? String(p.uid).slice(0, 64) : null;
+
       /* Fetch por ID directo — para deep links */
       if (p.id) {
-        const rows = await sql`
-          SELECT * FROM flares
-          WHERE id = ${p.id} AND expires_at > NOW() AND hidden = FALSE
-          LIMIT 1
-        `;
+        const rows = uid
+          ? await sql`
+              SELECT f.*, (ul.user_id IS NOT NULL) AS user_liked
+              FROM flares f
+              LEFT JOIN user_likes ul ON ul.flare_id = f.id AND ul.user_id = ${uid}
+              WHERE f.id = ${p.id} AND f.expires_at > NOW() AND f.hidden = FALSE
+              LIMIT 1
+            `
+          : await sql`
+              SELECT * FROM flares
+              WHERE id = ${p.id} AND expires_at > NOW() AND hidden = FALSE
+              LIMIT 1
+            `;
         return {
           statusCode: 200,
           headers: { ...cors(), "Content-Type": "application/json" },
@@ -49,12 +59,21 @@ export const handler = async (event) => {
       /* Fetch por owner_uid (users.id) — para "Mis Flares" */
       if (p.owner_uid) {
         const ownerUid = String(p.owner_uid).slice(0, 64);
-        const rows = await sql`
-          SELECT * FROM flares
-          WHERE owner_uid = ${ownerUid}
-            AND created_at >= NOW() - INTERVAL '24 hours'
-          ORDER BY created_at DESC LIMIT 50
-        `;
+        const rows = uid
+          ? await sql`
+              SELECT f.*, (ul.user_id IS NOT NULL) AS user_liked
+              FROM flares f
+              LEFT JOIN user_likes ul ON ul.flare_id = f.id AND ul.user_id = ${uid}
+              WHERE f.owner_uid = ${ownerUid}
+                AND f.created_at >= NOW() - INTERVAL '24 hours'
+              ORDER BY f.created_at DESC LIMIT 50
+            `
+          : await sql`
+              SELECT * FROM flares
+              WHERE owner_uid = ${ownerUid}
+                AND created_at >= NOW() - INTERVAL '24 hours'
+              ORDER BY created_at DESC LIMIT 50
+            `;
         return {
           statusCode: 200,
           headers: { ...cors(), "Content-Type": "application/json" },
@@ -78,25 +97,49 @@ export const handler = async (event) => {
       /* Ordenar por likes desc en zoom lejano para mostrar los más relevantes */
       const orderByLikes = zoom < 12;
 
-      const rows = orderByLikes
-        ? await sql`
-            SELECT * FROM flares
-            WHERE expires_at > NOW()
-              AND hidden = FALSE
-              AND lat BETWEEN ${minLat} AND ${maxLat}
-              AND lng BETWEEN ${minLng} AND ${maxLng}
-            ORDER BY likes DESC, expires_at DESC
-            LIMIT ${limit}
-          `
-        : await sql`
-            SELECT * FROM flares
-            WHERE expires_at > NOW()
-              AND hidden = FALSE
-              AND lat BETWEEN ${minLat} AND ${maxLat}
-              AND lng BETWEEN ${minLng} AND ${maxLng}
-            ORDER BY expires_at DESC
-            LIMIT ${limit}
-          `;
+      const rows = uid
+        ? orderByLikes
+          ? await sql`
+              SELECT f.*, (ul.user_id IS NOT NULL) AS user_liked
+              FROM flares f
+              LEFT JOIN user_likes ul ON ul.flare_id = f.id AND ul.user_id = ${uid}
+              WHERE f.expires_at > NOW()
+                AND f.hidden = FALSE
+                AND f.lat BETWEEN ${minLat} AND ${maxLat}
+                AND f.lng BETWEEN ${minLng} AND ${maxLng}
+              ORDER BY f.likes DESC, f.expires_at DESC
+              LIMIT ${limit}
+            `
+          : await sql`
+              SELECT f.*, (ul.user_id IS NOT NULL) AS user_liked
+              FROM flares f
+              LEFT JOIN user_likes ul ON ul.flare_id = f.id AND ul.user_id = ${uid}
+              WHERE f.expires_at > NOW()
+                AND f.hidden = FALSE
+                AND f.lat BETWEEN ${minLat} AND ${maxLat}
+                AND f.lng BETWEEN ${minLng} AND ${maxLng}
+              ORDER BY f.expires_at DESC
+              LIMIT ${limit}
+            `
+        : orderByLikes
+          ? await sql`
+              SELECT * FROM flares
+              WHERE expires_at > NOW()
+                AND hidden = FALSE
+                AND lat BETWEEN ${minLat} AND ${maxLat}
+                AND lng BETWEEN ${minLng} AND ${maxLng}
+              ORDER BY likes DESC, expires_at DESC
+              LIMIT ${limit}
+            `
+          : await sql`
+              SELECT * FROM flares
+              WHERE expires_at > NOW()
+                AND hidden = FALSE
+                AND lat BETWEEN ${minLat} AND ${maxLat}
+                AND lng BETWEEN ${minLng} AND ${maxLng}
+              ORDER BY expires_at DESC
+              LIMIT ${limit}
+            `;
 
       return {
         statusCode: 200,

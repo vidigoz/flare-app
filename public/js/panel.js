@@ -153,7 +153,22 @@ function renderPanel(){
       var pid = row.dataset.pid;
       expandedId = (expandedId===pid) ? null : pid;
       renderPanel();
-      if(expandedId){ setTimeout(function(){ var el=document.getElementById('prow-'+expandedId); if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'}); },50); }
+      if(expandedId){
+        setTimeout(function(){ var el=document.getElementById('prow-'+expandedId); if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'}); },50);
+        // Verificar like en DB si no está marcado localmente
+        var expandedPin = pins[expandedId];
+        if(expandedPin && !expandedPin.liked && IDENTITY && IDENTITY.uid){
+          fetch('/api/likes?uid=' + encodeURIComponent(IDENTITY.uid) + '&flare_id=' + encodeURIComponent(expandedId))
+            .then(function(r){ return r.ok ? r.json() : null; })
+            .then(function(data){
+              if(!data || !Array.isArray(data.liked) || data.liked.length === 0) return;
+              expandedPin.liked = true;
+              markLiked(expandedId);
+              renderPanel();
+            })
+            .catch(function(){});
+        }
+      }
     }
   };
 }
