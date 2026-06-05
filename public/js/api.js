@@ -136,7 +136,8 @@ function repostFlare(id) {
 }
 
 function postLike(id) {
-  return apiFetch('/api/like?id=' + encodeURIComponent(id), { method: 'PATCH' });
+  var uid = IDENTITY && IDENTITY.uid ? '&uid=' + encodeURIComponent(IDENTITY.uid) : '';
+  return apiFetch('/api/like?id=' + encodeURIComponent(id) + uid, { method: 'PATCH' });
 }
 
 function startPoll() {

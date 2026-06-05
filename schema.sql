@@ -1,6 +1,6 @@
 -- ================================================
 --  FLARE APP — Schema completo (Neon/PostgreSQL)
---  Última actualización: 2026-06-04
+--  Última actualización: 2026-06-05
 -- ================================================
 
 -- ── FLARES ──────────────────────────────────────
@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_url           TEXT,
   username_changes     INTEGER DEFAULT 0,
   username_changed_at  TIMESTAMPTZ,
+  onboarding_complete  BOOLEAN DEFAULT FALSE,
   last_seen_at         TIMESTAMPTZ DEFAULT NOW(),
   created_at           TIMESTAMPTZ DEFAULT NOW()
 );
@@ -56,6 +57,16 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS users_phone    ON users (phone);
 CREATE INDEX IF NOT EXISTS users_device   ON users (device_id);
 CREATE INDEX IF NOT EXISTS users_tier     ON users (tier);
+
+-- ── USER LIKES ───────────────────────────────────
+CREATE TABLE IF NOT EXISTS user_likes (
+  user_id  UUID NOT NULL,
+  flare_id TEXT NOT NULL,
+  liked_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (user_id, flare_id)
+);
+
+CREATE INDEX IF NOT EXISTS user_likes_user ON user_likes (user_id);
 
 -- ── DAILY FLARE COUNT (límite diario Tier 1-2) ──
 CREATE TABLE IF NOT EXISTS user_daily_flares (

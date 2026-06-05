@@ -211,6 +211,33 @@ function saveLiked() { localStorage.setItem('flare_liked', JSON.stringify(likedI
 function hasLiked(id) { return likedIds.indexOf(id) !== -1; }
 function markLiked(id) { if (!hasLiked(id)) { likedIds.push(id); saveLiked(); } }
 
+// Al arrancar en Tier 2+, sincronizar likes desde DB para que funcionen entre dispositivos
+(function() {
+  if (!IDENTITY || !IDENTITY.uid) return;
+  fetch('/api/likes?uid=' + encodeURIComponent(IDENTITY.uid))
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !Array.isArray(data.liked)) return;
+      var changed = false;
+      data.liked.forEach(function(id) {
+        if (likedIds.indexOf(id) === -1) { likedIds.push(id); changed = true; }
+      });
+      if (!changed) return;
+      saveLiked();
+      // Actualizar pins que ya están en memoria para que muestren el corazón marcado
+      if (typeof pins !== 'undefined') {
+        Object.values(pins).forEach(function(pin) {
+          if (hasLiked(pin.id) && !pin.liked) {
+            pin.liked = true;
+            if (typeof refreshPop === 'function') refreshPop(pin);
+            if (typeof refreshMk === 'function') refreshMk(pin, false);
+          }
+        });
+      }
+    })
+    .catch(function() {});
+})();
+
 var reportedIds = JSON.parse(localStorage.getItem('flare_reported') || '[]');
 function hasReported(id) { return reportedIds.indexOf(id) !== -1; }
 function markReported(id) { if (!hasReported(id)) { reportedIds.push(id); localStorage.setItem('flare_reported', JSON.stringify(reportedIds)); } }

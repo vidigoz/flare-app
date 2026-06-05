@@ -14,7 +14,9 @@ export const handler = async (event) => {
     return err(405, "Method not allowed");
   }
 
-  const id = (event.queryStringParameters || {}).id;
+  const p = event.queryStringParameters || {};
+  const id  = p.id;
+  const uid = p.uid || null; // users.id del usuario que da like (opcional, Tier 2+)
   if (!id) return err(400, "id requerido");
 
   try {
@@ -45,6 +47,19 @@ export const handler = async (event) => {
     `;
 
     if (!row) return err(404, "Flare no encontrado o ya expiró");
+
+    // Guardar like en DB para Tier 2+ (para sincronizar entre dispositivos)
+    if (uid) {
+      try {
+        await sql`
+          INSERT INTO user_likes (user_id, flare_id)
+          VALUES (${uid}, ${id})
+          ON CONFLICT DO NOTHING
+        `;
+      } catch (e) {
+        console.error("user_likes insert error:", e.message);
+      }
+    }
 
     return {
       statusCode: 200,

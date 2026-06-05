@@ -22,6 +22,19 @@ function makeMarker(pin){
     refreshPop(pin);
     var el = m.getElement();
     if(el) el.classList.add('mk-open');
+    // Si el usuario aún no tiene like marcado localmente, consultar DB por si acá abrió
+    // desde otro dispositivo o la sync del arranque no había terminado
+    if (!pin.liked && IDENTITY && IDENTITY.uid) {
+      fetch('/api/likes?uid=' + encodeURIComponent(IDENTITY.uid) + '&flare_id=' + encodeURIComponent(pin.id))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          if (!data || !Array.isArray(data.liked) || data.liked.length === 0) return;
+          pin.liked = true;
+          markLiked(pin.id);
+          refreshPop(pin);
+        })
+        .catch(function() {});
+    }
   });
   m.on('popupclose', function(){
     var el = m.getElement();

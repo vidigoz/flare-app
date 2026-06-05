@@ -448,10 +448,14 @@ function compressImage(file, maxPx, quality) {
 
 function doSignOut() {
   if (!window.confirm('¿Cerrar sesión? Tu perfil sigue guardado y podés recuperarlo con tu número.')) return;
-  localStorage.removeItem('flare_identity');
+  // Borrar TODO el localStorage para volver a Tier 1 limpio
+  var keys = ['flare_identity','flare_device_id','flare_uid','flare_first_published',
+              'flare_onboarding_complete','flare_mine','flare_liked','flare_mapmode'];
+  keys.forEach(function(k) { localStorage.removeItem(k); });
   IDENTITY = null;
   notif('Sesión cerrada. Ingresá con tu número para volver.', 'err');
-  renderProfile();
+  // Recargar para generar nuevo device_id y estado limpio
+  setTimeout(function() { window.location.reload(); }, 1500);
 }
 
 /* ── DEV: resetear tier para pruebas ── */
@@ -588,7 +592,6 @@ function doRecoverConfirm() {
         IDENTITY = {
           uid:        res.user.id,
           username:   res.user.username,
-          device_id:  res.user.device_id,
           phone:      res.user.phone,
           tier:       3,
           flares_hoy: 0,
@@ -596,8 +599,27 @@ function doRecoverConfirm() {
           avatar_url: res.user.avatar_url || (IDENTITY && IDENTITY.avatar_url) || null,
         };
         ensureIdentityAvatar(IDENTITY);
-        saveIdentity(IDENTITY);
-        localStorage.setItem('flare_onboarding_complete', '1');
+        // Calcular flares_hoy desde flares vigentes de hoy
+        apiFetch('/api/flares?owner_uid=' + encodeURIComponent(res.user.id))
+          .then(function(flares) {
+            var hoy = new Date().toDateString();
+            var hoyCount = (flares || []).filter(function(f) {
+              return new Date(f.created_at).toDateString() === hoy;
+            }).length;
+            IDENTITY.flares_hoy = hoyCount;
+            IDENTITY.fecha_hoy = hoy;
+            saveIdentity(IDENTITY);
+          }).catch(function() { saveIdentity(IDENTITY); });
+        // Cargar likes del usuario
+        apiFetch('/api/likes?uid=' + encodeURIComponent(res.user.id))
+          .then(function(data) {
+            if (data && data.liked) {
+              localStorage.setItem('flare_liked', JSON.stringify(data.liked));
+            }
+          }).catch(function() {});
+        if (res.user.onboarding_complete) {
+          localStorage.setItem('flare_onboarding_complete', '1');
+        }
       }
       _fbRecoverConfirmation = null;
       var box = document.getElementById('profile-content');

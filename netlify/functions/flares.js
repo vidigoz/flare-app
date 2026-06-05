@@ -297,8 +297,8 @@ export const handler = async (event) => {
           await sql`UPDATE users SET last_seen_at = NOW(), flares_count = flares_count + 1 WHERE id = ${usersId}`;
         } else {
           const [newUser] = await sql`
-            INSERT INTO users (username, device_id, tier, avatar_url, flares_count, last_seen_at)
-            VALUES (${username}, ${deviceId}, 2, ${avatarUrl}, 1, NOW())
+            INSERT INTO users (username, device_id, tier, avatar_url, flares_count, onboarding_complete, last_seen_at)
+            VALUES (${username}, ${deviceId}, 2, ${avatarUrl}, 1, TRUE, NOW())
             RETURNING id
           `;
           usersId = newUser.id;

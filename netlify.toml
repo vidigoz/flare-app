@@ -53,6 +53,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/likes"
+  to = "/.netlify/functions/user-likes"
+  status = 200
+
+[[redirects]]
   from = "/api/support"
   to = "/.netlify/functions/support"
   status = 200

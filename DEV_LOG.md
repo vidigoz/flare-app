@@ -4,6 +4,48 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-05 — Migración completa a users.id como fuente de verdad
+
+### Arquitectura de identidad rediseñada
+- `flares.owner_uid` = `users.id` (UUID permanente) — ya no usa device_id
+- `users.id` es el identificador real del usuario en toda la app
+- `device_id` solo se usa internamente al crear el primer perfil Tier 2 para detectar duplicados
+- `IDENTITY.uid` en localStorage = `users.id` de la DB
+
+### Tier 1 → Tier 2 (primer flare)
+- Al publicar primer flare: sube avatar aleatorio a R2, crea registro en `users` con UUID
+- Backend detecta si ya existe un perfil con ese `device_id` — si existe, devuelve el perfil existente
+- Frontend guarda `IDENTITY.uid = users.id` y restaura `username` y `avatar_url` del perfil existente si aplica
+- `flares.owner_uid = users.id` desde el primer flare
+
+### Tier 2 → Tier 3 (verificación)
+- Backend busca por `users_id` (UUID del Tier 2) y hace `UPDATE SET phone, tier=3`
+- Mismo registro, mismo UUID — solo se agrega phone y cambia tier
+- Si no encuentra el perfil devuelve 404, no crea perfil nuevo
+- Eliminado campo de cambiar username del flujo de verificación
+
+### Recovery (Tier 3 sin localStorage)
+- Busca por phone en `users`, devuelve perfil completo con `id`
+- Frontend guarda `IDENTITY.uid = res.user.id` al recuperar
+
+### Eliminado uso de device_id como identificador
+- `getOwnerUid()` devuelve `IDENTITY.uid`, null si Tier 1
+- `update-username.js` y `update-avatar.js` buscan por `uid`
+- `identity.js` solo acepta GET por `phone`
+- `flares.js` GET Mis Flares solo por `owner_uid` (users.id)
+- `flares.js` POST tier check por `WHERE id = uid`
+- `api.js` eliminadas `postIdentity` y `fetchIdentity`
+- `config.js` eliminado bloque auto-recuperación por device_id
+
+### Pendiente en Neon (migración de flares viejos)
+```sql
+UPDATE flares f SET owner_uid = u.id
+FROM users u
+WHERE f.owner_uid = u.device_id AND f.owner_uid != u.id;
+```
+
+---
+
 ## 2026-06-04 — Tarjeta de perfil en panel lateral y fixes de UI
 
 ### Tarjeta de perfil en panel de flares
