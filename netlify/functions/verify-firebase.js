@@ -80,13 +80,13 @@ export const handler = async (event) => {
         [user] = await sql`
           UPDATE users SET phone = ${phone}, tier = 3, last_seen_at = NOW(), username = ${newUsername}
           WHERE id = ${usersId}
-          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url, onboarding_complete
         `;
       } else {
         [user] = await sql`
           UPDATE users SET phone = ${phone}, tier = 3, last_seen_at = NOW()
           WHERE id = ${usersId}
-          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+          RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url, onboarding_complete
         `;
       }
 
@@ -107,15 +107,17 @@ export const handler = async (event) => {
     // ── CASO 2: Recovery — buscar por phone ──────────────────
     // El usuario no tiene users.id local (borró localStorage o es otro dispositivo)
     const byPhone = await sql`
-      SELECT id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+      SELECT id, username, device_id, tier, phone, flares_count, created_at, avatar_url, onboarding_complete
       FROM users WHERE phone = ${phone} LIMIT 1
     `;
 
     if (byPhone.length) {
       const [user] = await sql`
-        UPDATE users SET last_seen_at = NOW()
+        UPDATE users
+        SET last_seen_at = NOW(),
+            onboarding_complete = CASE WHEN flares_count > 0 THEN TRUE ELSE onboarding_complete END
         WHERE phone = ${phone}
-        RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url
+        RETURNING id, username, device_id, tier, phone, flares_count, created_at, avatar_url, onboarding_complete
       `;
       return ok({ verified: true, user });
     }

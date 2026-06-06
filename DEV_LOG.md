@@ -4,6 +4,30 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-05 — Fix: modal de primer flare aparecía al re-ingresar con número (v1.0.17)
+
+### Problema
+Al cerrar sesión como Tier 3 y volver a ingresar con número de teléfono, aparecía el modal "¡Tu primer flare está en vivo!" aunque el usuario ya había publicado flares antes.
+
+### Causa raíz (dos partes)
+1. `verify-firebase.js` no incluía `onboarding_complete` en los `RETURNING` de los queries SQL — el frontend recibía el campo como `undefined`
+2. El modal de primer flare lo controla `flare_first_published` en localStorage, **no** `flare_onboarding_complete`. Al hacer sign out se borraba `flare_first_published` pero al hacer recovery nunca se restauraba
+
+### Fix en backend (`verify-firebase.js`)
+- Todos los `RETURNING` ahora incluyen `onboarding_complete`
+- El `SELECT` del caso recovery también lo incluye
+- En el UPDATE del caso recovery: si `flares_count > 0` se fuerza `onboarding_complete = TRUE` para corregir usuarios con el flag inconsistente en DB
+
+### Fix en frontend (`profile.js`)
+- Al hacer recovery exitoso, si `res.user.onboarding_complete` es true se setean **ambos** flags en localStorage: `flare_onboarding_complete` y `flare_first_published`
+- Eliminados logs de debug temporales agregados durante el diagnóstico
+
+**Archivos modificados:**
+- `netlify/functions/verify-firebase.js` — RETURNING + onboarding_complete, fix CASE en UPDATE recovery
+- `public/js/profile.js` — setear flare_first_published al hacer recovery
+
+---
+
 ## 2026-06-05 — Sistema de likes persistente en DB, sincronización multi-dispositivo y sección Mis Likes (v1.0.16)
 
 ### Problema raíz identificado

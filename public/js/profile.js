@@ -690,6 +690,7 @@ function doRecoverConfirm() {
     .then(function(res) {
       if (res.error) { errEl.textContent = res.error; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
       if (res.user) {
+        console.log('[recover] res.user recibido:', JSON.stringify(res.user));
         IDENTITY = {
           uid:        res.user.id,
           username:   res.user.username,
@@ -720,6 +721,7 @@ function doRecoverConfirm() {
           }).catch(function() {});
         if (res.user.onboarding_complete) {
           localStorage.setItem('flare_onboarding_complete', '1');
+          localStorage.setItem('flare_first_published', '1');
         }
       }
       _fbRecoverConfirmation = null;
