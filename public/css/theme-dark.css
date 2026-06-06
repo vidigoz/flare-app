@@ -620,6 +620,11 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .profile-username-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); font-family: 'Space Mono',monospace; margin-bottom: 4px; }
 .profile-username-value { font-size: 18px; font-weight: 700; color: var(--neon); font-family: 'Space Mono',monospace; line-height: 1.25; overflow-wrap: anywhere; }
 
+.profile-quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.profile-quick-btn { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all .18s; -webkit-tap-highlight-color: transparent; }
+.profile-quick-btn:active { background: rgba(0,245,160,.08); border-color: var(--neon); }
+.profile-quick-ico { font-size: 22px; line-height: 1; }
+.profile-quick-lbl { font-size: 11px; font-weight: 700; font-family: 'Space Mono',monospace; color: var(--text); }
 .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .profile-stats:has(.profile-stat:only-child) { grid-template-columns: 1fr; }
 .profile-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }

@@ -116,9 +116,15 @@ function renderProfile() {
         '<div class="profile-recover-desc">Ingresa con tu número de celular para recuperar tu perfil en este dispositivo.</div>' +
         '<button class="profile-recover-btn" onclick="showRecoverPhone()">📱 Ingresar con mi número</button>' +
       '</div>'
-    : '<div class="profile-validate" style="border-color:rgba(0,245,160,.3);background:rgba(0,245,160,.06)">' +
-        '<div class="profile-validate-title">✅ Perfil verificado</div>' +
-        '<div class="profile-validate-desc">Tu número está vinculado. Podés recuperar tu perfil en cualquier dispositivo.</div>' +
+    : '<div class="profile-quick-actions">' +
+        '<button class="profile-quick-btn" onclick="closeProfile();closePanel()">' +
+          '<span class="profile-quick-ico">🗺️</span>' +
+          '<span class="profile-quick-lbl">Ir al mapa</span>' +
+        '</button>' +
+        '<button class="profile-quick-btn" onclick="closeProfile();closePanel();setTimeout(function(){document.getElementById(\'fab\').click()},200)">' +
+          '<span class="profile-quick-ico">⚡</span>' +
+          '<span class="profile-quick-lbl">Poner flare</span>' +
+        '</button>' +
       '</div>' +
       '<button class="profile-signout-btn" onclick="doSignOut()">↩ Cerrar sesión</button>') +
     (typeof DEV_DURATION_MODE !== 'undefined' && DEV_DURATION_MODE ?
