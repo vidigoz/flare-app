@@ -4,6 +4,34 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-05 — Refactor de header, filtros y onboarding (v1.0.18)
+
+### Barra de filtros con grupos y logo integrado
+- Logo de Flare movido dentro de `hdr-filters` para que se desplace con el scroll horizontal
+- Logo aumentado 5% (59px → 62px)
+- Chips de categoría ahora se insertan en contenedor fijo `#hdr-cat-chips` en lugar de antes del separador
+- Labels "Categoría" y "Vista" como separadores de texto (`hf-sep-lbl`) en la misma fila
+- Chip "Nombres" cambia ícono de `🏷` a **T** en negrita para diferenciarlo de "Ventas"
+- Letras de chips en blanco (`#fff`) para mejor contraste con el fondo oscuro
+- Labels "Categoría" y "Vista" en blanco total (`opacity:1`)
+
+### Fondo del header
+- Gradiente eliminado, reemplazado por fondo sólido semitransparente `rgba(8,11,18,.7)` con gradiente que se desvanece a partir del 60%
+- Eliminado `box-shadow` del `#pbtn` (botón Ver Flares) que proyectaba un glow negro sobre el mapa
+- Eliminado `box-shadow` del `#panel` que proyectaba sombra desde fuera de la pantalla
+
+### Onboarding — tooltips estáticos con glow
+- Eliminada animación `ob-float` (movimiento flotante arriba/abajo) de los tooltips
+- Nueva animación `ob-glow` — glow verde pulsante estático en tooltips, card de celebración y botón Salir
+- Botón Salir: color verde más vivo (`var(--neon)` al 100%), borde más opaco (`.9`), fondo más visible
+
+**Archivos modificados:**
+- `public/index.html` — logo dentro de hdr-filters, labels de grupo, chip Nombres con T
+- `public/js/map.js` — buildHdrCatChips inserta en #hdr-cat-chips
+- `public/css/theme-dark.css` — header bg, hf-sep-lbl, ob-glow, ob-btn-skip, logo-img, hdr-chip color
+
+---
+
 ## 2026-06-05 — Sección Mis Flares y Mis Likes bloqueada para Tier 1-2 con overlay (v1.0.18)
 
 ### Cambio de UX en perfil para usuarios no verificados

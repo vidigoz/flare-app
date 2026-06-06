@@ -116,8 +116,11 @@ document.querySelectorAll('.hdr-vig').forEach(function(btn){
 
 function buildHdrCatChips(){
   document.querySelectorAll('.hdr-cat').forEach(function(el){ el.remove(); });
-  var sep = document.querySelector('.hf-sep');
-  if(!sep) return;
+  // Insertar antes del segundo hf-sep (el que precede al label "Vista")
+  var seps = document.querySelectorAll('.hf-sep');
+  var insertBefore = seps[1] || null;
+  if(!insertBefore) return;
+  var parent = insertBefore.parentNode;
   CATS.forEach(function(cat){
     var btn = document.createElement('div');
     btn.className = 'hdr-chip hdr-cat' + (activeCat === cat.id ? ' on' : '');
@@ -133,7 +136,7 @@ function buildHdrCatChips(){
       buildHdrCatChips();
       applyVigFilter();
     });
-    sep.parentNode.insertBefore(btn, sep);
+    parent.insertBefore(btn, insertBefore);
   });
 }
 buildHdrCatChips();

@@ -26,20 +26,23 @@
 <div id="map"></div>
 
 <header>
-  <div class="logo">
-    <img src="/icons/flare-logo.png" alt="Flare" class="logo-img">
-  </div>
   <div class="hdr-filters">
+    <!-- Logo -->
+    <img src="/icons/flare-logo.png" alt="Flare" class="logo-img" style="flex-shrink:0;margin-right:4px">
     <!-- Vigencia -->
     <div class="hdr-chip hdr-vig on" id="hf-all" data-vf="all">Todos</div>
     <div class="hdr-chip hdr-vig" id="hf-nuevo" data-vf="nuevo"><span class="hf-dot" style="background:var(--neon)"></span><span class="hf-lbl">Nuevo</span></div>
     <div class="hdr-chip hdr-vig" id="hf-maduro" data-vf="maduro"><span class="hf-dot" style="background:var(--amber)"></span><span class="hf-lbl">Maduro</span></div>
     <div class="hdr-chip hdr-vig" id="hf-exp" data-vf="expirando"><span class="hf-dot" style="background:var(--danger)"></span><span class="hf-lbl">Expirando</span></div>
-    <!-- Separador -->
+    <!-- Separador con label Categoría -->
     <div class="hf-sep"></div>
-    <!-- Clusters -->
+    <div class="hf-sep-lbl">Categoría</div>
+    <!-- Categorías (dinámico) -->
+    <div class="hf-sep"></div>
+    <!-- Separador con label Vista -->
+    <div class="hf-sep-lbl">Vista</div>
     <div class="hdr-chip on" id="cluster-toggle" title="Agrupar flares en clusters">⬡ <span class="hf-lbl">Clusters</span></div>
-    <div class="hdr-chip on" id="toggle-labels" title="Mostrar/ocultar nombres">🏷 <span class="hf-lbl">Nombres</span></div>
+    <div class="hdr-chip on" id="toggle-labels" title="Mostrar/ocultar nombres"><span style="font-weight:900;font-size:16px;line-height:1">T</span> <span class="hf-lbl">Nombres</span></div>
     <div class="hdr-chip on" id="toggle-mapmode" title="Modo día / noche">🌙 <span class="hf-lbl">Noche</span></div>
   </div>
   <div class="hdr-r">

@@ -9,6 +9,8 @@ function obStart(){
   document.getElementById('ob-tip-fab').style.display = 'flex';
   document.getElementById('ob-tip-filters').style.display = 'block';
   document.getElementById('ob-skip-btn').style.display = 'block';
+  var pbtn = document.getElementById('pbtn');
+  if(pbtn) pbtn.classList.add('ob-active');
 }
 
 function obHideTips(){
@@ -22,6 +24,8 @@ function obHideTips(){
 function obComplete(){
   localStorage.setItem('flare_onboarding_complete','1');
   obHideTips();
+  var pbtn = document.getElementById('pbtn');
+  if(pbtn) pbtn.classList.remove('ob-active');
   var wrap = document.getElementById('ob-wrap');
   /* Dejar visible sólo si hay celebración en curso, si no ocultar */
   if(document.getElementById('ob-celebrate').style.display === 'none'){
