@@ -2,5 +2,7 @@
 .env.local
 .netlify/
 node_modules/
-.DS_Store 
+.DS_Store
 DEV_LOG.md
+netlify/functions/*.zip
+netlify/functions/manifest.json
