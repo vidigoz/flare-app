@@ -4,6 +4,23 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-05 — Sección Mis Flares y Mis Likes bloqueada para Tier 1-2 con overlay (v1.0.18)
+
+### Cambio de UX en perfil para usuarios no verificados
+- Eliminada la sección "Desbloquea más funciones" que era redundante con el overlay
+- La sección "¿Ya tienes una cuenta?" sube a ocupar ese espacio
+- Las tabs "📍 Mis Flares" y "❤️ Mis Likes" son visibles para todos los tiers pero bloqueadas con blur para Tier 1-2
+- Sobre el área borrosa aparece un overlay con: ícono 🔒, título "Verifica tu cuenta", descripción "Verifica tu cuenta para administrar tus flares, ver tus likes y publicar sin límite desde cualquier dispositivo." y botón "Verificar por SMS"
+- Al tocar el overlay o el botón se abre directamente `showVerifyPhone()`
+- El contenido borroso muestra placeholders de flares falsos para dar contexto visual de lo que se desbloquea
+- `renderMyFlaresInProfile()` solo se llama si el usuario es Tier 3 — no hace fetch innecesario
+
+**Archivos modificados:**
+- `public/js/profile.js` — estructura de tabs con overlay condicional, placeholders, eliminada sección validate
+- `public/css/theme-dark.css` — estilos `.profile-tabs-wrap`, `.profile-lock-overlay`, `.profile-lock-box`, `.profile-lock-icon`, `.profile-lock-title`, `.profile-lock-desc`
+
+---
+
 ## 2026-06-05 — Fix: modal de primer flare aparecía al re-ingresar con número (v1.0.17)
 
 ### Problema

@@ -111,11 +111,6 @@ function renderProfile() {
       : '') +
     '</div>' +
     (getTier() < 3 ?
-      '<div class="profile-validate">' +
-        '<div class="profile-validate-title">🔒 Desbloquea más funciones</div>' +
-        '<div class="profile-validate-desc">Valida tu perfil con tu número de celular para escoger tu nombre, publicar sin límite y guardar tu perfil de Flare para recuperarlo en cualquier dispositivo.</div>' +
-        '<button class="profile-validate-btn" onclick="showVerifyPhone()">Validar con mi número</button>' +
-      '</div>' +
       '<div class="profile-recover">' +
         '<div class="profile-recover-title">¿Ya tienes una cuenta?</div>' +
         '<div class="profile-recover-desc">Ingresa con tu número de celular para recuperar tu perfil en este dispositivo.</div>' +
@@ -138,21 +133,42 @@ function renderProfile() {
       '</div>'
     : '') +
     '<div class="profile-divider"></div>' +
-    '<div class="profile-tabs">' +
-      '<button class="profile-tab active" id="tab-flares" onclick="switchProfileTab(\'flares\')">📍 Mis Flares</button>' +
-      '<button class="profile-tab" id="tab-likes" onclick="switchProfileTab(\'likes\')">❤️ Mis Likes</button>' +
-    '</div>' +
-    '<div id="tab-flares-content">' +
-      '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
-      '<div id="mine-list-profile"></div>' +
-    '</div>' +
-    '<div id="tab-likes-content" style="display:none">' +
-      '<div class="profile-flares-note">Flares vigentes a los que diste like.</div>' +
-      '<div id="likes-list-profile"></div>' +
+    '<div class="profile-tabs-wrap">' +
+      '<div class="profile-tabs">' +
+        '<button class="profile-tab active" id="tab-flares" onclick="switchProfileTab(\'flares\')">📍 Mis Flares</button>' +
+        '<button class="profile-tab" id="tab-likes" onclick="switchProfileTab(\'likes\')">❤️ Mis Likes</button>' +
+      '</div>' +
+      '<div id="tab-flares-content">' +
+        '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
+        '<div id="mine-list-profile">' +
+        (getTier() < 3
+          ? '<div class="prow profile-flare-row"><div class="prow-hdr"><div class="prow-ico" style="background:#ffffff10;border-color:#ffffff20">📍</div><div class="prow-body"><div class="prow-name" style="background:#ffffff15;color:transparent;border-radius:4px">Flare de ejemplo largo</div><div class="prow-tags"><span class="ptime">⏱ 45 min</span><span class="plikes">❤️ 3</span></div></div></div></div>' +
+            '<div class="prow profile-flare-row"><div class="prow-hdr"><div class="prow-ico" style="background:#ffffff10;border-color:#ffffff20">🍕</div><div class="prow-body"><div class="prow-name" style="background:#ffffff15;color:transparent;border-radius:4px">Otro flare aquí</div><div class="prow-tags"><span class="ptime">⏱ 12 min</span><span class="plikes">❤️ 1</span></div></div></div></div>'
+          : '') +
+        '</div>' +
+      '</div>' +
+      '<div id="tab-likes-content" style="display:none">' +
+        '<div class="profile-flares-note">Flares vigentes a los que diste like.</div>' +
+        '<div id="likes-list-profile">' +
+        (getTier() < 3
+          ? '<div class="prow profile-flare-row"><div class="prow-hdr"><div class="prow-ico" style="background:#ffffff10;border-color:#ffffff20">❤️</div><div class="prow-body"><div class="prow-name" style="background:#ffffff15;color:transparent;border-radius:4px">Flare que likeaste</div><div class="prow-tags"><span class="ptime">⏱ 23 min</span><span class="plikes plikes-active">❤️ 7</span></div></div></div></div>'
+          : '') +
+        '</div>' +
+      '</div>' +
+      (getTier() < 3
+        ? '<div class="profile-lock-overlay" onclick="showVerifyPhone()">' +
+            '<div class="profile-lock-box">' +
+              '<div class="profile-lock-icon">🔒</div>' +
+              '<div class="profile-lock-title">Verifica tu cuenta</div>' +
+              '<div class="profile-lock-desc">Verifica tu cuenta para administrar tus flares, ver tus likes y publicar sin límite desde cualquier dispositivo.</div>' +
+              '<button class="profile-validate-btn" onclick="showVerifyPhone()">Verificar por SMS</button>' +
+            '</div>' +
+          '</div>'
+        : '') +
     '</div>' +
     profileQuickLinks();
 
-  renderMyFlaresInProfile();
+  if (getTier() >= 3) renderMyFlaresInProfile();
 }
 
 function switchProfileTab(tab) {
