@@ -138,12 +138,42 @@ function renderProfile() {
       '</div>'
     : '') +
     '<div class="profile-divider"></div>' +
-    '<div class="profile-section-title">📍 Mis Flares</div>' +
-    '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
-    '<div id="mine-list-profile"></div>' +
+    '<div class="profile-tabs">' +
+      '<button class="profile-tab active" id="tab-flares" onclick="switchProfileTab(\'flares\')">📍 Mis Flares</button>' +
+      '<button class="profile-tab" id="tab-likes" onclick="switchProfileTab(\'likes\')">❤️ Mis Likes</button>' +
+    '</div>' +
+    '<div id="tab-flares-content">' +
+      '<div class="profile-flares-note">Tienes 24 h para republicar un flare antes de que desaparezca.</div>' +
+      '<div id="mine-list-profile"></div>' +
+    '</div>' +
+    '<div id="tab-likes-content" style="display:none">' +
+      '<div class="profile-flares-note">Flares vigentes a los que diste like.</div>' +
+      '<div id="likes-list-profile"></div>' +
+    '</div>' +
     profileQuickLinks();
 
   renderMyFlaresInProfile();
+}
+
+function switchProfileTab(tab) {
+  var floresTab = document.getElementById('tab-flares');
+  var likesTab  = document.getElementById('tab-likes');
+  var floresContent = document.getElementById('tab-flares-content');
+  var likesContent  = document.getElementById('tab-likes-content');
+  if (!floresTab || !likesTab) return;
+
+  if (tab === 'flares') {
+    floresTab.classList.add('active');
+    likesTab.classList.remove('active');
+    floresContent.style.display = '';
+    likesContent.style.display = 'none';
+  } else {
+    likesTab.classList.add('active');
+    floresTab.classList.remove('active');
+    floresContent.style.display = 'none';
+    likesContent.style.display = '';
+    renderMyLikesInProfile();
+  }
 }
 
 function renderMyFlaresInProfile() {
@@ -195,6 +225,72 @@ function renderMyFlaresInProfile() {
           '</div>';
       });
       box.innerHTML = html;
+    })
+    .catch(function() {
+      box.innerHTML = '<div class="pempty">Error al cargar. Intenta de nuevo.</div>';
+    });
+}
+
+function renderMyLikesInProfile() {
+  var box = document.getElementById('likes-list-profile');
+  if (!box) return;
+
+  var uid = IDENTITY && IDENTITY.uid;
+  if (!uid) {
+    box.innerHTML = '<div class="pempty"><div class="pe-ico" style="font-size:24px">❤️</div>No has dado likes todavía.</div>';
+    return;
+  }
+  if (box._loaded) return; // ya cargado en esta sesión del perfil
+  box.innerHTML = '<div class="pempty" style="opacity:.6">Cargando...</div>';
+
+  apiFetch('/api/likes?uid=' + encodeURIComponent(uid))
+    .then(function(data) {
+      var ids = (data && Array.isArray(data.liked)) ? data.liked : [];
+      if (!ids.length) {
+        box.innerHTML = '<div class="pempty"><div class="pe-ico" style="font-size:24px">❤️</div>No has dado likes a ningún flare vigente.</div>';
+        return;
+      }
+      // Buscar los flares vigentes de esos IDs
+      var fetches = ids.slice(0, 50).map(function(fid) {
+        return apiFetch('/api/flares?id=' + encodeURIComponent(fid) + '&uid=' + encodeURIComponent(uid))
+          .catch(function() { return null; });
+      });
+      return Promise.all(fetches).then(function(results) {
+        var vigentes = results.filter(function(r) { return r && r.id; });
+        if (!vigentes.length) {
+          box.innerHTML = '<div class="pempty"><div class="pe-ico" style="font-size:24px">❤️</div>Los flares que likeaste ya expiraron.</div>';
+          return;
+        }
+        var html = '';
+        vigentes.forEach(function(row) {
+          var pin = rowToPin(row);
+          var expiresMs = new Date(pin.expires_at).getTime();
+          var r = Math.max(0, expiresMs - Date.now());
+          var cat = CATS.find(function(c){ return c.id === pin.cat; }) || CATS[0];
+          var bc = r < 10*60*1000 ? 'var(--danger)' : r < 30*60*1000 ? 'var(--amber)' : 'var(--neon)';
+          html +=
+            '<div class="prow profile-flare-row">' +
+              '<div class="prow-hdr">' +
+                '<div class="prow-ico" style="background:' + cat.color + '18;border-color:' + cat.color + '55">' + pin.emoji + '</div>' +
+                (pin.image ? '<img class="prow-thumb" src="' + esc(pin.image) + '" alt="Foto" loading="lazy">' : '') +
+                '<div class="prow-body">' +
+                  (pin.bizName ? '<div class="prow-biz">🏪 ' + esc(pin.bizName) + '</div>' : '') +
+                  '<div class="prow-name">' + esc(pin.title) + '</div>' +
+                  (pin.username ? '<div class="prow-username">@' + esc(pin.username) + '</div>' : '') +
+                  '<div class="prow-tags">' +
+                    '<span class="ptime" style="color:' + bc + '">⏱ ' + fmtT(r) + '</span>' +
+                    '<span class="plikes plikes-active">❤️ ' + pin.likes + '</span>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="profile-flare-actions">' +
+                  '<button class="pd-map" onclick="flyToLikedFlare(\'' + pin.id + '\',' + pin.lat + ',' + pin.lng + ')" title="Ver en mapa">📍 Ver aquí</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+        });
+        box.innerHTML = html;
+        box._loaded = true;
+      });
     })
     .catch(function() {
       box.innerHTML = '<div class="pempty">Error al cargar. Intenta de nuevo.</div>';

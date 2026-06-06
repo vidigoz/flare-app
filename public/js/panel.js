@@ -173,6 +173,37 @@ function renderPanel(){
   };
 }
 
+function flyToLikedFlare(id, lat, lng){
+  closePanel();
+  map.flyTo([lat, lng], 17, {duration:.8});
+  setTimeout(function(){
+    if (pins[id]) {
+      // ya está en memoria — abrir popup directo
+      if(clusterEnabled && clusterGroup.zoomToShowLayer){
+        clusterGroup.zoomToShowLayer(pins[id].marker, function(){ pins[id].marker.openPopup(); });
+      } else {
+        pins[id].marker.openPopup();
+      }
+    } else {
+      // no está en el viewport aún — fetch y agregar al mapa
+      apiFetch('/api/flares?id=' + encodeURIComponent(id))
+        .then(function(row){
+          if(!row) return;
+          var pin = rowToPin(row);
+          pin.marker = makeMarker(pin);
+          pins[pin.id] = pin;
+          applyVigFilter();
+          if(clusterEnabled && clusterGroup.zoomToShowLayer){
+            clusterGroup.zoomToShowLayer(pin.marker, function(){ pin.marker.openPopup(); });
+          } else {
+            pin.marker.openPopup();
+          }
+        })
+        .catch(function(){});
+    }
+  }, 900);
+}
+
 function flyToPin(id){
   var pin = pins[id];
   if(!pin) return;

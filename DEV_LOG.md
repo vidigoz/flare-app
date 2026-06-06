@@ -4,6 +4,87 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-05 — Sistema de likes persistente en DB, sincronización multi-dispositivo y sección Mis Likes (v1.0.16)
+
+### Problema raíz identificado
+Los likes se guardaban únicamente en `localStorage` (`flare_liked`). Al cambiar de dispositivo o cerrar sesión, el historial de likes se perdía. Además, el estado del botón like (❤️ / 🤍) se calculaba solo a partir de datos locales, sin consultar la DB.
+
+### Fix: INSERT en user_likes con await (`like.js`)
+- El `INSERT INTO user_likes` era fire-and-forget sin `await` — si fallaba se tragaba silenciosamente
+- Ahora usa `await` con `try/catch` que loguea el error en consola
+- Garantiza que si el like no se guarda en DB, al menos queda registrado en logs
+
+### Sincronización masiva de likes al arrancar (`config.js`)
+- Al iniciar la app en Tier 2 o Tier 3 (`IDENTITY.uid` presente), se hace GET a `/api/likes?uid=X`
+- Los IDs devueltos se fusionan con `likedIds` en memoria y se persisten en `localStorage`
+- Si los flares ya están en `pins[]`, se actualiza `pin.liked = true` y se llama `refreshPop()` para marcar el corazón visualmente de inmediato
+- Cubre el caso de dispositivo nuevo donde `localStorage` está vacío pero la DB tiene el historial
+
+### Verificación puntual al abrir popup del mapa (`markers.js`)
+- En el evento `popupopen`, si `pin.liked` es `false` y hay sesión activa, se consulta `/api/likes?uid=X&flare_id=Y`
+- Si la DB confirma el like, actualiza `pin.liked`, llama `markLiked()` y re-renderiza el popup
+- Cubre el race condition donde los flares llegan antes que termine la sync masiva del arranque
+
+### Verificación puntual al expandir en panel lateral (`panel.js`)
+- Al expandir un flare en la barra lateral, si `pin.liked` es `false` y hay sesión activa, hace la misma consulta puntual
+- Garantiza que ambas vistas (popup y panel) muestran el estado correcto del like
+
+### Endpoint user-likes con filtro por flare_id (`user-likes.js`)
+- GET `/api/likes` acepta parámetro opcional `flare_id` para consultar un solo registro
+- Sin `flare_id`: devuelve todos los likes del usuario (hasta 500) — para sync masiva
+- Con `flare_id`: devuelve solo ese registro — para verificación puntual al abrir popup/panel (query barata, una sola fila)
+
+### GET /api/flares con JOIN a user_likes (`flares.js`)
+- El GET acepta parámetro opcional `uid`
+- Cuando viene `uid`, todos los queries (bbox, por id, por owner_uid) hacen LEFT JOIN con `user_likes`
+- Devuelve campo `user_liked: true/false` en cada fila
+- `fetchFlares` en frontend manda `uid` si hay sesión activa
+- `rowToPin` y `reconcilePins` usan `row.user_liked || hasLiked(row.id)` — DB tiene prioridad, localStorage es fallback
+
+### Flujo de doLike invertido: DB primero (`interactions.js`)
+- Antes: optimistic update — se marcaba el like en UI y localStorage inmediatamente, luego llamaba al backend
+- Ahora: primero llama al backend, solo si confirma se actualiza `pin.liked`, `pin.likes`, `pin.expires_at` y `markLiked()`
+- Si el backend falla por cualquier razón (no solo 429), el like NO se guarda en localStorage ni se muestra en UI
+- Flag `pin._liking` y botón deshabilitado durante la petición para evitar doble tap
+- Rollback limpio en caso de error 429 con mensaje al usuario
+
+### Fix: cerrar sesión limpia likes en memoria (`profile.js`)
+- `doSignOut` ahora limpia `likedIds = []` en memoria además de borrar `flare_liked` del localStorage
+- También itera todos los `pins` en memoria y setea `pin.liked = false`
+- Evita que likes del usuario anterior aparezcan en Tier 1 durante el segundo y medio antes del reload
+
+### Sección "Mis Likes" en perfil (`profile.js`, `theme-dark.css`)
+- Nuevo par de tabs "📍 Mis Flares" / "❤️ Mis Likes" reemplaza el título estático
+- Tab activo resaltado con borde y fondo verde neón
+- `renderMyLikesInProfile()`: carga IDs desde `/api/likes?uid=X`, luego hace fetch individual de cada flare por ID para obtener solo los vigentes
+- Muestra título, @username del autor, tiempo restante, contador de likes y botón "📍 Ver aquí"
+- "Ver aquí" usa `flyToLikedFlare(id, lat, lng)` — no depende de que el pin esté en memoria
+
+### Función flyToLikedFlare (`panel.js`)
+- Cierra el panel y vuela al mapa a las coordenadas exactas del flare
+- Si el pin ya está en `pins[]` (estaba en viewport) → abre popup directo
+- Si no está en memoria (fuera del viewport) → hace fetch por ID, crea el marker, lo agrega al mapa y abre popup
+- Mismo comportamiento que los deep links por hash (`#flare-ID`)
+
+### Ignorar artefactos de Netlify CLI (`.gitignore`)
+- Agregado `netlify/functions/*.zip` y `netlify/functions/manifest.json` al `.gitignore`
+- Estos archivos los genera Netlify CLI localmente al buildear, no deben versionarse
+
+**Archivos modificados:**
+- `netlify/functions/like.js` — await en INSERT user_likes
+- `netlify/functions/user-likes.js` — nuevo archivo, soporte filtro por flare_id
+- `netlify/functions/flares.js` — LEFT JOIN user_likes cuando viene uid
+- `public/js/config.js` — sync masiva de likes al arrancar
+- `public/js/api.js` — manda uid en fetchFlares, usa row.user_liked
+- `public/js/interactions.js` — doLike espera confirmación DB antes de actualizar UI
+- `public/js/markers.js` — verificación puntual en popupopen
+- `public/js/panel.js` — verificación puntual al expandir, flyToLikedFlare
+- `public/js/profile.js` — tabs Mis Flares/Mis Likes, renderMyLikesInProfile, fix signout
+- `public/css/theme-dark.css` — estilos profile-tab
+- `.gitignore` — ignorar zips y manifest de Netlify CLI
+
+---
+
 ## 2026-06-05 — Migración completa a users.id como fuente de verdad
 
 ### Arquitectura de identidad rediseñada

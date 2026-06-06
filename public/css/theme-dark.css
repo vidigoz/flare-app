@@ -661,6 +661,9 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .profile-divider { height: 0.5px; background: var(--border); margin: 16px 0 12px; }
 .profile-section-title { font-size: 12px; font-weight: 700; color: var(--dim); font-family: 'Space Mono',monospace; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
 .profile-flares-note { font-size: 10px; font-family: 'Space Mono',monospace; color: var(--dim); opacity: .6; line-height: 1.5; margin-bottom: 10px; }
+.profile-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.profile-tab { flex: 1; padding: 8px 0; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; color: var(--dim); font-size: 12px; font-weight: 700; font-family: 'Space Mono',monospace; cursor: pointer; transition: all .18s; }
+.profile-tab.active { border-color: var(--neon); color: var(--neon); background: rgba(0,245,160,.08); }
 .profile-flare-expired .prow-ico,
 .profile-flare-expired .prow-thumb,
 .profile-flare-expired .prow-body { opacity: .45; filter: grayscale(1); }
