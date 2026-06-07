@@ -26,30 +26,46 @@
 <div id="map"></div>
 
 <header>
-  <div class="hdr-filters">
-    <!-- Logo -->
-    <img src="/icons/flare-logo.png" alt="Flare" class="logo-img" style="flex-shrink:0;margin-right:4px">
-    <!-- Vigencia -->
-    <div class="hdr-chip hdr-vig on" id="hf-all" data-vf="all">Todos</div>
-    <div class="hdr-chip hdr-vig" id="hf-nuevo" data-vf="nuevo"><span class="hf-dot" style="background:var(--neon)"></span><span class="hf-lbl">Nuevo</span></div>
-    <div class="hdr-chip hdr-vig" id="hf-maduro" data-vf="maduro"><span class="hf-dot" style="background:var(--amber)"></span><span class="hf-lbl">Maduro</span></div>
-    <div class="hdr-chip hdr-vig" id="hf-exp" data-vf="expirando"><span class="hf-dot" style="background:var(--danger)"></span><span class="hf-lbl">Expirando</span></div>
-    <!-- Separador con label Categoría -->
-    <div class="hf-sep"></div>
-    <div class="hf-sep-lbl">Categoría</div>
-    <!-- Categorías (dinámico) -->
-    <div class="hf-sep"></div>
-    <!-- Separador con label Vista -->
-    <div class="hf-sep-lbl">Vista</div>
-    <div class="hdr-chip on" id="cluster-toggle" title="Agrupar flares en clusters">⬡ <span class="hf-lbl">Clusters</span></div>
-    <div class="hdr-chip on" id="toggle-labels" title="Mostrar/ocultar nombres"><span style="font-weight:900;font-size:16px;line-height:1">T</span> <span class="hf-lbl">Nombres</span></div>
-    <div class="hdr-chip on" id="toggle-mapmode" title="Modo día / noche">🌙 <span class="hf-lbl">Noche</span></div>
+  <div class="hdr-left">
+    <img src="/icons/flare-logo.png" alt="Flare" class="logo-img">
+    <button class="hdr-filter-btn" id="hdr-filter-btn" onclick="toggleFilterDrawer()">
+      <span class="hdr-filter-ico">🎛️</span>
+      <span class="hdr-filter-lbl">Filtros</span>
+      <span class="hdr-filter-badge" id="hdr-filter-badge" style="display:none"></span>
+    </button>
   </div>
   <div class="hdr-r">
     <div class="spill" id="hint">📍 Toca el mapa para poner tu flare</div>
     <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
   </div>
 </header>
+
+<!-- Filter Drawer -->
+<div class="fdr-overlay" id="fdr-overlay" onclick="closeFilterDrawer()"></div>
+<div class="fdr" id="fdr">
+  <div class="fdr-section">
+    <div class="fdr-lbl">Vigencia</div>
+    <div class="fdr-row">
+      <div class="hdr-chip hdr-vig on" id="hf-all" data-vf="all">Todos</div>
+      <div class="hdr-chip hdr-vig" id="hf-nuevo" data-vf="nuevo"><span class="hf-dot" style="background:var(--neon)"></span> Nuevo</div>
+      <div class="hdr-chip hdr-vig" id="hf-maduro" data-vf="maduro"><span class="hf-dot" style="background:var(--amber)"></span> Maduro</div>
+      <div class="hdr-chip hdr-vig" id="hf-exp" data-vf="expirando"><span class="hf-dot" style="background:var(--danger)"></span> Expirando</div>
+    </div>
+  </div>
+  <div class="fdr-section">
+    <div class="fdr-lbl">Categoría</div>
+    <div class="fdr-row" id="hdr-cat-chips"></div>
+  </div>
+  <button class="fdr-reset-btn" onclick="resetFilters()">↺ Reiniciar filtros</button>
+  <div class="fdr-section">
+    <div class="fdr-lbl">Vista</div>
+    <div class="fdr-row">
+      <div class="hdr-chip on" id="cluster-toggle">⬡ Clusters</div>
+      <div class="hdr-chip on" id="toggle-labels"><span style="font-weight:900;font-size:16px;line-height:1">T</span> Nombres</div>
+      <div class="hdr-chip on" id="toggle-mapmode">🌙 Noche</div>
+    </div>
+  </div>
+</div>
 
 <div id="fab-wrap">
   <div id="fab-menu">

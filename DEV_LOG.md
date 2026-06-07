@@ -4,6 +4,85 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-07 — Filter Drawer: reemplazo de barra horizontal de filtros (v1.1.0)
+
+### Motivación
+La barra horizontal de filtros ocupaba espacio permanente y era difícil de usar en móvil. Se reemplazó por un botón "🎛️ Filtros" en el header que despliega un drawer que baja desde arriba con todos los filtros organizados por sección.
+
+### Nuevo header simplificado
+- Header queda solo con: logo + botón "🎛️ Filtros" + indicador de sync
+- Botón `#hdr-filter-btn` con badge rosa en la esquina superior derecha que muestra cuántos filtros activos hay (vigencia + categoría)
+- Badge se oculta automáticamente cuando no hay filtros activos
+- Botón toma clase `.active` (borde verde) mientras el drawer está abierto
+
+### Filter Drawer (`#fdr`)
+- Panel que baja con animación `translateY(-110%) → 0` con cubic-bezier suave
+- Fondo `rgba(8,11,18,.40)` — semitransparente, el mapa se ve difuminado detrás
+- `backdrop-filter: blur(24px)` — efecto glassmorphism sobre el mapa
+- Overlay invisible `#fdr-overlay` cubre el mapa para cerrar al tocar fuera
+- Se cierra al tocar el overlay o al volver a presionar el botón Filtros
+- 3 secciones: **Vigencia** (Todos / Nuevo / Maduro / Expirando), **Categoría** (chips dinámicos por CATS), **Vista** (Clusters / Nombres / Noche)
+
+### Botón "↺ Reiniciar filtros"
+- Aparece entre la sección Categoría y Vista
+- Resetea `vigFilter = 'all'` y `activeCat = null` y llama `applyVigFilter()`
+- NO toca clusters, nombres ni modo día/noche — esos son preferencias de vista del usuario
+- Estilo discreto: borde y texto semi-transparentes, se ilumina al tap
+
+### Funciones nuevas en map.js
+- `toggleFilterDrawer()` — abre/cierra el drawer y sincroniza clase `.active` del botón
+- `closeFilterDrawer()` — cierra sin toggle
+- `resetFilters()` — reinicia vigencia y categoría
+- `updateFilterBadge()` — actualiza el número en el badge del botón; se llama al final de `applyVigFilter()`
+- `buildHdrCatChips()` actualizado: ahora inserta en `#hdr-cat-chips` dentro del drawer
+
+**Archivos modificados:**
+- `public/index.html` — nuevo header simplificado, drawer con 3 secciones y botón reiniciar
+- `public/js/map.js` — toggleFilterDrawer, closeFilterDrawer, resetFilters, updateFilterBadge, buildHdrCatChips refactorizado
+- `public/css/theme-dark.css` — estilos .hdr-left, .hdr-filter-btn, .hdr-filter-badge, .fdr, .fdr-overlay, .fdr-section, .fdr-lbl, .fdr-row, .fdr-reset-btn; eliminados .hdr-filters, .hf-sep, .hf-sep-lbl
+
+---
+
+## 2026-06-07 — Compresión de imagen en cliente + botones Galería/Cámara para móvil (v1.1.0)
+
+### Problema
+Fotos tomadas con cámara Android (8-15MP, 4-10MB) reventaban el límite de 6MB de Netlify Functions al convertirse a base64, causando que las imágenes nunca se subieran silenciosamente en móvil.
+
+### Compresión canvas antes de subir (`modal.js`)
+- `fileToDataUrl()` ya no hace `readAsDataURL` directo — primero dibuja en canvas
+- Redimensiona a máximo 1920px manteniendo aspect ratio
+- Convierte a JPEG con calidad 0.82 — una foto de 8MB queda ~300-600KB
+- Elimina el límite práctico de tamaño para fotos de celular
+
+### Dos botones separados: Galería y Cámara
+- `#f-img` — input sin `capture`, abre galería de fotos
+- `#f-img-cam` — input con `capture="environment"`, abre cámara trasera directo en Android/iOS
+- En desktop ambos abren el selector de archivos del sistema (sin cámara física)
+- `_selectedImageFile` — variable interna para trackear qué input tiene el archivo activo
+- `accept="image/*"` en ambos inputs — más compatible con iOS/Android que tipos MIME específicos
+- `validateImageFile()` — agregado soporte `image/heic` / `image/heif` (formato nativo iPhone/Android); eliminada validación de tamaño (obsoleta con compresión)
+
+**Archivos modificados:**
+- `public/index.html` — dos inputs + dos botones con grid 2 columnas
+- `public/js/modal.js` — compresión canvas, dos inputs, _selectedImageFile
+- `public/css/theme-dark.css` — .media-pick-btns grid 2 columnas
+
+---
+
+## 2026-06-06 — Botones de acción rápida en perfil Tier 3 (v1.1.0)
+
+### Cambio de UX
+Reemplazado el cuadro estático "✅ Perfil verificado" en el perfil Tier 3 por dos botones de acción rápida en grid 2 columnas.
+
+- **🗺️ Ir al mapa** — `closeProfile() + closePanel()` — cierra el perfil y regresa al mapa directamente
+- **⚡ Poner flare** — `closeProfile() + closePanel() + fab.click()` con delay 200ms — abre el FAB menu desplegable (Mi ubicación / Elegir en mapa), mismo flujo que el botón + del mapa
+
+**Archivos modificados:**
+- `public/js/profile.js` — reemplazado bloque profile-validate por .profile-quick-actions
+- `public/css/theme-dark.css` — estilos .profile-quick-actions, .profile-quick-btn, .profile-quick-ico, .profile-quick-lbl
+
+---
+
 ## 2026-06-05 — Refactor de header, filtros y onboarding (v1.0.18)
 
 ### Barra de filtros con grupos y logo integrado

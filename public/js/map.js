@@ -64,6 +64,7 @@ function applyVigFilter(){
   });
 
   buildHdrCatChips();
+  updateFilterBadge();
   refreshBadge();
   if(panelOpen){ buildChips(); renderPanel(); }
 }
@@ -115,31 +116,73 @@ document.querySelectorAll('.hdr-vig').forEach(function(btn){
 });
 
 function buildHdrCatChips(){
-  document.querySelectorAll('.hdr-cat').forEach(function(el){ el.remove(); });
-  // Insertar antes del segundo hf-sep (el que precede al label "Vista")
-  var seps = document.querySelectorAll('.hf-sep');
-  var insertBefore = seps[1] || null;
-  if(!insertBefore) return;
-  var parent = insertBefore.parentNode;
+  var container = document.getElementById('hdr-cat-chips');
+  if(!container) return;
+  container.innerHTML = '';
   CATS.forEach(function(cat){
     var btn = document.createElement('div');
     btn.className = 'hdr-chip hdr-cat' + (activeCat === cat.id ? ' on' : '');
     btn.dataset.cat = cat.id;
     btn.title = cat.lbl;
-    btn.innerHTML = cat.icon + '<span class="hf-lbl"> ' + cat.lbl + '</span>';
+    btn.innerHTML = cat.icon + ' ' + cat.lbl.replace('\n',' ');
     if(activeCat === cat.id){
       btn.style.borderColor = cat.color;
       btn.style.background  = cat.color + '33';
+      btn.style.color       = cat.color;
     }
     btn.addEventListener('click', function(){
       activeCat = (activeCat === cat.id) ? null : cat.id;
       buildHdrCatChips();
       applyVigFilter();
     });
-    parent.insertBefore(btn, insertBefore);
+    container.appendChild(btn);
   });
+  updateFilterBadge();
 }
 buildHdrCatChips();
+
+/* ── Filter Drawer ── */
+function toggleFilterDrawer(){
+  var fdr = document.getElementById('fdr');
+  var overlay = document.getElementById('fdr-overlay');
+  var btn = document.getElementById('hdr-filter-btn');
+  var isOpen = fdr.classList.contains('on');
+  if(isOpen){
+    fdr.classList.remove('on');
+    overlay.classList.remove('on');
+    btn.classList.remove('active');
+  } else {
+    fdr.classList.add('on');
+    overlay.classList.add('on');
+    btn.classList.add('active');
+  }
+}
+
+function closeFilterDrawer(){
+  document.getElementById('fdr').classList.remove('on');
+  document.getElementById('fdr-overlay').classList.remove('on');
+  document.getElementById('hdr-filter-btn').classList.remove('active');
+}
+
+function resetFilters(){
+  vigFilter = 'all';
+  activeCat = null;
+  applyVigFilter();
+}
+
+function updateFilterBadge(){
+  var badge = document.getElementById('hdr-filter-badge');
+  if(!badge) return;
+  var count = 0;
+  if(vigFilter !== 'all') count++;
+  if(activeCat !== null) count++;
+  if(count > 0){
+    badge.textContent = count;
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
 
 /* ── Cluster toggle ── */
 document.getElementById('cluster-toggle').addEventListener('click', function(){
