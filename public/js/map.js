@@ -142,26 +142,47 @@ function buildHdrCatChips(){
 buildHdrCatChips();
 
 /* ── Filter Drawer ── */
+var _fdrTouchHandler = null;
+
 function toggleFilterDrawer(){
+  var fdr = document.getElementById('fdr');
+  var isOpen = fdr.classList.contains('on');
+  if(isOpen){ closeFilterDrawer(); } else { openFilterDrawer(); }
+}
+
+function openFilterDrawer(){
   var fdr = document.getElementById('fdr');
   var overlay = document.getElementById('fdr-overlay');
   var btn = document.getElementById('hdr-filter-btn');
-  var isOpen = fdr.classList.contains('on');
-  if(isOpen){
-    fdr.classList.remove('on');
-    overlay.classList.remove('on');
-    btn.classList.remove('active');
-  } else {
-    fdr.classList.add('on');
-    overlay.classList.add('on');
-    btn.classList.add('active');
-  }
+  fdr.classList.add('on');
+  overlay.classList.add('on');
+  btn.classList.add('active');
+  // bloquear zoom del navegador mientras el drawer está abierto
+  document.querySelector('meta[name=viewport]').setAttribute('content',
+    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+  // cualquier toque fuera del drawer lo cierra
+  _fdrTouchHandler = function(e){
+    if(!fdr.contains(e.target) && e.target !== btn && !btn.contains(e.target)){
+      closeFilterDrawer();
+    }
+  };
+  setTimeout(function(){ document.addEventListener('touchstart', _fdrTouchHandler, {passive:true}); }, 50);
 }
 
 function closeFilterDrawer(){
-  document.getElementById('fdr').classList.remove('on');
-  document.getElementById('fdr-overlay').classList.remove('on');
-  document.getElementById('hdr-filter-btn').classList.remove('active');
+  var fdr = document.getElementById('fdr');
+  var overlay = document.getElementById('fdr-overlay');
+  var btn = document.getElementById('hdr-filter-btn');
+  fdr.classList.remove('on');
+  overlay.classList.remove('on');
+  btn.classList.remove('active');
+  // restaurar viewport normal
+  document.querySelector('meta[name=viewport]').setAttribute('content',
+    'width=device-width, initial-scale=1.0, viewport-fit=cover');
+  if(_fdrTouchHandler){
+    document.removeEventListener('touchstart', _fdrTouchHandler);
+    _fdrTouchHandler = null;
+  }
 }
 
 function resetFilters(){
@@ -272,10 +293,6 @@ loadLeaflet(function(){
       clusterGroup = L.layerGroup();
     }
     map.addLayer(clusterGroup);
-
-    map.on('movestart zoomstart click', function(){
-      closeFilterDrawer();
-    });
 
     map.on('moveend zoomend', function(){
       refreshBadge();
