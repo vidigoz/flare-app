@@ -273,6 +273,10 @@ loadLeaflet(function(){
     }
     map.addLayer(clusterGroup);
 
+    map.on('movestart zoomstart click', function(){
+      closeFilterDrawer();
+    });
+
     map.on('moveend zoomend', function(){
       refreshBadge();
       if(panelOpen){ buildChips(); renderPanel(); }
