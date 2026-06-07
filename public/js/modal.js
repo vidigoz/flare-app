@@ -110,26 +110,31 @@ function closeModal(){
 document.getElementById('modal-x').addEventListener('click', closeModal);
 document.getElementById('mover').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
-var mediaInput = document.getElementById('f-img');
-var mediaRemove = document.getElementById('media-remove');
-if (mediaInput) mediaInput.addEventListener('change', handleImagePicked);
-if (mediaRemove) mediaRemove.addEventListener('click', resetImagePicker);
+var mediaInput    = document.getElementById('f-img');
+var mediaInputCam = document.getElementById('f-img-cam');
+var mediaRemove   = document.getElementById('media-remove');
+if (mediaInput)    mediaInput.addEventListener('change', function(){ handleImagePicked(mediaInput); });
+if (mediaInputCam) mediaInputCam.addEventListener('change', function(){ handleImagePicked(mediaInputCam); });
+if (mediaRemove)   mediaRemove.addEventListener('click', resetImagePicker);
+
+document.getElementById('media-btn-gallery').addEventListener('click', function(){ mediaInput.click(); });
+document.getElementById('media-btn-camera').addEventListener('click', function(){ mediaInputCam.click(); });
+
+var _selectedImageFile = null;
 
 function getSelectedImageFile(){
-  var input = document.getElementById('f-img');
-  return input && input.files && input.files[0] ? input.files[0] : null;
+  return _selectedImageFile;
 }
 
 function validateImageFile(file){
   if (!file) return null;
-  var okTypes = ['image/jpeg','image/png','image/webp'];
-  if (okTypes.indexOf(file.type) === -1) return 'Usa una imagen JPG, PNG o WebP.';
-  if (file.size > MEDIA_MAX_BYTES) return 'La foto debe pesar máximo 3 MB.';
+  var okTypes = ['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+  if (okTypes.indexOf(file.type) === -1 && file.type !== '') return 'Usa una imagen JPG, PNG o WebP.';
   return null;
 }
 
-function handleImagePicked(){
-  var file = getSelectedImageFile();
+function handleImagePicked(input){
+  var file = input && input.files && input.files[0] ? input.files[0] : null;
   if (!file) { resetImagePicker(); return; }
   var err = validateImageFile(file);
   if (err) { notif(err, 'err'); resetImagePicker(); return; }
@@ -139,26 +144,48 @@ function handleImagePicked(){
   document.getElementById('media-preview-img').src = mediaPreviewObjectUrl;
   document.getElementById('media-preview-name').textContent = file.name || 'Foto seleccionada';
   document.getElementById('media-preview').style.display = 'flex';
+  _selectedImageFile = file;
 }
 
 function resetImagePicker(){
-  var input = document.getElementById('f-img');
+  if (mediaInput) mediaInput.value = '';
+  if (mediaInputCam) mediaInputCam.value = '';
   var preview = document.getElementById('media-preview');
   var img = document.getElementById('media-preview-img');
-  if (input) input.value = '';
   if (preview) preview.style.display = 'none';
   if (img) img.removeAttribute('src');
   if (mediaPreviewObjectUrl) {
     URL.revokeObjectURL(mediaPreviewObjectUrl);
     mediaPreviewObjectUrl = null;
   }
+  _selectedImageFile = null;
 }
+
+var COMPRESS_MAX_PX = 1920;
+var COMPRESS_QUALITY = 0.82;
 
 function fileToDataUrl(file){
   return new Promise(function(resolve, reject){
     var reader = new FileReader();
-    reader.onload = function(){ resolve(reader.result); };
     reader.onerror = function(){ reject(new Error('No se pudo leer la imagen.')); };
+    reader.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ reject(new Error('No se pudo procesar la imagen.')); };
+      img.onload = function(){
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (w > COMPRESS_MAX_PX || h > COMPRESS_MAX_PX) {
+          var ratio = Math.min(COMPRESS_MAX_PX / w, COMPRESS_MAX_PX / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', COMPRESS_QUALITY));
+      };
+      img.src = reader.result;
+    };
     reader.readAsDataURL(file);
   });
 }
