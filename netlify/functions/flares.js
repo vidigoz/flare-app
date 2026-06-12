@@ -36,17 +36,20 @@ export const handler = async (event) => {
 
       /* Fetch por ID directo — para deep links */
       if (p.id) {
+        const ghost = p.ghost === '1';
         const rows = uid
           ? await sql`
               SELECT f.*, (ul.user_id IS NOT NULL) AS user_liked
               FROM flares f
               LEFT JOIN user_likes ul ON ul.flare_id = f.id AND ul.user_id = ${uid}
-              WHERE f.id = ${p.id} AND f.expires_at > NOW() AND f.hidden = FALSE
+              WHERE f.id = ${p.id} AND f.hidden = FALSE
+                AND (${ghost} OR f.expires_at > NOW())
               LIMIT 1
             `
           : await sql`
               SELECT * FROM flares
-              WHERE id = ${p.id} AND expires_at > NOW() AND hidden = FALSE
+              WHERE id = ${p.id} AND hidden = FALSE
+                AND (${ghost} OR expires_at > NOW())
               LIMIT 1
             `;
         return {

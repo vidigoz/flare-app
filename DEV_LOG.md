@@ -4,6 +4,52 @@ Registro cronológico de implementaciones y cambios realizados en el proyecto, r
 
 ---
 
+## 2026-06-11 — Flare Fantasma en deep links + ajustes de UX
+
+### Motivación
+Cuando alguien compartía un flare y el destinatario abría el link después de que el flare expiraba, llegaba a un mapa vacío con un mensaje de error. La experiencia era confusa — parecía un bug. Se implementó el concepto de "flare fantasma": el flare expirado se muestra en modo solo-lectura, grisado y sin interacción, para que el usuario entienda qué había ahí y pueda explorar el mapa.
+
+### Backend — `netlify/functions/flares.js`
+- El endpoint `GET /api/flares?id=` ahora acepta el parámetro `?ghost=1`
+- Con `ghost=1` la query no filtra por `expires_at > NOW()`, devolviendo el flare aunque haya expirado
+- Sin `ghost=1` el comportamiento es idéntico al anterior (solo flares activos)
+
+### Frontend — `public/js/api.js`
+- `startPoll()` ahora pide el flare de deep link con `&ghost=1`
+- Detecta si el flare recibido está expirado comparando `expires_at` con `Date.now()`
+- Si está expirado: crea un pin fantasma temporal (solo en memoria, no se guarda en DB) y lo muestra con `makeGhostMarker()`
+- Si está activo: comportamiento original
+- Nueva función `flyToPin(lat, lng)` — vuela al pin con `map.flyTo`
+- Nueva función `panForPopup(lat, lng)` — después de abrir el popup, hace `panTo` con offset de 220px hacia arriba para que el popup quede centrado visualmente en pantalla en lugar de cortarse arriba
+
+### Marcador y popup fantasma — `public/js/markers.js`
+- `ghostMarkerHTML(pin)` — genera el HTML del marcador en escala de grises, sin animaciones, opacidad 0.5
+- `makeGhostMarker(pin)` — crea el marker Leaflet con `zIndexOffset:-1000` y lo añade directamente al `map` (no al cluster), con popup ghost
+- `ghostPopHTML(pin)` — popup especial con: banner "⏱ Expirado", título y negocio desaturados, texto e imagen del flare (si tenía) con opacidad reducida, mensaje "Este flare ya no está activo. Explora lo que hay cerca ahora 👇"
+- El fantasma vive solo durante la sesión — al recargar desaparece; otros usuarios nunca lo ven
+
+### CSS — `public/css/theme-dark.css`
+- `.mk-ghost` — marcador grisado, sin animación de pulso ni glow
+- `.pop-ghost-banner` — chip compacto "⏱ Expirado" con margen para no tapar la X
+- `.pop-ghost-msg` — mensaje de cierre en gris sutil
+- Mejora de visibilidad del botón X del popup: más grande y más claro
+
+### Otros ajustes
+- Schedule del seed automático cambiado a `0 15 * * *` (8am hora Tecate, UTC-7)
+- Meta description actualizada a "Descubre y publica lo que pasa cerca de ti."
+- Onboarding: primer tip ahora dice "¡Hola Explorador! Publica y encuentra lo que sucede en tu localidad"
+- Caja del onboarding ensanchada de `max-width:196px` a `max-width:240px` para acomodar el texto sin aumentar altura
+
+**Archivos modificados:**
+- `netlify/functions/flares.js` — soporte para `?ghost=1` en fetch por ID
+- `netlify/functions/seed-scheduled.mjs` — schedule actualizado a 8am UTC-7
+- `public/js/api.js` — lógica de flare fantasma, flyToPin, panForPopup
+- `public/js/markers.js` — ghostMarkerHTML, makeGhostMarker, ghostPopHTML
+- `public/css/theme-dark.css` — estilos ghost, mejora X del popup, ensanche onboarding
+- `public/index.html` — meta description y texto onboarding
+
+---
+
 ## 2026-06-07 — Filter Drawer: reemplazo de barra horizontal de filtros (v1.1.0)
 
 ### Motivación

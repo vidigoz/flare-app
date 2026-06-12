@@ -2,8 +2,9 @@
 
 function mkHTML(pin, state, born){
   var dying = state === 'dying';
-  var c = dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
-  var cls = 'mk' + (dying ? ' mk-dying' : state === 'revived' ? ' mk-revived' : '') + (born ? ' mk-born' : '');
+  var ghost = state === 'ghost';
+  var c = ghost ? '#888' : dying ? 'var(--danger)' : (pin.catColor || 'var(--neon)');
+  var cls = 'mk' + (dying ? ' mk-dying' : state === 'revived' ? ' mk-revived' : ghost ? ' mk-ghost' : '') + (born ? ' mk-born' : '');
   var label = pin.bizName ? '<div class="mk-label">'+esc(pin.bizName)+'</div>' : '';
   return '<div class="'+cls+'">'+label+'<div class="mk-b" style="color:'+c+';border-color:'+c+';box-shadow:0 0 18px '+c+'55,0 4px 16px rgba(0,0,0,.5)"><span class="mk-e">'+pin.emoji+'</span><div class="mk-r" style="border-color:'+c+'44"></div></div></div>';
 }
@@ -95,6 +96,43 @@ function popHTML(pin){
     +'<div class="pop-id" onclick="navigator.clipboard.writeText(\''+pin.id+'\').then(function(){var el=document.querySelector(\'.pop-id[data-id=\\\'' +pin.id+ '\\\']\');if(el){el.textContent=\'✓ copiado\';setTimeout(function(){el.textContent=\'ID: '+pin.id+'\'},1500)}})" data-id="'+pin.id+'" title="Mantén presionado para copiar">ID: '+pin.id+'</div>'
     +'</div>';
 }
+
+function ghostPopHTML(pin){
+  return '<div class="pop pop-ghost">'
+    +'<div class="pop-ghost-banner">⏱ Expirado</div>'
+    +'<div class="pop-hdr"><div class="pop-emo" style="background:#88888818;border-color:#88888844;opacity:0.6">'+pin.emoji+'</div>'
+    +'<div>'+(pin.bizName?'<div class="pop-biz">🏪 '+esc(pin.bizName)+'</div>':'')+'<div class="pop-name" style="opacity:0.7">'+esc(pin.title)+'</div>'+(pin.username?'<div class="pop-username">@'+esc(pin.username)+'</div>':'')+'</div></div>'
+    +(pin.text?'<div class="pop-txt" style="opacity:0.6">'+richText(pin.text)+'</div>':'')
+    +(pin.image?'<img class="pop-img" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" style="opacity:0.5;filter:grayscale(0.5)">':'')
+    +'<div class="pop-ghost-msg">Este flare ya no está activo.<br>Explora lo que hay cerca ahora 👇</div>'
+    +'</div>';
+}
+
+function ghostMarkerHTML(pin){
+  var label = pin.bizName ? '<div class="mk-label" style="color:#666">'+esc(pin.bizName)+'</div>' : '';
+  return '<div class="mk mk-ghost">'+label
+    +'<div class="mk-b" style="color:#555;border-color:#555;box-shadow:0 0 10px #33333366,0 4px 16px rgba(0,0,0,.4);filter:grayscale(1);opacity:0.5">'
+    +'<span class="mk-e" style="filter:grayscale(1);opacity:0.7">'+pin.emoji+'</span>'
+    +'<div class="mk-r" style="border-color:#44444444;animation:none"></div>'
+    +'</div></div>';
+}
+
+function makeGhostMarker(pin){
+  var ico = L.divIcon({className:'',html:ghostMarkerHTML(pin),iconSize:[31,36],iconAnchor:[15,36]});
+  var m = L.marker([pin.lat, pin.lng], {icon:ico, zIndexOffset:-1000});
+  m.bindPopup(ghostPopHTML(pin), {maxWidth:280, autoPan:false});
+  m.on('popupopen', function(){
+    var el = m.getElement();
+    if(el) el.classList.add('mk-open');
+  });
+  m.on('popupclose', function(){
+    var el = m.getElement();
+    if(el) el.classList.remove('mk-open');
+  });
+  map.addLayer(m);
+  return m;
+}
+
 
 function refreshPop(pin){
   if(!pin.marker || !pin.marker.isPopupOpen()) return;

@@ -148,37 +148,59 @@ function startPoll() {
   var hash = location.hash;
   if(hash && hash.startsWith('#flare-')) {
     var dlId = hash.replace('#flare-', '');
-    apiFetch('/api/flares?id=' + encodeURIComponent(dlId))
+    apiFetch('/api/flares?id=' + encodeURIComponent(dlId) + '&ghost=1')
       .then(function(row) {
         if(!row) {
           history.replaceState(null, '', location.pathname);
-          notif('⏱️ Este flare ya expiró o no existe', 'err');
+          notif('⏱️ Este flare ya no existe', 'err');
           return;
-        }
-        if(!pins[row.id]) {
-          var pin = rowToPin(row);
-          pin.marker = makeMarker(pin);
-          pins[row.id] = pin;
-          applyVigFilter();
         }
         deepLinkHandled = true;
         history.replaceState(null, '', location.pathname);
-        map.flyTo([pins[row.id].lat, pins[row.id].lng], 17, {duration: 1});
-        setTimeout(function(){
-          if(clusterEnabled && clusterGroup.zoomToShowLayer) {
-            clusterGroup.zoomToShowLayer(pins[row.id].marker, function(){
-              pins[row.id].marker.openPopup();
-            });
-          } else {
-            pins[row.id].marker.openPopup();
+        var isExpired = new Date(row.expires_at).getTime() < Date.now();
+        if(isExpired) {
+          var pin = rowToPin(row);
+          pin.ghost = true;
+          pin.marker = makeGhostMarker(pin);
+          pins[pin.id] = pin;
+          flyToPin(pin.lat, pin.lng);
+          setTimeout(function(){ pin.marker.openPopup(); panForPopup(pin.lat, pin.lng); }, 1100);
+        } else {
+          if(!pins[row.id]) {
+            var pin = rowToPin(row);
+            pin.marker = makeMarker(pin);
+            pins[row.id] = pin;
+            applyVigFilter();
           }
-        }, 1100);
+          flyToPin(pins[row.id].lat, pins[row.id].lng);
+          setTimeout(function(){
+            var p = pins[row.id];
+            if(clusterEnabled && clusterGroup.zoomToShowLayer) {
+              clusterGroup.zoomToShowLayer(p.marker, function(){
+                p.marker.openPopup(); panForPopup(p.lat, p.lng);
+              });
+            } else {
+              p.marker.openPopup(); panForPopup(p.lat, p.lng);
+            }
+          }, 1100);
+        }
       })
       .catch(function(){
         history.replaceState(null, '', location.pathname);
-        notif('⏱️ Este flare ya expiró o no existe', 'err');
+        notif('⏱️ Este flare ya no existe', 'err');
       });
   }
+}
+
+function flyToPin(lat, lng, zoom){
+  var z = zoom || 17;
+  map.flyTo([lat, lng], z, {duration: 1});
+}
+
+function panForPopup(lat, lng){
+  var targetPx = map.project([lat, lng]);
+  targetPx.y -= 220;
+  map.panTo(map.unproject(targetPx), {animate: true, duration: 0.3});
 }
 
 var deepLinkHandled = false;
@@ -190,14 +212,15 @@ function checkDeepLink() {
   if(!pins[id]) return;
   deepLinkHandled = true;
   history.replaceState(null, '', location.pathname);
-  map.flyTo([pins[id].lat, pins[id].lng], 17, {duration: 1});
+  flyToPin(pins[id].lat, pins[id].lng);
   setTimeout(function(){
+    var p = pins[id];
     if(clusterEnabled && clusterGroup.zoomToShowLayer) {
-      clusterGroup.zoomToShowLayer(pins[id].marker, function(){
-        pins[id].marker.openPopup();
+      clusterGroup.zoomToShowLayer(p.marker, function(){
+        p.marker.openPopup(); panForPopup(p.lat, p.lng);
       });
     } else {
-      pins[id].marker.openPopup();
+      p.marker.openPopup(); panForPopup(p.lat, p.lng);
     }
   }, 1100);
 }

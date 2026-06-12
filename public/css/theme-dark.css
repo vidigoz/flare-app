@@ -435,6 +435,11 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .mk-dying .mk-b{animation:pulse-danger .9s ease-in-out infinite}
 .mk-dying .mk-r{animation:mp 2s infinite,pulse-danger .9s ease-in-out infinite}
 .mk-revived .mk-b{animation:revive-flash .8s ease-out forwards}
+.mk-ghost .mk-b{opacity:0.4;filter:grayscale(1);animation:none}
+.mk-ghost .mk-r{animation:none;opacity:0.3}
+.pop-ghost-banner{background:rgba(136,136,136,.15);border:1px solid rgba(136,136,136,.3);border-radius:8px;padding:5px 8px;font-family:'Space Mono',monospace;font-size:10px;color:#888;margin-bottom:10px;letter-spacing:.3px;display:inline-block;max-width:calc(100% - 32px)}
+.leaflet-popup-close-button{color:#ccc!important;top:8px!important;right:8px!important;font-size:20px!important;font-weight:700!important;z-index:10;line-height:1!important}
+.pop-ghost-msg{font-size:12px;color:#888;text-align:center;line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid rgba(136,136,136,.2)}
 .prow-dying{animation:pulse-row 1.2s ease-in-out infinite}
 .prow-revived{animation:revive-row .8s ease-out forwards}
 .rescue-msg{display:flex;align-items:center;gap:6px;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.25);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--danger);line-height:1.5;animation:pulse-row 1.5s ease-in-out infinite}
@@ -464,7 +469,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 #ob-wrap.active{pointer-events:none} /* mapa siempre interactivo */
 
 /* Tooltip base — centrado horizontalmente, 30% más chico */
-.ob-tip{position:fixed;left:50%;transform:translateX(-50%);background:rgba(6,10,20,.96);border:1.5px solid rgba(0,245,160,.7);border-radius:12px;padding:9px 12px;box-shadow:0 0 0 1px rgba(0,245,160,.15),0 0 24px rgba(0,245,160,.35),0 0 48px rgba(0,245,160,.15),0 8px 32px rgba(0,0,0,.8);backdrop-filter:blur(16px);pointer-events:all;animation:ob-tip-in .5s cubic-bezier(.16,1,.3,1) both;width:calc(100% - 100px);max-width:196px;text-align:center}
+.ob-tip{position:fixed;left:50%;transform:translateX(-50%);background:rgba(6,10,20,.96);border:1.5px solid rgba(0,245,160,.7);border-radius:12px;padding:9px 12px;box-shadow:0 0 0 1px rgba(0,245,160,.15),0 0 24px rgba(0,245,160,.35),0 0 48px rgba(0,245,160,.15),0 8px 32px rgba(0,0,0,.8);backdrop-filter:blur(16px);pointer-events:all;animation:ob-tip-in .5s cubic-bezier(.16,1,.3,1) both;width:calc(100% - 80px);max-width:240px;text-align:center}
 @keyframes ob-tip-in{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes ob-glow{0%,100%{box-shadow:0 0 0 1px rgba(0,245,160,.15),0 0 24px rgba(0,245,160,.35),0 0 48px rgba(0,245,160,.15),0 8px 32px rgba(0,0,0,.8)}50%{box-shadow:0 0 0 1px rgba(0,245,160,.3),0 0 32px rgba(0,245,160,.6),0 0 64px rgba(0,245,160,.25),0 8px 32px rgba(0,0,0,.8)}}
 .ob-tip{animation:ob-tip-in .5s cubic-bezier(.16,1,.3,1) both,ob-glow 2.5s ease-in-out 0.5s infinite}
@@ -478,7 +483,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .ob-tip-arrow-right-side{border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:9px solid rgba(0,245,160,.9);right:-9px;top:50%;transform:translateY(-50%);filter:drop-shadow(2px 0 4px rgba(0,245,160,.5))}
 
 /* Tooltip inferior (FAB) */
-#ob-tip-fab{bottom:calc(max(24px,env(safe-area-inset-bottom,0px)) + 72px);position:fixed!important;height:120px!important;width:calc(100% - 100px)!important;max-width:196px!important;z-index:10000!important}
+#ob-tip-fab{bottom:calc(max(24px,env(safe-area-inset-bottom,0px)) + 72px);position:fixed!important;height:120px!important;width:calc(100% - 80px)!important;max-width:240px!important;z-index:10000!important}
 .ob-tip-upper{display:contents}
 .ob-tip-lower{display:none}
 .ob-tip-mascota{height:140px;width:auto;pointer-events:none;position:absolute;top:-70px;left:50%;transform:translateX(-50%)}
