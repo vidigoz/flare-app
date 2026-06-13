@@ -21,6 +21,7 @@ function makeMarker(pin){
   m.bindPopup(popHTML(pin), {maxWidth:280, autoPan:false});
   m.on('popupopen', function(){
     refreshPop(pin);
+    if(typeof trackEvent==='function') trackEvent('flare_view', pin.id);
     var el = m.getElement();
     if(el) el.classList.add('mk-open');
     // Si el usuario aún no tiene like marcado localmente, consultar DB por si acá abrió

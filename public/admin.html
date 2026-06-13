@@ -86,6 +86,29 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 .btn-clear{background:var(--surface2);border:1px solid var(--border);color:var(--dim);border-radius:10px;padding:12px 16px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer}
 .btn-purge{background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:10px;padding:10px 16px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s}
 .btn-purge:hover{background:rgba(255,64,96,.08)}
+/* Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.dash-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;position:relative;overflow:hidden}
+.dash-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+.dash-val{font-size:28px;font-weight:800;font-family:'Space Mono',monospace;color:var(--neon);line-height:1}
+.dash-lbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;line-height:1.4}
+.dash-sem{font-size:14px;line-height:1}
+.dash-card.sem-red{border-color:rgba(255,64,96,.35);background:rgba(255,64,96,.05)}
+.dash-card.sem-red .dash-val{color:var(--danger)}
+.dash-card.sem-yellow{border-color:rgba(255,179,0,.35);background:rgba(255,179,0,.05)}
+.dash-card.sem-yellow .dash-val{color:var(--amber)}
+.dash-card.sem-green{border-color:rgba(0,245,160,.35);background:rgba(0,245,160,.05)}
+.dash-card.sem-green .dash-val{color:var(--neon)}
+.dash-section-lbl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px}
+.dash-bar-wrap{margin-bottom:6px}
+.dash-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.dash-bar-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--text);min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.dash-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--neon),var(--neon2));transition:width .4s}
+.dash-bar-count{font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);min-width:28px;text-align:right}
+.dash-no-analytics{background:rgba(255,179,0,.06);border:1px solid rgba(255,179,0,.2);border-radius:8px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:#c8a060;line-height:1.8;margin-top:8px}
+.cfg-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s}
+.cfg-btn:hover{border-color:var(--neon);color:var(--neon)}
 #log{display:none;margin-top:16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.8;max-height:220px;overflow-y:auto}
 .log-ok{color:var(--neon)}
 .log-err{color:var(--danger)}
@@ -136,6 +159,16 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
   </div>
 
   <div class="section">
+    <div class="sec-title">🗄️ Migraciones de <span>Base de Datos</span></div>
+    <div class="sec-sub">Ejecuta las migraciones SQL pendientes en Neon. Solo corre archivos nuevos — nunca repite los ya aplicados.</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px">
+      <button class="cfg-btn" id="migrations-btn" onclick="runMigrations()">▶ Ejecutar migraciones pendientes</button>
+      <button class="cfg-btn" onclick="checkMigrations()" style="color:var(--dim)">🔍 Ver estado</button>
+    </div>
+    <div id="migrations-result" style="margin-top:12px;display:none"></div>
+  </div>
+
+  <div class="section">
     <div class="sec-title">Configuracion del <span>Sitio</span></div>
     <div class="sec-sub">Variables de entorno requeridas en Netlify.</div>
     <div class="cfg-row">
@@ -158,16 +191,31 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
     </div>
   </div>
 
+  <!-- 📊 DASHBOARD SALUD DEL MAPA -->
+  <div class="section" id="dashboard-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+      <div class="sec-title">📊 Salud del <span>Mapa</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="dash-updated" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--dim)"></span>
+        <button onclick="loadDashboard()" id="dash-refresh-btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--neon);border-radius:8px;padding:6px 14px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;font-weight:700">↺ Actualizar</button>
+      </div>
+    </div>
+    <div class="sec-sub">Métricas en tiempo real del mapa y comportamiento de usuarios.</div>
+    <div id="dashboard-content">
+      <div style="text-align:center;padding:32px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)">Cargando métricas...</div>
+    </div>
+  </div>
+
   <div class="section">
-    <div class="sec-title">Estado del <span>Mapa</span></div>
-    <div class="sec-sub">Flares activos en la base de datos en este momento.</div>
+    <div class="sec-title">Flares <span>Activos</span></div>
+    <div class="sec-sub">Flares en la base de datos en este momento.</div>
     <div class="stats">
       <div class="stat"><div class="stat-val" id="stat-total">-</div><div class="stat-lbl">Flares activos</div></div>
       <div class="stat"><div class="stat-val" id="stat-food">-</div><div class="stat-lbl">Comida</div></div>
       <div class="stat"><div class="stat-val" id="stat-event">-</div><div class="stat-lbl">Eventos</div></div>
-    <div class="stat"><div class="stat-val" id="stat-incident">-</div><div class="stat-lbl">Sucesos</div></div>
-  </div>
-  <button class="btn-purge" id="purge-btn">Borrar todos los flares activos</button>
+      <div class="stat"><div class="stat-val" id="stat-incident">-</div><div class="stat-lbl">Sucesos</div></div>
+    </div>
+    <button class="btn-purge" id="purge-btn">Borrar todos los flares activos</button>
   </div>
 
   <div class="section">
@@ -360,6 +408,7 @@ function tryLogin() {
       document.getElementById('login-wrap').style.display = 'none';
       document.getElementById('admin-wrap').style.display = 'block';
       loadStats();
+      loadDashboard();
       loadLimitState();
       loadHiddenFlares();
       loadSupportTickets();
@@ -406,6 +455,204 @@ function loadStats() {
       document.getElementById('stat-incident').textContent = rows.filter(function(r){ return r.cat==='incident'; }).length;
     })
     .catch(function(){ document.getElementById('stat-total').textContent = '?'; });
+}
+
+function semaforo(val, red, yellow) {
+  if (val <= red) return 'sem-red';
+  if (val <= yellow) return 'sem-yellow';
+  return 'sem-green';
+}
+function semaforoIcon(cls) {
+  return cls === 'sem-green' ? '🟢' : cls === 'sem-yellow' ? '🟡' : '🔴';
+}
+
+function dashCard(id, val, lbl, semCls) {
+  var icon = semaforoIcon(semCls);
+  return '<div class="dash-card ' + semCls + '">'
+    + '<div class="dash-card-top"><div class="dash-val" id="dc-' + id + '">' + val + '</div><div class="dash-sem">' + icon + '</div></div>'
+    + '<div class="dash-lbl">' + lbl + '</div>'
+    + '</div>';
+}
+
+function dashCardSimple(val, lbl, color) {
+  return '<div class="dash-card" style="border-color:' + (color||'var(--border)') + '33">'
+    + '<div class="dash-val" style="color:' + (color||'var(--neon)') + '">' + val + '</div>'
+    + '<div class="dash-lbl">' + lbl + '</div>'
+    + '</div>';
+}
+
+function renderBars(items, maxVal, labelKey, countKey) {
+  if (!items || !items.length) return '<div style="color:var(--dim);font-family:\'Space Mono\',monospace;font-size:10px">Sin datos</div>';
+  return items.map(function(item) {
+    var pct = maxVal > 0 ? Math.round((item[countKey] / maxVal) * 100) : 0;
+    return '<div class="dash-bar-row">'
+      + '<div class="dash-bar-lbl">' + item[labelKey] + '</div>'
+      + '<div class="dash-bar-track"><div class="dash-bar-fill" style="width:' + pct + '%"></div></div>'
+      + '<div class="dash-bar-count">' + item[countKey] + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function loadDashboard() {
+  var el = document.getElementById('dashboard-content');
+  var btn = document.getElementById('dash-refresh-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+  el.innerHTML = '<div style="text-align:center;padding:32px;font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim)">Cargando métricas...</div>';
+
+  fetch('/api/admin/stats', { headers: { 'x-admin-key': adminKey } })
+    .then(function(r) { if (!r.ok) throw new Error('Status ' + r.status); return r.json(); })
+    .then(function(d) {
+      var html = '';
+
+      // Fila 1 — Semáforos principales
+      html += '<div class="dash-section-lbl">Actividad de hoy</div>';
+      html += '<div class="dash-grid">';
+      html += dashCard('fh',  d.flares_hoy,        'Flares hoy',         semaforo(d.flares_hoy, 4, 15));
+      html += dashCard('fa',  d.flares_activos,     'Flares activos',     semaforo(d.flares_activos, 1, 8));
+      html += dashCard('lh',  d.likes_hoy,          'Likes hoy',          semaforo(d.likes_hoy, 0, 10));
+      html += dashCard('na',  d.negocios_activos_7d,'Negocios 7d',        semaforo(d.negocios_activos_7d, 2, 10));
+      html += '</div>';
+
+      // Fila 2 — Acumulados
+      html += '<div class="dash-section-lbl">Acumulados</div>';
+      html += '<div class="dash-grid">';
+      html += dashCardSimple(d.flares_semana,    'Flares esta semana');
+      html += dashCardSimple(d.flares_total,     'Flares totales');
+      html += dashCardSimple(d.likes_total,      'Likes totales', 'var(--neon2)');
+      html += dashCardSimple(d.flares_con_like,  'Con like', 'var(--neon2)');
+      html += '</div>';
+
+      // Fila 3 — Analytics (si existe la tabla)
+      if (d.has_analytics) {
+        html += '<div class="dash-section-lbl">Engagement</div>';
+        html += '<div class="dash-grid">';
+        html += dashCardSimple(d.visitas_unicas_hoy, 'Visitas únicas hoy', 'var(--neon)');
+        html += dashCardSimple(d.shares_hoy,         'Shares hoy',         'var(--amber)');
+        html += dashCard('rv', d.ratio_viral_pct + '%', 'Ratio viral',     semaforo(d.ratio_viral_pct, 4, 15));
+        html += dashCardSimple(d.pwa_instaladas_total, 'PWA instaladas', '#a78bfa');
+        html += '</div>';
+      } else {
+        html += '<div class="dash-no-analytics">⚠️ <b>Analytics no inicializado.</b> Ve a <b>Setup Analytics</b> en el panel para crear la tabla y empezar a registrar visitas, shares e instalaciones de PWA.</div>';
+      }
+
+      // Usuarios
+      html += '<div class="dash-section-lbl">Usuarios</div>';
+      html += '<div class="dash-grid">';
+      html += dashCardSimple(d.usuarios_tier2 || 0, 'Tier 2 (anónimos)', 'var(--dim)');
+      html += dashCardSimple(d.usuarios_tier3 || 0, 'Tier 3 (verificados)', 'var(--neon)');
+      html += '</div>';
+
+      // Gráfica por categoría
+      if (d.flares_por_categoria && d.flares_por_categoria.length) {
+        var maxCat = Math.max.apply(null, d.flares_por_categoria.map(function(x){ return x.count; }));
+        html += '<div class="dash-section-lbl">Flares por categoría (' + d.days + 'd)</div>';
+        html += '<div class="dash-bar-wrap">' + renderBars(d.flares_por_categoria, maxCat, 'cat', 'count') + '</div>';
+      }
+
+      // Gráfica hora pico
+      if (d.hora_pico && d.hora_pico.length) {
+        var maxHora = Math.max.apply(null, d.hora_pico.map(function(x){ return x.count; }));
+        html += '<div class="dash-section-lbl">Hora pico (últimos 7d · hora Tecate)</div>';
+        html += '<div class="dash-bar-wrap">' + renderBars(d.hora_pico.map(function(h){ return { hora: h.hora + ':00', count: h.count }; }), maxHora, 'hora', 'count') + '</div>';
+      }
+
+      el.innerHTML = html;
+      var upd = document.getElementById('dash-updated');
+      if (upd) upd.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'});
+    })
+    .catch(function(e) {
+      el.innerHTML = '<div style="color:var(--danger);font-family:\'Space Mono\',monospace;font-size:11px;padding:12px">Error cargando métricas: ' + e.message + '</div>';
+    })
+    .finally(function() {
+      if (btn) { btn.disabled = false; btn.textContent = '↺ Actualizar'; }
+    });
+}
+
+function runMigrations() {
+  var btn = document.getElementById('migrations-btn');
+  var res = document.getElementById('migrations-result');
+  btn.disabled = true; btn.textContent = '⏳ Ejecutando...';
+  res.style.display = 'none';
+
+  fetch('/api/admin/run-migrations', { method: 'POST', headers: { 'x-admin-key': adminKey } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      res.style.display = 'block';
+      var html = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;line-height:1.8">';
+      html += '<div style="color:var(--neon);margin-bottom:8px">✓ ' + (d.message || 'Listo') + '</div>';
+      if (d.applied && d.applied.length) {
+        d.applied.forEach(function(m) {
+          var color = m.status === 'ok' ? 'var(--neon)' : 'var(--danger)';
+          var icon  = m.status === 'ok' ? '✓' : '✗';
+          html += '<div style="color:' + color + '">' + icon + ' ' + m.filename + (m.error ? ' — ' + m.error : '') + '</div>';
+        });
+      }
+      if (d.total !== undefined) {
+        html += '<div style="color:var(--dim);margin-top:6px">' + d.total + ' archivo(s) en db/migrations/</div>';
+      }
+      html += '</div>';
+      res.innerHTML = html;
+      btn.textContent = '▶ Ejecutar migraciones pendientes';
+      btn.disabled = false;
+      loadDashboard();
+    })
+    .catch(function(e) {
+      res.style.display = 'block';
+      res.innerHTML = '<div style="color:var(--danger);font-family:\'Space Mono\',monospace;font-size:11px">✗ Error: ' + e.message + '</div>';
+      btn.textContent = '▶ Ejecutar migraciones pendientes';
+      btn.disabled = false;
+    });
+}
+
+function checkMigrations() {
+  var res = document.getElementById('migrations-result');
+  res.style.display = 'block';
+  res.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--dim)">Verificando...</div>';
+
+  // GET sin body — lista las aplicadas usando endpoint de stats con una query ligera
+  fetch('/api/admin/run-migrations', { method: 'POST', headers: { 'x-admin-key': adminKey, 'x-dry-run': '1' } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var html = '<div style="font-family:\'Space Mono\',monospace;font-size:11px;line-height:1.8">';
+      html += '<div style="color:var(--dim);margin-bottom:6px">' + (d.message || '') + '</div>';
+      if (d.applied && d.applied.length) {
+        d.applied.forEach(function(m) {
+          html += '<div style="color:var(--neon)">✓ ' + m.filename + '</div>';
+        });
+      }
+      if (d.total !== undefined) {
+        html += '<div style="color:var(--dim);margin-top:6px">' + d.total + ' archivo(s) totales</div>';
+      }
+      html += '</div>';
+      res.innerHTML = html;
+    })
+    .catch(function(e) {
+      res.innerHTML = '<div style="color:var(--danger);font-family:\'Space Mono\',monospace;font-size:11px">✗ ' + e.message + '</div>';
+    });
+}
+
+function runSetupAnalytics() {
+  var btn = document.getElementById('setup-analytics-btn');
+  var res = document.getElementById('setup-analytics-result');
+  btn.disabled = true; btn.textContent = '⏳ Creando...';
+  res.style.display = 'none';
+  fetch('/api/admin/setup-analytics', { headers: { 'x-admin-key': adminKey } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      res.style.display = 'block';
+      res.style.color = d.ok ? 'var(--neon)' : 'var(--danger)';
+      res.textContent = d.ok ? '✓ ' + d.message : '✗ ' + (d.error || 'Error');
+      btn.textContent = '▶ Crear tabla analytics_events';
+      btn.disabled = false;
+      if (d.ok) loadDashboard();
+    })
+    .catch(function(e) {
+      res.style.display = 'block';
+      res.style.color = 'var(--danger)';
+      res.textContent = '✗ Error: ' + e.message;
+      btn.textContent = '▶ Crear tabla analytics_events';
+      btn.disabled = false;
+    });
 }
 
 function setToggleState(btn, statusEl, enabled) {

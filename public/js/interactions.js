@@ -10,6 +10,7 @@ function shareFlare(id) {
     + (pin.text ? '\n' + pin.text.slice(0, 100) + (pin.text.length > 100 ? '...' : '') : '')
     + '\n⏱ Vigente por ' + fmtT(r);
 
+  if(typeof trackEvent==='function') trackEvent('flare_share', id);
   if(navigator.share) {
     navigator.share({
       title: pin.emoji + ' ' + pin.title,

@@ -11,6 +11,10 @@
 [functions."verify-firebase"]
   node_bundler = "nft"
 
+[functions."run-migrations"]
+  node_bundler = "nft"
+  included_files = ["db/migrations/**"]
+
 
 [[redirects]]
   from = "/api/flares"
@@ -90,6 +94,21 @@
 [[redirects]]
   from = "/api/mapbox-config"
   to = "/.netlify/functions/mapbox-config"
+  status = 200
+
+[[redirects]]
+  from = "/api/track-event"
+  to = "/.netlify/functions/track-event"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/setup-analytics"
+  to = "/.netlify/functions/setup-analytics"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/run-migrations"
+  to = "/.netlify/functions/run-migrations"
   status = 200
 
 [[headers]]
