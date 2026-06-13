@@ -123,6 +123,11 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .gitem-ic{font-size:15px;flex-shrink:0;margin-top:1px}
 .gitem-name{font-weight:700;font-size:13px}
 .gitem-sub{font-size:10px;color:var(--dim);font-family:'Space Mono',monospace;margin-top:1px}
+.gitem-badge{font-size:9px;font-family:'Space Mono',monospace;font-weight:700;color:var(--neon);border:1px solid var(--neon);border-radius:4px;padding:1px 5px;flex-shrink:0;align-self:center;letter-spacing:.3px}
+.geo-pin{position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.geo-pin-dot{width:14px;height:14px;background:var(--neon);border:2px solid #000;border-radius:50%;box-shadow:0 0 0 3px rgba(0,245,160,.3),0 0 14px rgba(0,245,160,.7),0 2px 8px rgba(0,0,0,.6);animation:geo-pulse 1.8s ease-in-out infinite}
+@keyframes geo-pulse{0%,100%{box-shadow:0 0 0 3px rgba(0,245,160,.3),0 0 14px rgba(0,245,160,.7),0 2px 8px rgba(0,0,0,.6)}50%{box-shadow:0 0 0 6px rgba(0,245,160,.15),0 0 24px rgba(0,245,160,.9),0 2px 8px rgba(0,0,0,.6)}}
+.geo-pin-label{position:absolute;top:18px;left:50%;transform:translateX(-50%);background:rgba(6,10,20,.92);border:1px solid rgba(0,245,160,.3);border-radius:6px;padding:3px 7px;font-size:10px;font-family:'Space Mono',monospace;color:var(--neon);white-space:nowrap;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.6)}
 .geo-msg{padding:12px;font-size:11px;color:var(--dim);font-family:'Space Mono',monospace;text-align:center}
 
 /* NOTIFS */

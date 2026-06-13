@@ -87,6 +87,11 @@
   to = "/.netlify/functions/admin-stats"
   status = 200
 
+[[redirects]]
+  from = "/api/mapbox-config"
+  to = "/.netlify/functions/mapbox-config"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
