@@ -105,6 +105,12 @@ function ghostPopHTML(pin){
     +(pin.text?'<div class="pop-txt" style="opacity:0.6">'+richText(pin.text)+'</div>':'')
     +(pin.image?'<img class="pop-img" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" style="opacity:0.5;filter:grayscale(0.5)">':'')
     +'<div class="pop-ghost-msg">Este flare ya no está activo.<br>Explora lo que hay cerca ahora 👇</div>'
+    +'<div class="pop-foot">'
+    +'<button class="pop-btn pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')">'
+    +'<span class="pop-btn-ico">🗺️</span>'
+    +'<span class="pop-btn-lbl" style="line-height:1.3">Cómo<br>llegar</span>'
+    +'</button>'
+    +'</div>'
     +'</div>';
 }
 
