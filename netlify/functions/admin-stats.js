@@ -46,11 +46,12 @@ export const handler = async (event) => {
           COUNT(*)::int AS flares_total
         FROM flares WHERE hidden = FALSE AND (username IS NULL OR username != 'flare_admin')
       `,
-      // Likes total, flares con like (sin filtro por fecha — user_likes no tiene created_at garantizado)
+      // Likes total, flares con like, y likes de hoy (liked_at DEFAULT NOW())
       sql`
         SELECT
           COUNT(*)::int AS likes_total,
-          COUNT(DISTINCT flare_id)::int AS flares_con_like
+          COUNT(DISTINCT flare_id)::int AS flares_con_like,
+          COUNT(*) FILTER (WHERE liked_at >= NOW() - INTERVAL '1 day')::int AS likes_hoy
         FROM user_likes
       `,
       // Negocios únicos activos últimos 7 días — excluye seeds de flare_admin
@@ -139,7 +140,7 @@ export const handler = async (event) => {
     const flares_activos = flaresStats[0]?.flares_activos || 0;
     const flares_semana  = flaresStats[0]?.flares_semana || 0;
     const flares_total   = flaresStats[0]?.flares_total || 0;
-    const likes_hoy      = 0; // user_likes no tiene timestamp — se trackea via analytics_events
+    const likes_hoy      = likesStats[0]?.likes_hoy || 0;
     const likes_total    = likesStats[0]?.likes_total || 0;
     const flares_con_like = likesStats[0]?.flares_con_like || 0;
     const flares_sin_like = Math.max(0, flares_activos - flares_con_like);
