@@ -47,7 +47,6 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .spill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-#hint{display:none;border-color:rgba(245,0,160,.4);color:var(--neon2);font-size:10px}
 
 /* SYNC — solo ícono en móvil */
 #sync{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 8px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);transition:all .3s}
@@ -73,12 +72,15 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 #fab-menu button:active{transform:scale(.97)}
 
 /* CROSSHAIR */
-#xhair{display:none;position:fixed;inset:0;z-index:500;pointer-events:none;align-items:center;justify-content:center}
+#xhair{display:none;position:fixed;inset:0;z-index:500;pointer-events:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 #xhair.on{display:flex}
-.xh{width:44px;height:44px;position:relative}
+.xh{width:44px;height:44px;position:relative;flex-shrink:0}
 .xh::before,.xh::after{content:'';position:absolute;background:var(--neon2);border-radius:2px;box-shadow:0 0 8px var(--neon2)}
 .xh::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
 .xh::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
+.xhair-bubble{background:rgba(15,20,32,.92);border:1.5px solid rgba(245,0,160,.5);border-radius:14px;padding:10px 16px;font-family:'Space Mono',monospace;font-size:12px;color:#fff;text-align:center;max-width:220px;line-height:1.5;backdrop-filter:blur(10px);box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 12px rgba(245,0,160,.2);position:relative}
+.xhair-bubble::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:rgba(245,0,160,.5);border-bottom:0}
+.xhair-bubble::before{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:rgba(15,20,32,.92);border-bottom:0;z-index:1}
 
 /* LEGEND — oculta en móvil, visible en desktop */
 .legend{display:none}

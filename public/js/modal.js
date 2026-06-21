@@ -62,8 +62,8 @@ document.getElementById('fab-map').addEventListener('click', function(e){
   startPlace();
 });
 
-function startPlace(){ placing=true; fab.classList.add('placing'); document.getElementById('hint').style.display='flex'; document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); }
-function stopPlace(){ placing=false; fab.classList.remove('placing'); fab.textContent='＋ Crear Flare'; fab.disabled=false; document.getElementById('hint').style.display='none'; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
+function startPlace(){ placing=true; fab.classList.add('placing'); document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); obSkipBtnSetVisible(true); }
+function stopPlace(){ placing=false; fab.classList.remove('placing'); fab.textContent='＋ Crear Flare'; fab.disabled=false; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
 
 function setPending(lat, lng){
   pending = {lat:lat, lng:lng};
