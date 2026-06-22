@@ -368,7 +368,9 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .mk-open .mk-b{box-shadow:0 8px 32px 18px rgba(0,0,0,.55),0 2px 8px 4px rgba(0,0,0,.4);transform:rotate(-45deg) translateY(-3px);transition:box-shadow .25s ease-out,transform .25s ease-out}
 .tbdg{display:none}
 .pop-like-hint{display:none}
-.pop-id{font-size:9px;font-family:'Space Mono',monospace;color:var(--dim);opacity:.45;text-align:center;padding:6px 0 2px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:opacity .15s}
+.pop-meta{display:flex;align-items:center;justify-content:space-between;padding:4px 0 2px}
+.pop-views{font-size:10px;font-family:'Space Mono',monospace;color:var(--dim);opacity:.55}
+.pop-id{font-size:9px;font-family:'Space Mono',monospace;color:var(--dim);opacity:.45;text-align:right;cursor:pointer;user-select:none;-webkit-user-select:none;transition:opacity .15s}
 .pop-id:active{opacity:1;color:var(--neon)}
 
 /* LIGHTBOX */

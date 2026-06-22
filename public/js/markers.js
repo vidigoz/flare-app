@@ -22,6 +22,10 @@ function makeMarker(pin){
   m.on('popupopen', function(){
     refreshPop(pin);
     if(typeof trackEvent==='function') trackEvent('flare_view', pin.id);
+    fetch('/api/view?id=' + encodeURIComponent(pin.id), {method:'POST'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){ if(data && typeof data.views==='number'){ pin.views=data.views; refreshPop(pin); } })
+      .catch(function(){});
     var el = m.getElement();
     if(el) el.classList.add('mk-open');
     // Si el usuario aún no tiene like marcado localmente, consultar DB por si acá abrió
@@ -94,7 +98,10 @@ function popHTML(pin){
     +'<span class="pop-btn-lbl">Report</span>'
     +'</button>'
     +'</div>'
+    +'<div class="pop-meta">'
+    +'<span class="pop-views">🔍 '+(pin.views||0)+'</span>'
     +'<div class="pop-id" onclick="navigator.clipboard.writeText(\''+pin.id+'\').then(function(){var el=document.querySelector(\'.pop-id[data-id=\\\'' +pin.id+ '\\\']\');if(el){el.textContent=\'✓ copiado\';setTimeout(function(){el.textContent=\'ID: '+pin.id+'\'},1500)}})" data-id="'+pin.id+'" title="Mantén presionado para copiar">ID: '+pin.id+'</div>'
+    +'</div>'
     +'</div>';
 }
 

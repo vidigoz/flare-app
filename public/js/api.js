@@ -103,6 +103,7 @@ function rowToPin(row) {
     expires_at: row.expires_at,
     likes: row.likes,
     liked: row.user_liked || hasLiked(row.id),
+    views: row.views || 0,
     marker: null,
   };
 }
