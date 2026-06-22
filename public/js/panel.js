@@ -56,10 +56,15 @@ function buildChips(){
   CATS.forEach(function(cat){
     var cnt = vp.filter(function(p){ return p.cat===cat.id; }).length;
     var ch = document.createElement('div');
-    ch.className = 'chip' + (activeCat===cat.id ? ' on' : '');
-    if(activeCat===cat.id){ ch.style.background=cat.color; ch.style.borderColor=cat.color; }
-    ch.innerHTML = '<div class="chip-dot" style="background:'+cat.color+'"></div><span>'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span><span style="opacity:.7">'+cnt+'</span>';
-    ch.addEventListener('click', function(){ activeCat=(activeCat===cat.id)?null:cat.id; buildChips(); renderPanel(); });
+    if(cat.disabled){
+      ch.className = 'chip chip-disabled';
+      ch.innerHTML = '<div class="chip-dot" style="background:'+cat.color+';opacity:.35"></div><span>'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span>';
+    } else {
+      ch.className = 'chip' + (activeCat===cat.id ? ' on' : '');
+      if(activeCat===cat.id){ ch.style.background=cat.color; ch.style.borderColor=cat.color; }
+      ch.innerHTML = '<div class="chip-dot" style="background:'+cat.color+'"></div><span>'+cat.icon+' '+cat.lbl.replace('\n',' ')+'</span><span style="opacity:.7">'+cnt+'</span>';
+      ch.addEventListener('click', function(){ activeCat=(activeCat===cat.id)?null:cat.id; buildChips(); renderPanel(); });
+    }
     box.appendChild(ch);
   });
 }
@@ -323,7 +328,7 @@ function loadManual() {
 
 <div class="m-section" id="m-categorias">
   <div class="m-sec-hdr"><div class="m-sec-num">03</div><div class="m-sec-title"><span class="hl">Categorías</span></div></div>
-  <div class="m-cat" style="border-color:rgba(255,149,0,.3)"><div class="m-cat-icon">🍽️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff9500">Comida y Bebida</div><div class="m-cat-desc">Tacos, food trucks, restaurantes, pop-ups</div><div class="m-cat-emojis">🍕🌮🍔🍜🥗🍺☕🍦🥩🍣</div></div></div>
+  <div class="m-cat" style="border-color:rgba(255,149,0,.3)"><div class="m-cat-icon">🍽️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff9500">Antojos</div><div class="m-cat-desc">Tacos, food trucks, restaurantes, pop-ups</div><div class="m-cat-emojis">🍕🌮🍔🍜🥗🍺☕🍦🥩🍣</div></div></div>
   <div class="m-cat" style="border-color:rgba(0,194,255,.3)"><div class="m-cat-icon">🏷️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#00c2ff">Ventas</div><div class="m-cat-desc">Garage sales, liquidaciones, ropa de paca</div><div class="m-cat-emojis">🏷️💸🛒🎁💰🛍️🤑💎🔖📦</div></div></div>
   <div class="m-cat" style="border-color:rgba(160,0,245,.3)"><div class="m-cat-icon">🎉</div><div class="m-cat-info"><div class="m-cat-name" style="color:#a000f5">Evento</div><div class="m-cat-desc">Conciertos, torneos, festivales, carreras</div><div class="m-cat-emojis">🎉🎵🎸🎭🎪🏆🎤🎬🎊🕺</div></div></div>
   <div class="m-cat" style="border-color:rgba(255,64,96,.3)"><div class="m-cat-icon">⚡</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff4060">Suceso</div><div class="m-cat-desc">Accidentes, retenes, bloqueos, alertas</div><div class="m-cat-emojis">⚡🚨🚧💥🔥🚑⚠️🌊🌪️🆘</div></div></div>

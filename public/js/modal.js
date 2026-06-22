@@ -75,7 +75,7 @@ function openModal(){
   document.getElementById('fab-wrap').style.display = 'none';
   if (typeof loadPublicConfig === 'function') loadPublicConfig();
   buildCG(); buildEG();
-  updateDevDurationFields();
+  updateDevDurationFields(); updateFieldsByCat();
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
 }
@@ -192,12 +192,58 @@ function fileToDataUrl(file){
 
 function buildCG(){
   var g = document.getElementById('cgrid'); if(!g) return; g.innerHTML='';
+  var hasDisabled = CATS.some(function(c){ return c.disabled; });
+  var wrap = document.createElement('div'); wrap.style.cssText='display:contents';
+  var disabledWrap = null;
+  if(hasDisabled){
+    disabledWrap = document.createElement('div'); disabledWrap.className='cbtn-disabled-group';
+    disabledWrap.innerHTML='<span class="cbtn-soon-lbl">Próximamente</span>';
+  }
   CATS.forEach(function(cat){
-    var b = document.createElement('div'); b.className='cbtn'+(cat.id===selCat.id?' sel':''); b.style.setProperty('--cc', cat.color);
-    b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
-    b.addEventListener('click', function(){ selCat=cat; selEmoji=cat.emojis[0]; buildCG(); buildEG(); updateDevDurationFields(); });
-    g.appendChild(b);
+    var b = document.createElement('div');
+    if(cat.disabled){
+      b.className='cbtn cbtn-disabled'; b.style.setProperty('--cc', cat.color);
+      b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
+      disabledWrap.appendChild(b);
+    } else {
+      b.className='cbtn'+(cat.id===selCat.id?' sel':''); b.style.setProperty('--cc', cat.color);
+      b.innerHTML='<div class="cb-ic">'+cat.icon+'</div><div class="cb-lb">'+cat.lbl.replace('\n','<br>')+'</div>';
+      b.addEventListener('click', function(){ selCat=cat; selEmoji=cat.emojis[0]; buildCG(); buildEG(); updateDevDurationFields(); updateFieldsByCat(); });
+      g.appendChild(b);
+    }
   });
+  if(disabledWrap) g.appendChild(disabledWrap);
+}
+
+function updateFieldsByCat(){
+  var cat = selCat;
+  if(!cat) return;
+  var rgb = hexToRgb(cat.color);
+  var mover = document.getElementById('mover');
+  if(mover){ mover.style.setProperty('--cat-color', cat.color); mover.style.setProperty('--cat-color-rgb', rgb); }
+  var fields = ['f-biz','f-ttl','f-txt'];
+  var phs = [cat.phBiz, cat.phTtl, cat.phTxt];
+  var defaults = ['Ej: Tacos El Güero','¿Qué está pasando?','Cuéntanos más... puedes poner links, teléfonos, etc.'];
+  fields.forEach(function(id, i){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.placeholder = phs[i] || defaults[i];
+    el.style.borderColor = 'rgba('+rgb+',0.5)';
+  });
+  var fBiz = document.getElementById('f-biz');
+  if(fBiz){
+    var lbl = fBiz.closest('.fg') && fBiz.closest('.fg').querySelector('label');
+    if(lbl){
+      var span = lbl.querySelector('span');
+      var spanHtml = span ? ' '+span.outerHTML : '';
+      lbl.innerHTML = (cat.bizLbl || 'Nombre del negocio') + spanHtml;
+    }
+  }
+}
+
+function hexToRgb(hex){
+  var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return r+','+g+','+b;
 }
 
 function updateDevDurationFields(){
@@ -224,16 +270,23 @@ function buildEG(){
     g.appendChild(b);
   });
 
+  var plusWrap = document.createElement('div');
+  plusWrap.className = 'ebtn-plus-wrap';
   var plus = document.createElement('button');
   plus.className = 'ebtn ebtn-plus';
   plus.textContent = '+';
-  plus.title = 'Usar otro emoji';
+  plus.title = 'Agregar tu propio emoji';
+  var plusLbl = document.createElement('div');
+  plusLbl.className = 'ebtn-plus-lbl';
+  plusLbl.textContent = 'tu emoji';
+  plusWrap.appendChild(plus);
+  plusWrap.appendChild(plusLbl);
   plus.addEventListener('click', function(e){
     e.preventDefault();
     document.getElementById('emoji-custom-inp').value = '';
     document.getElementById('emoji-custom-inp').focus();
   });
-  g.appendChild(plus);
+  g.appendChild(plusWrap);
 
   var inp = document.getElementById('emoji-custom-inp');
   if(!inp){
@@ -255,10 +308,10 @@ function buildEG(){
       b.classList.remove('sel'); b.style.borderColor=''; b.style.background=''; b.style.fontSize='';
     });
     plus.classList.add('sel');
-    plus.textContent = emoji;
+    plus.innerHTML = emoji;
     plus.style.borderColor = selCat.color;
     plus.style.background = selCat.color+'22';
-    plus.style.fontSize = '20px';
+    plus.style.fontSize = '22px';
   };
 }
 

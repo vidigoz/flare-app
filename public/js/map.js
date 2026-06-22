@@ -121,20 +121,26 @@ function buildHdrCatChips(){
   container.innerHTML = '';
   CATS.forEach(function(cat){
     var btn = document.createElement('div');
-    btn.className = 'hdr-chip hdr-cat' + (activeCat === cat.id ? ' on' : '');
-    btn.dataset.cat = cat.id;
-    btn.title = cat.lbl;
-    btn.innerHTML = cat.icon + ' ' + cat.lbl.replace('\n',' ');
-    if(activeCat === cat.id){
-      btn.style.borderColor = cat.color;
-      btn.style.background  = cat.color + '33';
-      btn.style.color       = cat.color;
+    if(cat.disabled){
+      btn.className = 'hdr-chip hdr-cat hdr-cat-disabled';
+      btn.title = cat.lbl + ' — Próximamente';
+      btn.innerHTML = cat.icon + ' ' + cat.lbl.replace('\n',' ');
+    } else {
+      btn.className = 'hdr-chip hdr-cat' + (activeCat === cat.id ? ' on' : '');
+      btn.dataset.cat = cat.id;
+      btn.title = cat.lbl;
+      btn.innerHTML = cat.icon + ' ' + cat.lbl.replace('\n',' ');
+      if(activeCat === cat.id){
+        btn.style.borderColor = cat.color;
+        btn.style.background  = cat.color + '33';
+        btn.style.color       = cat.color;
+      }
+      btn.addEventListener('click', function(){
+        activeCat = (activeCat === cat.id) ? null : cat.id;
+        buildHdrCatChips();
+        applyVigFilter();
+      });
     }
-    btn.addEventListener('click', function(){
-      activeCat = (activeCat === cat.id) ? null : cat.id;
-      buildHdrCatChips();
-      applyVigFilter();
-    });
     container.appendChild(btn);
   });
   updateFilterBadge();

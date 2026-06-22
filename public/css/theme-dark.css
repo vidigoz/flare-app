@@ -41,6 +41,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .hdr-chip:active{transform:scale(.95)}
 .hdr-chip.on{border-color:var(--neon);color:var(--neon);background:rgba(0,245,160,.1)}
 .hdr-cat.on{border-color:var(--neon2);color:var(--neon2);background:rgba(245,0,160,.1)}
+.hdr-cat-disabled{opacity:.35;cursor:default;pointer-events:none}
 .hf-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
 .hdr-r{display:flex;gap:6px;align-items:center;flex-shrink:0}
@@ -252,6 +253,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .pchips::-webkit-scrollbar{display:none}
 .chip{display:flex;align-items:center;gap:5px;white-space:nowrap;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);transition:all .18s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 .chip.on{font-weight:700;color:#000}
+.chip.chip-disabled{opacity:.35;cursor:default;pointer-events:none}
 .chip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .plist{flex:1;overflow-y:auto;padding:4px 0 max(16px,env(safe-area-inset-bottom))}
 .prow{border-left:3px solid transparent;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent}
@@ -303,8 +305,8 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .mbody{padding:0 18px 8px}
 .fg{margin-bottom:14px}
 label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'Space Mono',monospace}
-input[type=text],input[type=number],input[type=password],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s;resize:none;-webkit-appearance:none}
-input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,160,.08)}
+input[type=text],input[type=number],input[type=password],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none;-webkit-appearance:none}
+input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,textarea:focus{border-color:var(--cat-color,var(--neon));box-shadow:0 0 0 3px rgba(var(--cat-color-rgb,0,245,160),.1)}
 .media-picker input[type=file]{display:none}
 .media-pick-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .media-pick-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--surface2);border:1px dashed rgba(0,245,160,.35);border-radius:10px;color:var(--neon);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;margin:0;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -321,6 +323,9 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
 .cbtn{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;-webkit-tap-highlight-color:transparent}
 .cbtn.sel{border-color:var(--cc,var(--neon));background:color-mix(in srgb,var(--cc,var(--neon)) 12%,transparent)}
+.cbtn.cbtn-disabled{opacity:.35;cursor:default;pointer-events:none}
+.cbtn-disabled-group{display:contents}
+.cbtn-soon-lbl{grid-column:1/-1;font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);text-align:center;padding:4px 0 2px;letter-spacing:.5px;text-transform:uppercase;opacity:.6}
 .cb-ic{font-size:22px;line-height:1}
 .cb-lb{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--dim);line-height:1.2;text-align:center}
 .cbtn.sel .cb-lb{color:var(--cc,var(--neon))}
@@ -566,7 +571,9 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .pd-biz{font-size:12px;font-weight:700;color:var(--neon);font-family:'Syne',sans-serif;margin-bottom:8px;padding:6px 10px;background:rgba(0,245,160,.07);border-radius:6px;border:1px solid rgba(0,245,160,.2)}
 
 /* EMOJI CUSTOM BUTTON */
+.ebtn-plus-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
 .ebtn-plus{font-size:18px;font-weight:700;color:var(--dim);border-style:dashed;transition:all .2s}
+.ebtn-plus-lbl{font-size:8px;font-weight:700;letter-spacing:.3px;font-family:'Space Mono',monospace;color:var(--dim);line-height:1;white-space:nowrap;opacity:.6}
 .ebtn-plus:active{border-color:var(--neon);color:var(--neon)}
 
 /* ── PERFIL ─────────────────────────────────────── */

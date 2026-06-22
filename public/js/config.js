@@ -131,11 +131,13 @@ var PENDING_PROFILES = null;
 var DEV_CAT = {id:'dev', lbl:'DEV', icon:'🧪', color:'#ff4060', emojis:['🧪','⚙️','🛠️','⏱️','🔥','⚡','📍','🧭','🔧','✅']};
 
 CATS = [
-  {id:'food',     lbl:'Comida y Bebida',  icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣']},
-  {id:'sale',     lbl:'Ventas',           icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦']},
-  {id:'event',    lbl:'Evento',           icon:'🎉', color:'#a000f5', emojis:['🎉','🎵','🎸','🎭','🎪','🏆','🎤','🎬','🎊','🕺']},
-  {id:'incident', lbl:'Suceso',           icon:'⚡', color:'#ff4060', emojis:['⚡','🚨','🚧','💥','🔥','🚑','⚠️','🌊','🌪️','🆘']},
-  {id:'info',     lbl:'Información',      icon:'ℹ️', color:'#00f5a0', emojis:['ℹ️','📍','💡','📢','🗺️','🔍','📌','📣','🌐','✅']},
+  {id:'food',     lbl:'Antojos',      icon:'🍽️', color:'#ff9500', emojis:['🍕','🌮','🍔','🍜','🥗','🍺','☕','🍦','🥩','🍣'],
+    bizLbl:'Nombre del lugar', phBiz:'Ej: Tacos El Güero, La Michoacana...', phTtl:'¿Qué antojo encuentras aquí?', phTxt:'Horario, precios, qué pedir... puedes poner links o teléfono.'},
+  {id:'sale',     lbl:'Ventas',       icon:'🏷️', color:'#00c2ff', emojis:['🏷️','💸','🛒','🎁','💰','🛍️','🤑','💎','🔖','📦'],
+    bizLbl:'Nombre del vendedor', phBiz:'Ej: Garage Sale Calle 5, Ropa de Paca...', phTtl:'¿Qué se vende?', phTxt:'Precios, ubicación exacta, horario... puedes poner links o teléfono.'},
+  {id:'event',    lbl:'Evento',       icon:'🎉', color:'#a000f5', emojis:['🎉','🎵','🎸','🎭','🎪','🏆','🎤','🎬','🎊','🕺'], disabled:true},
+  {id:'incident', lbl:'Suceso',       icon:'⚡', color:'#ff4060', emojis:['⚡','🚨','🚧','💥','🔥','🚑','⚠️','🌊','🌪️','🆘'], disabled:true},
+  {id:'info',     lbl:'Información',  icon:'ℹ️', color:'#00f5a0', emojis:['ℹ️','📍','💡','📢','🗺️','🔍','📌','📣','🌐','✅'], disabled:true},
 ];
 var MAX = 60*60*1000;
 var pins = {};

@@ -211,7 +211,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
     <div class="sec-sub">Flares en la base de datos en este momento.</div>
     <div class="stats">
       <div class="stat"><div class="stat-val" id="stat-total">-</div><div class="stat-lbl">Flares activos</div></div>
-      <div class="stat"><div class="stat-val" id="stat-food">-</div><div class="stat-lbl">Comida</div></div>
+      <div class="stat"><div class="stat-val" id="stat-food">-</div><div class="stat-lbl">Antojos</div></div>
       <div class="stat"><div class="stat-val" id="stat-event">-</div><div class="stat-lbl">Eventos</div></div>
       <div class="stat"><div class="stat-val" id="stat-incident">-</div><div class="stat-lbl">Sucesos</div></div>
     </div>
@@ -763,7 +763,7 @@ function renderPreview(errors) {
   var tbody = document.getElementById('preview-body');
   tbody.innerHTML = '';
   parsedRows.slice(0, 20).forEach(function(row) {
-    var catLabels = {food:'Comida',sale:'Ventas',event:'Evento',incident:'Suceso',info:'Info'};
+    var catLabels = {food:'Antojos',sale:'Ventas',event:'Evento',incident:'Suceso',info:'Info'};
     var tr = document.createElement('tr');
     tr.innerHTML = '<td class="'+(row._valid?'':'err')+'">'+row._line+'</td>'
       +'<td class="'+(row._valid?'':'err')+'">'+(row.title||'-')+'</td>'
