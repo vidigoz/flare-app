@@ -63,7 +63,7 @@ document.getElementById('fab-map').addEventListener('click', function(e){
 });
 
 function startPlace(){ placing=true; fab.classList.add('placing'); document.getElementById('xhair').classList.add('on'); map&&(map.getContainer().style.cursor='crosshair'); obSkipBtnSetVisible(true); }
-function stopPlace(){ placing=false; fab.classList.remove('placing'); fab.textContent='＋ Crear Flare'; fab.disabled=false; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); }
+function stopPlace(){ placing=false; fab.classList.remove('placing'); fab.textContent='＋ Crear Flare'; fab.disabled=false; document.getElementById('xhair').classList.remove('on'); map&&(map.getContainer().style.cursor=''); if(typeof obCurrentStep!=='undefined'&&obCurrentStep>0){ obStart(); }else{ obSkipBtnSetVisible(false); } }
 
 function setPending(lat, lng){
   pending = {lat:lat, lng:lng};
