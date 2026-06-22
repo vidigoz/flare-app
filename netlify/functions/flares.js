@@ -305,11 +305,16 @@ export const handler = async (event) => {
         console.error("Moderación OpenAI falló, continuando:", modErr.message);
       }
 
-      const requestedDurMin = parseInt(d.dur_min) || 60;
       const isDevFlare = d.cat === "dev";
-      let durMin = 60;
-      if (isDevFlare || requestedDurMin !== 60) {
-        if (!isDevFlare) return err(403, "La duracion personalizada requiere categoria DEV");
+
+      // Duración según flare_type elegido por el usuario (chispa=60min, flama=180min)
+      const DURATIONS = { chispa: 60, flama: 180 };
+      let durationType = (d.flare_type && DURATIONS[d.flare_type]) ? d.flare_type : "flama";
+      let durMin = DURATIONS[durationType];
+
+      // Modo DEV: permite duración libre con contraseña admin
+      if (isDevFlare) {
+        const requestedDurMin = parseInt(d.dur_min) || 60;
         const devModeEnabled = (await getAdminSetting(sql, DEV_DUR_KEY, "off")) !== "off";
         if (!devModeEnabled) return err(403, "Modo DEV desactivado");
         const adminSecret = process.env.ADMIN_SECRET;
@@ -319,6 +324,7 @@ export const handler = async (event) => {
           return err(400, "dur_min debe estar entre 1 y 720");
         }
         durMin = requestedDurMin;
+        durationType = "dev";
       }
 
       const id = "p" + Date.now() + Math.random().toString(36).slice(2, 6);
@@ -362,7 +368,7 @@ export const handler = async (event) => {
         INSERT INTO flares (
           id, lat, lng, title, emoji, cat, cat_lbl, cat_color, cat_icon,
           type, body_text, biz_name, image_url, video_url, expires_at, owner_uid,
-          username, tier
+          username, tier, flare_type
         ) VALUES (
           ${id}, ${lat}, ${lng},
           ${String(d.title).trim()},
@@ -371,7 +377,7 @@ export const handler = async (event) => {
           ${isDevFlare ? "DEV" : (d.cat_lbl || "Informacion")},
           ${isDevFlare ? "#ff4060" : (d.cat_color || "#00f5a0")},
           ${isDevFlare ? "🧪" : (d.cat_icon || "ℹ️")},
-          ${flareType},
+          'text',
           ${d.body_text || null},
           ${d.biz_name || null},
           ${imageUrl},
@@ -379,7 +385,8 @@ export const handler = async (event) => {
           ${expiresAt},
           ${ownerUid},
           ${username},
-          ${flaresTier}
+          ${flaresTier},
+          ${durationType}
         )
         RETURNING *
       `;

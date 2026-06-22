@@ -104,6 +104,7 @@ function rowToPin(row) {
     likes: row.likes,
     liked: row.user_liked || hasLiked(row.id),
     views: row.views || 0,
+    flareType: row.flare_type || 'flama',
     marker: null,
   };
 }

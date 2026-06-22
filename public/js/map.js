@@ -38,7 +38,8 @@ function applyVigFilter(){
     if(!pin.marker) return;
     var vigOk = (vigFilter==='all') || (getPinStatus(pin)===vigFilter);
     var catOk = (activeCat===null) || (pin.cat===activeCat);
-    if(vigOk && catOk){
+    var typeOk = (activeFlareType===null) || (pin.flareType===activeFlareType);
+    if(vigOk && catOk && typeOk){
       if(clusterEnabled) clusterGroup.addLayer(pin.marker);
       else pin.marker.addTo(clusterGroup);
     }
@@ -103,8 +104,19 @@ document.getElementById('leg-hdr').addEventListener('click', function(){
   if(!el||!el.dataset.filter) return;
   el.addEventListener('click', function(e){ e.stopPropagation(); vigFilter=el.dataset.filter; applyVigFilter(); });
 });
-document.querySelectorAll('.pvig-opt').forEach(function(btn){
+document.querySelectorAll('#pvig .pvig-opt').forEach(function(btn){
   btn.addEventListener('click', function(){ vigFilter=btn.dataset.vf; applyVigFilter(); });
+});
+
+document.querySelectorAll('#pvig-ftype .pvig-opt').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    activeFlareType = btn.dataset.ft === 'all' ? null : btn.dataset.ft;
+    document.querySelectorAll('#pvig-ftype .pvig-opt').forEach(function(b){ b.classList.toggle('on', b.dataset.ft === (activeFlareType||'all')); });
+    document.querySelectorAll('.hdr-ftype').forEach(function(b){ b.classList.toggle('on', b.dataset.ft === (activeFlareType||'all')); });
+    applyVigFilter();
+    renderPanel();
+    updateFilterBadge();
+  });
 });
 
 /* ── Header filter chips ── */
@@ -112,6 +124,17 @@ document.querySelectorAll('.hdr-vig').forEach(function(btn){
   btn.addEventListener('click', function(){
     vigFilter = btn.dataset.vf;
     applyVigFilter();
+  });
+});
+
+document.querySelectorAll('.hdr-ftype').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    activeFlareType = btn.dataset.ft === 'all' ? null : btn.dataset.ft;
+    document.querySelectorAll('.hdr-ftype').forEach(function(b){ b.classList.toggle('on', b.dataset.ft === (activeFlareType||'all')); });
+    document.querySelectorAll('#pvig-ftype .pvig-opt').forEach(function(b){ b.classList.toggle('on', b.dataset.ft === (activeFlareType||'all')); });
+    applyVigFilter();
+    renderPanel();
+    updateFilterBadge();
   });
 });
 
@@ -194,6 +217,9 @@ function closeFilterDrawer(){
 function resetFilters(){
   vigFilter = 'all';
   activeCat = null;
+  activeFlareType = null;
+  document.querySelectorAll('.hdr-ftype').forEach(function(b){ b.classList.toggle('on', b.dataset.ft === 'all'); });
+  document.querySelectorAll('#pvig-ftype .pvig-opt').forEach(function(b){ b.classList.toggle('on', b.dataset.ft === 'all'); });
   applyVigFilter();
 }
 
@@ -203,6 +229,7 @@ function updateFilterBadge(){
   var count = 0;
   if(vigFilter !== 'all') count++;
   if(activeCat !== null) count++;
+  if(activeFlareType !== null) count++;
   if(count > 0){
     badge.textContent = count;
     badge.style.display = 'block';
