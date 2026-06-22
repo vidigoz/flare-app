@@ -75,7 +75,7 @@ function popHTML(pin){
   var c = pin.catColor || 'var(--neon)';
   return '<div class="pop">'
     +'<div class="pop-hdr"><div class="pop-emo" style="background:'+c+'18;border-color:'+c+'44">'+pin.emoji+'</div>'
-    +'<div>'+(pin.bizName?'<div class="pop-biz">🏪 '+esc(pin.bizName)+'</div>':'')+'<div class="pop-name">'+esc(pin.title)+'</div>'+(pin.username?'<div class="pop-username">@'+esc(pin.username)+'</div>':'')+'<div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+'</div></div></div>'
+    +'<div>'+(pin.bizName?'<div class="pop-biz">🏪 '+esc(pin.bizName)+'</div>':'')+'<div class="pop-name">'+esc(pin.title)+'</div>'+(pin.username?'<div class="pop-username">@'+esc(pin.username)+'</div>':'')+'<div class="pop-cat" style="color:'+c+'">● '+(pin.catLbl||'Flare')+' · '+fmtT(r)+(pin.flareType==='chispa'?' · <span class="pop-ftype pop-ftype-chispa">⚡ Chispa</span>':pin.flareType==='flama'?' · <span class="pop-ftype pop-ftype-flama">🔥 Flama</span>':'')+'</div></div></div>'
     +'<div class="pop-bar"><div class="pop-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+',var(--neon2))"></div></div>'
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
     +(pin.image?'<img class="pop-img img-zoomable" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" onclick="event.stopPropagation();openLightbox(\''+esc(pin.image)+'\')">':'')

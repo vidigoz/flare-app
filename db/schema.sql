@@ -1,6 +1,6 @@
 -- ================================================
 --  FLARE APP — Schema completo (Neon/PostgreSQL)
---  Última actualización: 2026-06-05
+--  Última actualización: 2026-06-22
 -- ================================================
 
 -- ── FLARES ──────────────────────────────────────
@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS flares (
   username       TEXT,
   tier           INTEGER DEFAULT 1,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  expires_at     TIMESTAMPTZ NOT NULL
+  expires_at     TIMESTAMPTZ NOT NULL,
+  views          INTEGER DEFAULT 0,        -- contador de aperturas del popup
+  flare_type     TEXT DEFAULT 'flama'      -- duración: chispa (1hr) | flama (3hrs)
 );
 
 CREATE INDEX IF NOT EXISTS flares_geo      ON flares (lat, lng);

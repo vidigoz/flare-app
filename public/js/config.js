@@ -145,6 +145,7 @@ var placing = false, pending = null;
 var selCat = CATS[0], selEmoji = CATS[0].emojis[0], selType = 'text', imgData = null;
 var panelOpen = false, activeCat = null, expandedId = null, lastRowToggle = 0;
 var vigFilter = 'all';
+var activeFlareType = null;
 var map;
 var pollTimer = null;
 var clusterGroup = null;

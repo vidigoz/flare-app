@@ -5,6 +5,12 @@ var fab = document.getElementById('fab');
 var fabMenu = document.getElementById('fab-menu');
 var MEDIA_MAX_BYTES = 3 * 1024 * 1024;
 var mediaPreviewObjectUrl = null;
+var selFlareType = 'flama';
+
+var FLARE_TYPES = {
+  flama:  { label: 'Flama',  icon: '🔥', dur: '3 horas', min: 180, hint: 'Ideal para tu rato de ventas de hoy. "Servicio de comida de 1 a 4", "puesto de tamales toda la mañana", "estoy en la sobrerueda este rato". Lo más común — un bloque de actividad.' },
+  chispa: { label: 'Chispa', icon: '⚡', dur: '1 hora',  min: 60,  hint: 'Ideal para algo que se acaba pronto. "Queda poca birria", "última hora de happy hour", "remato lo que queda antes de cerrar". Lo verdaderamente urgente.' },
+};
 
 function obSkipBtnSetVisible(visible){
   var btn = document.getElementById('ob-skip-btn');
@@ -75,7 +81,8 @@ function openModal(){
   document.getElementById('fab-wrap').style.display = 'none';
   if (typeof loadPublicConfig === 'function') loadPublicConfig();
   buildCG(); buildEG();
-  updateDevDurationFields(); updateFieldsByCat();
+  selFlareType = 'flama';
+  updateDevDurationFields(); updateFieldsByCat(); buildFlareTypeSelector();
   document.getElementById('ctxt').textContent = pending ? pending.lat.toFixed(5)+', '+pending.lng.toFixed(5) : '—';
   document.getElementById('mover').classList.add('on');
 }
@@ -255,7 +262,25 @@ function updateDevDurationFields(){
 }
 
 function getPublishButtonText(){
-  return selCat && selCat.id === 'dev' ? '🧪 Publicar Flare DEV' : '⚡ Publicar Flare (1 hora)';
+  if(selCat && selCat.id === 'dev') return '🧪 Publicar Flare DEV';
+  var ft = FLARE_TYPES[selFlareType] || FLARE_TYPES.flama;
+  return ft.icon + ' Publicar Flare (' + ft.dur + ')';
+}
+
+function buildFlareTypeSelector(){
+  Object.keys(FLARE_TYPES).forEach(function(type){
+    var btn = document.getElementById('ftype-' + type);
+    if(!btn) return;
+    btn.classList.toggle('sel', type === selFlareType);
+    btn.onclick = function(){
+      selFlareType = type;
+      buildFlareTypeSelector();
+      var bsub = document.getElementById('bsub');
+      if(bsub && !bsub.disabled) bsub.textContent = getPublishButtonText();
+    };
+  });
+  var hint = document.getElementById('ftype-hint');
+  if(hint) hint.textContent = FLARE_TYPES[selFlareType].hint;
 }
 
 function buildEG(){
@@ -362,7 +387,8 @@ document.getElementById('bsub').addEventListener('click', function(){
     local_date: getLocalDateString(),
     biz_name: bizName,
     body_text: bodyText,
-    dur_min: isDev ? devDur : 60,
+    flare_type: isDev ? 'dev' : selFlareType,
+    dur_min: isDev ? devDur : undefined,
     is_first_flare: isFirstFlare,
   };
   if (isDev) payload.admin_secret = devSecret;

@@ -73,6 +73,7 @@ function renderPanel(){
   var q = (document.getElementById('srch').value||'').toLowerCase();
   var vp = filteredVisible();
   if(activeCat) vp = vp.filter(function(p){ return p.cat===activeCat; });
+  if(activeFlareType) vp = vp.filter(function(p){ return (p.flareType||'flama')===activeFlareType; });
   if(q) vp = vp.filter(function(p){ return p.title.toLowerCase().includes(q)||(p.text||'').toLowerCase().includes(q)||(p.bizName||'').toLowerCase().includes(q); });
 
   var vigLabels = {nuevo:'🟢 Nuevo',maduro:'🟡 Maduro',expirando:'🔴 Expirando'};

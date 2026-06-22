@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS flares (
   report_count INTEGER DEFAULT 0,
   expires_at  TIMESTAMPTZ NOT NULL,
   created_at  TIMESTAMPTZ DEFAULT NOW(),
-  tier        INTEGER DEFAULT 2
+  tier        INTEGER DEFAULT 2,
+  views       INTEGER DEFAULT 0,        -- agregado en 004_flares_views.sql
+  flare_type  TEXT DEFAULT 'flama'      -- agregado en 005_flares_type.sql (chispa | flama)
 );
 
 CREATE INDEX IF NOT EXISTS idx_flares_expires_at ON flares(expires_at);
