@@ -271,7 +271,7 @@ function mapsUrl(lat, lng) {
   return 'https://maps.google.com/?q='+lat+','+lng;
 }
 
-function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');n.textContent=msg;c.appendChild(n);setTimeout(function(){n.remove()},3500)}
+function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');if(t==='floins'){n.innerHTML=msg;}else{n.textContent=msg;}c.appendChild(n);setTimeout(function(){n.remove()},5000)}
 function setSyncState(state, txt) {
   var el = document.getElementById('sync');
   el.className = state;

@@ -405,12 +405,96 @@ var manualOpen = false;
 var mineOpen   = false;
 
 function showView(viewId) {
-  ['panel-flares','panel-manual','panel-mine','panel-profile'].forEach(function(id) {
+  ['panel-flares','panel-manual','panel-mine','panel-profile','panel-floins'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
   var target = document.getElementById(viewId);
   if (target) target.style.display = (viewId === 'panel-manual') ? 'block' : 'flex';
+}
+
+function showFloinsPanel() {
+  showView('panel-floins');
+  document.getElementById('ph-ttl').innerHTML = 'Mis <span>Floins</span>';
+  document.getElementById('ph-sub').textContent = 'Economía del mapa';
+  document.getElementById('ph-gear').classList.remove('active');
+  renderFloinsPanel();
+}
+
+function renderFloinsPanel() {
+  var box = document.getElementById('floins-content');
+  if (!box) return;
+  var balance = (IDENTITY && typeof IDENTITY.floins === 'number') ? IDENTITY.floins : 0;
+
+  box.innerHTML =
+    '<div class="fp-hero">' +
+      '<img src="/icons/floin.png" class="fp-hero-ico" onerror="this.replaceWith(document.createTextNode(\'🪙\'))">' +
+      '<div class="fp-hero-balance" id="fp-balance">' + balance + '</div>' +
+      '<div class="fp-hero-lbl">Floins disponibles</div>' +
+    '</div>' +
+
+    '<div class="fp-section">' +
+      '<div class="fp-section-title">Últimos movimientos</div>' +
+      '<div id="fp-history"><div class="fp-empty">Cargando...</div></div>' +
+    '</div>' +
+
+    '<div class="fp-section">' +
+      '<div class="fp-section-title">Cómo ganar Floins</div>' +
+      '<div class="fp-guide">' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">🔥</span><div class="fp-guide-body"><div class="fp-guide-lbl">Primer flare</div><div class="fp-guide-desc">Publica tu primer flare</div></div><span class="fp-guide-val gain">+10</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">📍</span><div class="fp-guide-body"><div class="fp-guide-lbl">Publicar flare</div><div class="fp-guide-desc">Cada vez que publicas</div></div><span class="fp-guide-val gain">+2</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">❤️</span><div class="fp-guide-body"><div class="fp-guide-lbl">Dar 10 likes</div><div class="fp-guide-desc">Máximo 2 Floins por día</div></div><span class="fp-guide-val gain">+1</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">⭐</span><div class="fp-guide-body"><div class="fp-guide-lbl">Recibir 5 likes</div><div class="fp-guide-desc">Tu flare recibe cada 5 likes</div></div><span class="fp-guide-val gain">+3</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">📱</span><div class="fp-guide-body"><div class="fp-guide-lbl">Verificar teléfono</div><div class="fp-guide-desc">Una sola vez al registrarte</div></div><span class="fp-guide-val gain">+25</span></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="fp-section">' +
+      '<div class="fp-section-title">Cómo gastar Floins</div>' +
+      '<div class="fp-guide">' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">🪵</span><div class="fp-guide-body"><div class="fp-guide-lbl">Fogata — 6 horas</div><div class="fp-guide-desc">Todo tu turno sin republicar</div></div><span class="fp-guide-val spend">−5</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">🏕️</span><div class="fp-guide-body"><div class="fp-guide-lbl">Hoguera — 12 horas</div><div class="fp-guide-desc">Presencia de día completo</div></div><span class="fp-guide-val spend">−10</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">⏱️</span><div class="fp-guide-body"><div class="fp-guide-lbl">Extender flare +1h</div><div class="fp-guide-desc">Desde el popup de tu flare</div></div><span class="fp-guide-val spend">−3</span></div>' +
+      '</div>' +
+    '</div>';
+
+  // Cargar historial real desde servidor
+  if (IDENTITY && IDENTITY.uid) {
+    fetch('/api/floins-balance?uid=' + encodeURIComponent(IDENTITY.uid))
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!data) return;
+        if (IDENTITY) { IDENTITY.floins = data.balance; saveIdentity(IDENTITY); }
+        var balEl = document.getElementById('fp-balance');
+        if (balEl) balEl.textContent = data.balance;
+        var histEl = document.getElementById('fp-history');
+        if (!histEl) return;
+        if (!data.recent || !data.recent.length) {
+          histEl.innerHTML = '<div class="fp-empty">Aún no tienes movimientos</div>';
+          return;
+        }
+        histEl.innerHTML = data.recent.map(function(t) {
+          var d = new Date(t.created_at);
+          var fecha = d.toLocaleDateString('es-MX', { day:'numeric', month:'short' }) + ' ' + d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+          return '<div class="fp-tx">' +
+            '<div class="fp-tx-body">' +
+              '<div class="fp-tx-lbl">' + esc(t.label) + '</div>' +
+              '<div class="fp-tx-date">' + fecha + '</div>' +
+            '</div>' +
+            '<span class="fp-tx-amt ' + (t.amount > 0 ? 'gain' : 'spend') + '">' +
+              (t.amount > 0 ? '+' : '') + t.amount +
+            '</span>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function(){
+        var histEl = document.getElementById('fp-history');
+        if (histEl) histEl.innerHTML = '<div class="fp-empty">No se pudo cargar el historial</div>';
+      });
+  } else {
+    var histEl = document.getElementById('fp-history');
+    if (histEl) histEl.innerHTML = '<div class="fp-empty">Verifica tu cuenta para ver tu historial</div>';
+  }
 }
 
 function goFlares() {
