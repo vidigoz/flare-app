@@ -324,14 +324,13 @@ function showFloinsToast(amount, reason){
     publish:        'publicaste un flare',
     register_phone: '📱 teléfono verificado',
     likes_given:    '❤️ 10 likes dados',
+    extend_active:  '⏱️ flare extendido +1h',
   };
   var label = labels[reason] || '';
-  var toast = document.createElement('div');
-  toast.className = 'floins-toast';
-  toast.innerHTML = '+' + amount + ' <img src="/icons/floin.png" onerror="this.replaceWith(\'🪙\')" style="width:14px;height:14px;vertical-align:middle"> Floins' + (label ? ' · ' + label : '');
-  document.body.appendChild(toast);
-  requestAnimationFrame(function(){ toast.classList.add('floins-toast-in'); });
-  setTimeout(function(){ toast.classList.add('floins-toast-out'); setTimeout(function(){ toast.remove(); }, 500); }, 2500);
+  var sign = amount > 0 ? '+' : '';
+  var html = sign + amount + ' <img src="/icons/floin.png" onerror="this.replaceWith(\'🪙\')" style="width:13px;height:13px;vertical-align:middle;margin:0 1px"> Floins'
+    + (label ? ' · ' + label : '');
+  notif(html, 'floins');
 }
 
 function buildEG(){

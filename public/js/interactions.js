@@ -89,6 +89,53 @@ function doLike(id){
   });
 }
 
+function doExtend(id) {
+  if(getTier() === 1){ notif('Publica tu primer flare para usar Floins 🔥','err'); return; }
+  var pin = pins[id];
+  if(!pin) return;
+  var balance = (IDENTITY && typeof IDENTITY.floins === 'number') ? IDENTITY.floins : 0;
+  if(balance < 5){ notif('Necesitas 5 Floins para extender — tienes ' + balance,'err'); return; }
+  if(pin._extending) return;
+  pin._extending = true;
+
+  var btn = document.querySelector('.pop-extend-fab');
+  if(btn) btn.disabled = true;
+
+  fetch('/api/extend-flare', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      flare_id: id,
+      uid: IDENTITY && IDENTITY.uid ? IDENTITY.uid : null,
+      device_id: getDeviceFingerprint(),
+    }),
+  })
+  .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, status: r.status, data: d }; }); })
+  .then(function(res){
+    pin._extending = false;
+    if(!res.ok){
+      if(res.status === 402) notif('No tienes suficientes Floins 🪙','err');
+      else if(res.status === 400) notif(res.data.error || 'No se puede extender más este flare','err');
+      else notif('Error al extender. Intenta de nuevo.','err');
+      var fab = document.querySelector('.pop-extend-fab');
+      if(fab) fab.disabled = false;
+      return;
+    }
+    pin.expires_at = res.data.expires_at;
+    if(IDENTITY){ IDENTITY.floins = res.data.floins_balance; saveIdentity(IDENTITY); }
+    refreshPop(pin);
+    refreshMk(pin, false);
+    notif('⏱️ +1 hora agregada al flare','like');
+    if(typeof showFloinsToast === 'function') showFloinsToast(-5, 'extend_active');
+  })
+  .catch(function(){
+    pin._extending = false;
+    var fab = document.querySelector('.pop-extend-fab');
+    if(fab) fab.disabled = false;
+    notif('Error al extender. Intenta de nuevo.','err');
+  });
+}
+
 function openReport(id) {
   if(hasReported(id)) { notif('Ya reportaste este flare 🙏', 'err'); return; }
   var overlay = document.getElementById('report-overlay');

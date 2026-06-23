@@ -5,7 +5,7 @@
 import { neon } from "@neondatabase/serverless";
 import { getFloinsBalance, addFloinsTransaction } from "./_utils/floins.js";
 
-const EXTEND_COST = 3;
+const EXTEND_COST = 5;
 const MAX_HOURS_FROM_CREATION = 12;
 
 export const handler = async (event) => {
@@ -34,10 +34,7 @@ export const handler = async (event) => {
     `;
     if (!flare) return err(404, "Flare no encontrado o ya expiró");
 
-    // Verificar que el usuario es dueño
-    if (flare.owner_uid && userId && flare.owner_uid !== userId) {
-      return err(403, "Solo el dueño puede extender su flare");
-    }
+    // Cualquier usuario puede extender cualquier flare (pagando Floins)
 
     // Verificar límite de 12h desde creación
     const createdAt  = new Date(flare.created_at).getTime();
