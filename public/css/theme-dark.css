@@ -285,6 +285,12 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .mx{background:var(--surface2);border:1px solid var(--border);color:var(--dim);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .mbody{padding:0 18px 8px}
 .fg{margin-bottom:14px}
+.ftype-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ftype-label-row label{margin-bottom:0}
+.ftype-balance-pill{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--neon);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ftype-balance-pill:active{background:rgba(0,245,160,.1)}
+.ftype-balance-info{font-size:9px;color:var(--dim);background:var(--border);border-radius:50%;width:13px;height:13px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.ftype-earn-hint{font-family:'Space Mono',monospace;font-size:10px;color:var(--text);line-height:1.5;margin-bottom:8px;padding:8px 10px;background:rgba(0,245,160,.06);border:1px solid rgba(0,245,160,.2);border-radius:8px}
 label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:7px;font-family:'Space Mono',monospace}
 input[type=text],input[type=number],input[type=password],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none;-webkit-appearance:none}
 input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,textarea:focus{border-color:var(--cat-color,var(--neon));box-shadow:0 0 0 3px rgba(var(--cat-color-rgb,0,245,160),.1)}
@@ -309,7 +315,9 @@ input[type=text]:focus,input[type=number]:focus,input[type=password]:focus,texta
 .ftype-btn.ftype-disabled{opacity:.45;cursor:default}
 .ftype-ico{font-size:24px;line-height:1}
 .ftype-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
-.ftype-dur{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.3px;display:flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center}
+.ftype-dur{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.3px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ftype-dur-line{display:flex;align-items:center;gap:2px}
+.ftype-dur-cost{color:var(--neon)}
 .ftype-floin-ico{width:11px;height:11px;vertical-align:middle}
 .ftype-short{color:var(--danger);font-size:8px}
 .ftype-hint{font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);line-height:1.5;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;border-left:2px solid var(--border);transition:opacity .2s}
@@ -677,6 +685,35 @@ a.rich-link[href^="tel:"]{color:var(--neon2);border-color:rgba(245,0,160,.3);bac
 .profile-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
 .profile-stat-val { font-size: 24px; font-weight: 700; font-family: 'Space Mono',monospace; color: var(--text); }
 .profile-stat-lbl { font-size: 10px; color: var(--dim); font-family: 'Space Mono',monospace; margin-top: 2px; }
+.profile-stat-floins { cursor: pointer; border-color: rgba(0,245,160,.25); transition: all .2s; }
+.profile-stat-floins:active { background: rgba(0,245,160,.08); border-color: var(--neon); }
+.profile-stat-goto { font-size: 8px; color: var(--neon); font-family: 'Space Mono',monospace; margin-top: 4px; letter-spacing: .5px; }
+/* Panel Floins */
+.fp-hero { display: flex; flex-direction: column; align-items: center; padding: 28px 20px 20px; border-bottom: 1px solid var(--border); }
+.fp-hero-ico { width: 56px; height: 56px; margin-bottom: 10px; }
+.fp-hero-balance { font-size: 48px; font-weight: 700; font-family: 'Space Mono',monospace; color: var(--neon); line-height: 1; }
+.fp-hero-lbl { font-size: 11px; font-family: 'Space Mono',monospace; color: var(--dim); margin-top: 4px; }
+.fp-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.fp-section-title { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Space Mono',monospace; color: var(--dim); margin-bottom: 10px; }
+.fp-tx { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.fp-tx:last-child { border-bottom: none; }
+.fp-tx-body { flex: 1; }
+.fp-tx-lbl { font-size: 12px; color: var(--text); font-family: 'Syne',sans-serif; font-weight: 600; }
+.fp-tx-date { font-size: 9px; color: var(--dim); font-family: 'Space Mono',monospace; margin-top: 2px; }
+.fp-tx-amt { font-size: 13px; font-weight: 700; font-family: 'Space Mono',monospace; flex-shrink: 0; }
+.fp-tx-amt.gain { color: var(--neon); }
+.fp-tx-amt.spend { color: var(--danger); }
+.fp-empty { font-size: 11px; color: var(--dim); font-family: 'Space Mono',monospace; text-align: center; padding: 12px 0; }
+.fp-guide { display: flex; flex-direction: column; gap: 2px; }
+.fp-guide-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.fp-guide-row:last-child { border-bottom: none; }
+.fp-guide-ico { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+.fp-guide-body { flex: 1; }
+.fp-guide-lbl { font-size: 12px; font-family: 'Syne',sans-serif; font-weight: 600; color: var(--text); }
+.fp-guide-desc { font-size: 9px; font-family: 'Space Mono',monospace; color: var(--dim); margin-top: 1px; }
+.fp-guide-val { font-size: 13px; font-weight: 700; font-family: 'Space Mono',monospace; flex-shrink: 0; }
+.fp-guide-val.gain { color: var(--neon); }
+.fp-guide-val.spend { color: var(--danger); }
 
 .profile-cta, .profile-validate {
   background: var(--surface2);

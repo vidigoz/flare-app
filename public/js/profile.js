@@ -81,25 +81,15 @@ function renderProfile() {
   var flaresRestantes = Math.max(0, 10 - flaresHoy);
   var floinsBalance = identity.floins || 0;
 
-  // Cargar balance real desde servidor si hay uid
+  // Actualizar balance desde servidor (solo el número, el historial está en panel-floins)
   if (identity.uid) {
     fetch('/api/floins-balance?uid=' + encodeURIComponent(identity.uid))
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(data){
-        if(!data) return;
-        if(IDENTITY) { IDENTITY.floins = data.balance; saveIdentity(IDENTITY); }
+        if (!data) return;
+        if (IDENTITY) { IDENTITY.floins = data.balance; saveIdentity(IDENTITY); }
         var balEl = document.getElementById('floins-balance-val');
-        if(balEl) balEl.textContent = data.balance;
-        var histEl = document.getElementById('floins-history');
-        if(histEl && data.recent && data.recent.length){
-          histEl.innerHTML = data.recent.map(function(t){
-            return '<div class="floins-tx">'
-              + '<span class="floins-tx-lbl">' + esc(t.label) + '</span>'
-              + '<span class="floins-tx-amt' + (t.amount > 0 ? ' pos' : ' neg') + '">'
-              + (t.amount > 0 ? '+' : '') + t.amount + ' 🪙</span>'
-              + '</div>';
-          }).join('');
-        }
+        if (balEl) balEl.textContent = data.balance;
       })
       .catch(function(){});
   }
@@ -133,14 +123,11 @@ function renderProfile() {
           '<div class="profile-stat-lbl">Restantes hoy</div>' +
         '</div>'
       : '') +
-      '<div class="profile-stat">' +
+      '<div class="profile-stat profile-stat-floins" onclick="showFloinsPanel()" title="Ver mis Floins">' +
         '<div class="profile-stat-val" id="floins-balance-val">' + floinsBalance + '</div>' +
         '<div class="profile-stat-lbl"><img src="/icons/floin.png" onerror="this.replaceWith(\'🪙\')" style="width:11px;height:11px;vertical-align:middle"> Floins</div>' +
+        '<div class="profile-stat-goto">Ver panel →</div>' +
       '</div>' +
-    '</div>' +
-    '<div class="floins-history-wrap" id="floins-history-wrap">' +
-      '<div class="floins-history-title">Últimos Floins</div>' +
-      '<div id="floins-history"><div class="floins-tx-empty">Cargando...</div></div>' +
     '</div>' +
     (getTier() < 3 ?
       '<div class="profile-recover">' +

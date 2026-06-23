@@ -269,12 +269,22 @@ function getPublishButtonText(){
   return ft.icon + ' Publicar Flare (' + ft.dur + ')';
 }
 
+function toggleFloinsHint(){
+  var hint = document.getElementById('ftype-earn-hint');
+  if(!hint) return;
+  var visible = hint.style.display !== 'none';
+  hint.style.display = visible ? 'none' : 'block';
+  if(!visible) setTimeout(function(){ hint.style.display = 'none'; }, 4000);
+}
+
 function getFloinsBalance(){
   return (IDENTITY && typeof IDENTITY.floins === 'number') ? IDENTITY.floins : 0;
 }
 
 function buildFlareTypeSelector(){
   var balance = getFloinsBalance();
+  var balVal = document.getElementById('ftype-balance-val');
+  if(balVal) balVal.textContent = balance;
   Object.keys(FLARE_TYPES).forEach(function(type){
     var btn = document.getElementById('ftype-' + type);
     if(!btn) return;
@@ -288,9 +298,11 @@ function buildFlareTypeSelector(){
     if(durEl){
       if(ft.floins > 0){
         var floinIcon = '<img src="/icons/floin.png" class="ftype-floin-ico" onerror="this.replaceWith(\'🪙\')">';
-        durEl.innerHTML = ft.dur + ' &middot; ' + ft.floins + ' ' + floinIcon + (canAfford ? '' : ' <span class="ftype-short">+' + (ft.floins - balance) + ' faltan</span>');
+        var shortLbl = canAfford ? '' : '<span class="ftype-short">+' + (ft.floins - balance) + ' faltan</span>';
+        durEl.innerHTML = '<span class="ftype-dur-line">' + ft.dur + '</span>'
+          + '<span class="ftype-dur-line ftype-dur-cost">' + ft.floins + ' ' + floinIcon + shortLbl + '</span>';
       } else {
-        durEl.textContent = ft.dur + ' · gratis';
+        durEl.textContent = ft.dur;
       }
     }
 

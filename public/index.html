@@ -170,6 +170,11 @@
     <div id="profile-content"></div>
     <div class="psetting-version" id="app-version">Flare v—</div>
   </div>
+
+  <!-- Vista: Floins -->
+  <div id="panel-floins" style="display:none;flex:1;flex-direction:column;overflow-y:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))">
+    <div id="floins-content"></div>
+  </div>
 </div>
 
 <!-- Main Modal -->
@@ -232,7 +237,17 @@
         </div>
       </div>
       <div class="fg">
-        <label>Duración</label>
+        <div class="ftype-label-row">
+          <label>Duración</label>
+          <div class="ftype-balance-pill" id="ftype-balance-pill" onclick="toggleFloinsHint()">
+            <img src="/icons/floin.png" class="ftype-floin-ico" onerror="this.replaceWith('🪙')">
+            <span id="ftype-balance-val">0</span>
+            <span class="ftype-balance-info">?</span>
+          </div>
+        </div>
+        <div class="ftype-earn-hint" id="ftype-earn-hint" style="display:none">
+          💡 Gana Floins publicando y dando likes en el mapa.
+        </div>
         <div class="ftype-grid" id="ftype-grid">
           <div class="ftype-btn" id="ftype-chispa" data-type="chispa">
             <span class="ftype-ico">⚡</span>
