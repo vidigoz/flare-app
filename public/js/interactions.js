@@ -71,7 +71,7 @@ function doLike(id){
       var btn = document.querySelector('.pop-like');
       if(btn){ btn.classList.add('like-fire'); setTimeout(function(){ btn.classList.remove('like-fire'); }, 700); }
     }, 0);
-    if(panelOpen) renderPanel();
+    if(panelOpen) refreshPanelLike(id);
     if(revived) notif('💚 "'+pin.title+'" fue salvado!','like');
   }).catch(function(e) {
     pin._liking = false;

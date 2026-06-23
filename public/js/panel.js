@@ -1,5 +1,23 @@
 /* ── panel.js — panel open/close, buildChips, renderPanel, myFlares, manual ── */
 
+function refreshPanelLike(id){
+  var pin = pins[id];
+  if(!pin) return;
+  // Actualiza el contador en la fila
+  var likesEl = document.querySelector('#prow-'+id+' .plikes');
+  if(likesEl){ likesEl.textContent = '❤️ '+pin.likes; likesEl.classList.toggle('plikes-active', pin.likes>0); }
+  // Actualiza el botón de like en el detalle
+  var likeBtn = document.querySelector('#pdet-'+id+' .pd-like');
+  if(likeBtn){
+    likeBtn.className = 'pd-like'+(pin.liked?' liked':'');
+    var countEl = likeBtn.querySelector('.pd-like-count');
+    if(countEl) countEl.textContent = pin.likes;
+    likeBtn.childNodes[0].textContent = pin.liked ? '❤️' : '🤍';
+    var lastText = likeBtn.lastChild;
+    if(lastText && lastText.nodeType === 3) lastText.textContent = pin.liked ? ' Liked' : ' Me gusta';
+  }
+}
+
 function togglePanel(){ panelOpen ? closePanel() : openPanel(); }
 
 function updateProfileBar() {
