@@ -308,9 +308,10 @@ function buildFlareTypeSelector(){
 
 function showFloinsToast(amount, reason){
   var labels = {
-    first_flare: '🔥 ¡Primer flare!',
-    publish: 'publicaste un flare',
+    first_flare:    '🔥 ¡Primer flare!',
+    publish:        'publicaste un flare',
     register_phone: '📱 teléfono verificado',
+    likes_given:    '❤️ 10 likes dados',
   };
   var label = labels[reason] || '';
   var toast = document.createElement('div');

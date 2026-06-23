@@ -73,6 +73,10 @@ function doLike(id){
     }, 0);
     if(panelOpen) refreshPanelLike(id);
     if(revived) notif('💚 "'+pin.title+'" fue salvado!','like');
+    if(data.floins_earned > 0) {
+      if(IDENTITY) { IDENTITY.floins = (IDENTITY.floins || 0) + data.floins_earned; saveIdentity(IDENTITY); }
+      setTimeout(function(){ if(typeof showFloinsToast === 'function') showFloinsToast(data.floins_earned, data.floins_reason); }, 300);
+    }
   }).catch(function(e) {
     pin._liking = false;
     if(likeBtn) likeBtn.disabled = false;

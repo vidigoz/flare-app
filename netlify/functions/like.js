@@ -49,6 +49,8 @@ export const handler = async (event) => {
 
     if (!row) return err(404, "Flare no encontrado o ya expiró");
 
+    let floinsEarnedByLiker = 0;
+
     // Guardar like en DB para Tier 2+ (para sincronizar entre dispositivos)
     if (uid) {
       try {
@@ -80,6 +82,7 @@ export const handler = async (event) => {
           `;
           if ((alreadyEarned?.cnt || 0) < 2) {
             await addFloinsTransaction(sql, { userId: uid, amount: 1, reason: "likes_given", flareId: id });
+            floinsEarnedByLiker = 1;
           }
         }
       } catch (fe) {
@@ -133,7 +136,10 @@ export const handler = async (event) => {
     return {
       statusCode: 200,
       headers: { ...cors(), "Content-Type": "application/json" },
-      body: JSON.stringify(row),
+      body: JSON.stringify({
+        ...row,
+        ...(floinsEarnedByLiker > 0 ? { floins_earned: floinsEarnedByLiker, floins_reason: "likes_given" } : {}),
+      }),
     };
   } catch (e) {
     console.error(e);
