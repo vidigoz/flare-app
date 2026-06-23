@@ -147,13 +147,12 @@ function renderPanel(){
       +(pin.image?'<img class="pd-img img-zoomable" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" onclick="openLightbox(\''+esc(pin.image)+'\')">':'')
       +'<div class="pd-acts">'
       +'<button class="pd-like'+(pin.liked?' liked':'')+'" data-lid="'+pin.id+'">'
-      +(pin.liked?'❤️':'🤍')+' <span class="pd-like-count">'+pin.likes+'</span>'
-      +(pin.liked?' Liked':' Me gusta')
+      +(pin.liked?'❤️':'♥')+' +5 min'
       +'</button>'
       +'<button class="pd-map" data-fid="'+pin.id+'">📍 Ver aquí</button>'
-      +'<button class="pd-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')">🗺️ Cómo llegar</button>'
-      +'<button class="pd-share" onclick="shareFlare(\''+pin.id+'\')">↗ Compartir</button>'
-      +'<button class="pd-report" data-report-id="'+pin.id+'">🚩 Reportar</button>'
+      +'<button class="pd-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5 2V6l5-2 6 2 5-2v16l-5 2-6-2z"/><path d="M9 4v16M15 6v16"/></svg> Llegar</button>'
+      +'<button class="pd-share" onclick="shareFlare(\''+pin.id+'\')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.4"/><circle cx="17" cy="6" r="2.4"/><circle cx="17" cy="18" r="2.4"/><path d="M8.1 10.9l6.8-3.7M8.1 13.1l6.8 3.7"/></svg> Compartir</button>'
+      +'<button class="pd-report" data-report-id="'+pin.id+'"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg> Reportar</button>'
       +'</div>'
       +'</div>';
     html += html_detail;
@@ -455,7 +454,7 @@ function renderFloinsPanel() {
       '<div class="fp-guide">' +
         '<div class="fp-guide-row"><span class="fp-guide-ico">🪵</span><div class="fp-guide-body"><div class="fp-guide-lbl">Fogata — 6 horas</div><div class="fp-guide-desc">Todo tu turno sin republicar</div></div><span class="fp-guide-val spend">−5</span></div>' +
         '<div class="fp-guide-row"><span class="fp-guide-ico">🏕️</span><div class="fp-guide-body"><div class="fp-guide-lbl">Hoguera — 12 horas</div><div class="fp-guide-desc">Presencia de día completo</div></div><span class="fp-guide-val spend">−10</span></div>' +
-        '<div class="fp-guide-row"><span class="fp-guide-ico">⏱️</span><div class="fp-guide-body"><div class="fp-guide-lbl">Extender flare +1h</div><div class="fp-guide-desc">Desde el popup de tu flare</div></div><span class="fp-guide-val spend">−3</span></div>' +
+        '<div class="fp-guide-row"><span class="fp-guide-ico">⏱️</span><div class="fp-guide-body"><div class="fp-guide-lbl">Extender flare +1h</div><div class="fp-guide-desc">Desde el popup de tu flare</div></div><span class="fp-guide-val spend">−5</span></div>' +
       '</div>' +
     '</div>';
 

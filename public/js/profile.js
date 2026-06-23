@@ -141,7 +141,7 @@ function renderProfile() {
           '<span class="profile-quick-lbl">Ir al mapa</span>' +
         '</button>' +
         '<button class="profile-quick-btn" onclick="closeProfile();closePanel();setTimeout(function(){document.getElementById(\'fab\').click()},200)">' +
-          '<span class="profile-quick-ico">⚡</span>' +
+          '<span class="profile-quick-ico">📍</span>' +
           '<span class="profile-quick-lbl">Poner flare</span>' +
         '</button>' +
       '</div>' +

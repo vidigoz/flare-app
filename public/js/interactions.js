@@ -48,7 +48,7 @@ function doLike(id){
   if(pin._liking) return; // evitar doble tap mientras espera respuesta
 
   pin._liking = true;
-  var likeBtn = document.querySelector('.pop-like');
+  var likeBtn = document.querySelector('.pop-tray-boost.pop-like');
   if(likeBtn) likeBtn.disabled = true;
 
   postLike(id).then(function(data) {
@@ -68,7 +68,7 @@ function doLike(id){
     setTimeout(function(){
       if(!pin.marker.isPopupOpen()) pin.marker.openPopup();
       window._likeInProgress = false;
-      var btn = document.querySelector('.pop-like');
+      var btn = document.querySelector('.pop-tray-boost.pop-like');
       if(btn){ btn.classList.add('like-fire'); setTimeout(function(){ btn.classList.remove('like-fire'); }, 700); }
     }, 0);
     if(panelOpen) refreshPanelLike(id);
