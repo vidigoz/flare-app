@@ -88,6 +88,7 @@ function createIdentity() {
 
 function saveIdentity(identity) {
   localStorage.setItem('flare_identity', JSON.stringify(identity));
+  if(typeof updateHdrFloins === 'function') updateHdrFloins();
 }
 
 // IDENTITY es null si Tier 1, objeto si Tier 2
@@ -272,6 +273,7 @@ function mapsUrl(lat, lng) {
 }
 
 function notif(msg,t){var c=document.getElementById('notifs'),n=document.createElement('div');n.className='ntf '+(t||'');if(t==='floins'){n.innerHTML=msg;}else{n.textContent=msg;}c.appendChild(n);setTimeout(function(){n.remove()},5000)}
+function updateHdrFloins(){var b=(IDENTITY&&typeof IDENTITY.floins==='number')?IDENTITY.floins:0;var el=document.getElementById('hdr-floins-val');if(el)el.textContent=b;}
 function setSyncState(state, txt) {
   var el = document.getElementById('sync');
   el.className = state;

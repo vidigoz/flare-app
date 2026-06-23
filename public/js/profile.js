@@ -30,7 +30,7 @@ function openTutorial() {
     showView('panel-manual');
     document.getElementById('ph-ttl').innerHTML = 'Tutorial de <span>Flare</span>';
     document.getElementById('ph-sub').textContent = 'Guía completa';
-    document.getElementById('ph-gear').classList.remove('active');
+    if(typeof setActiveNav === 'function') setActiveNav(null);
     if (typeof manualOpen !== 'undefined') manualOpen = true;
     if (!document.getElementById('panel-manual').dataset.loaded) {
       if (typeof loadManual === 'function') loadManual();

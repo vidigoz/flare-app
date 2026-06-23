@@ -411,6 +411,7 @@ function loadMarkerCluster(cb){
 
 loadLeaflet(function(){
   loadMarkerCluster(function(){
+    updateHdrFloins();
     map = L.map('map', {center:[32.5720,-116.6280], zoom:14, zoomControl:false, closePopupOnClick:false});
     TILES.night = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''});
     TILES.day   = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:''});

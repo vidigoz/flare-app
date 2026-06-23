@@ -414,10 +414,11 @@ function showView(viewId) {
 }
 
 function showFloinsPanel() {
+  if(!panelOpen) openPanel();
   showView('panel-floins');
   document.getElementById('ph-ttl').innerHTML = 'Mis <span>Floins</span>';
   document.getElementById('ph-sub').textContent = 'Economía del mapa';
-  document.getElementById('ph-gear').classList.remove('active');
+  setActiveNav('pnav-floins');
   renderFloinsPanel();
 }
 
@@ -497,12 +498,28 @@ function renderFloinsPanel() {
   }
 }
 
+function setActiveNav(id) {
+  ['pnav-flares','pnav-profile','pnav-floins'].forEach(function(b){
+    var el = document.getElementById(b);
+    if(el) el.classList.toggle('active', b === id);
+  });
+}
+
 function goFlares() {
   manualOpen = false; mineOpen = false;
   showView('panel-flares');
   document.getElementById('ph-ttl').innerHTML = 'Flares en <span>Vista</span>';
   document.getElementById('ph-sub').textContent = filteredVisible().length + ' flares en vista';
-  document.getElementById('ph-gear').classList.remove('active');
+  setActiveNav('pnav-flares');
+}
+
+function goProfile() {
+  showView('panel-profile');
+  document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
+  var t = typeof getTier === 'function' ? getTier() : 1;
+  document.getElementById('ph-sub').textContent = t === 1 ? 'Visitante' : t === 3 ? '✓ Verificado' : 'Sin validar';
+  setActiveNav('pnav-profile');
+  if(typeof renderProfile === 'function') renderProfile();
 }
 
 /* ── panel button listeners ── */
@@ -511,20 +528,6 @@ document.getElementById('pov').addEventListener('click', function(){ closePanel(
 document.getElementById('panel-close').addEventListener('click', function(){ closePanel(); });
 document.getElementById('srch').addEventListener('input', function(){ renderPanel(); });
 
-/* ── Perfil: abre/cierra vista de perfil ── */
-document.getElementById('ph-gear').addEventListener('click', function() {
-  var profileActive = this.classList.contains('active');
-  if (profileActive) {
-    goFlares();
-  } else {
-    showView('panel-profile');
-    document.getElementById('ph-ttl').innerHTML = 'Mi <span>Perfil</span>';
-    var t = typeof getTier === 'function' ? getTier() : 1;
-    document.getElementById('ph-sub').textContent = t === 1 ? 'Visitante' : t === 3 ? '✓ Verificado' : 'Sin validar';
-    this.classList.add('active');
-    if (typeof renderProfile === 'function') renderProfile();
-  }
-});
 
 /* ── Versión de la app ── */
 fetch('/version.json').then(function(r){ return r.json(); }).then(function(d){
