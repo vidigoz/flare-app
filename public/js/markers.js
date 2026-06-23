@@ -18,7 +18,7 @@ function makeMarker(pin){
   var state = getPinState(pin);
   var ico = L.divIcon({className:'',html:mkHTML(pin, state, true),iconSize:[31,36],iconAnchor:[15,36]});
   var m = L.marker([pin.lat, pin.lng], {icon:ico});
-  m.bindPopup(popHTML(pin), {maxWidth:280, autoPan:false});
+  m.bindPopup(popHTML(pin), {maxWidth:320, autoPan:false});
   m.on('popupopen', function(){
     refreshPop(pin);
     if(typeof trackEvent==='function') trackEvent('flare_view', pin.id);
@@ -80,31 +80,30 @@ function popHTML(pin){
     +(pin.text?'<div class="pop-txt">'+richText(pin.text)+'</div>':'')
     +(pin.image?'<img class="pop-img img-zoomable" src="'+esc(pin.image)+'" alt="Foto del flare" loading="lazy" onclick="event.stopPropagation();openLightbox(\''+esc(pin.image)+'\')">':'')
     +(getPinState(pin)==='dying'?'<div class="rescue-msg" style="margin-bottom:8px">🔴 ¡Por expirar! Dale ❤️ para salvarlo</div>':'')
-    +'<div class="pop-foot">'
-    +'<div class="pop-group">'
-    +'<button class="pop-btn pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'
-    +'<span class="pop-btn-ico">'+(pin.liked?'❤️':'🤍')+'</span>'
-    +'<span class="pop-btn-lbl">+5 min</span>'
+    +'<div class="pop-tray">'
+    +'<div class="pop-tray-eyebrow">MANTÉN VIVO EL FLARE</div>'
+    +'<div class="pop-tray-boosts">'
+    +'<button class="pop-tray-btn pop-tray-boost pop-like'+(pin.liked?' liked':'')+'" onclick="doLike(\''+pin.id+'\')">'
+    +'<span class="pop-tray-chip pop-tray-chip-green">'+(pin.liked?'❤️':'♥')+'</span>'
+    +'<div class="pop-tray-text"><span class="pop-tray-lbl">+5 min</span><span class="pop-tray-sub">Dale un like</span></div>'
     +'</button>'
-    +'<button class="pop-btn pop-extend-fab" onclick="doExtend(\''+pin.id+'\')" title="+1 hora · 5 Floins">'
-    +'<span class="pop-btn-ico"><img src="/icons/floin.png" class="pop-extend-ico" alt="🪙" onerror="this.replaceWith(\'🪙\')"></span>'
-    +'<span class="pop-btn-lbl">+1h</span>'
-    +'</button>'
-    +'</div>'
-    +'<div class="pop-group">'
-    +'<button class="pop-btn pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">'
-    +'<span class="pop-btn-ico">🗺️</span>'
-    +'<span class="pop-btn-lbl" style="line-height:1.3">Google<br>Maps</span>'
-    +'</button>'
-    +'<button class="pop-btn pop-share" onclick="shareFlare(\''+pin.id+'\')" title="Compartir">'
-    +'<span class="pop-btn-ico">↗</span>'
-    +'<span class="pop-btn-lbl">Share</span>'
+    +'<button class="pop-tray-btn pop-tray-gold pop-extend-fab" onclick="doExtend(\''+pin.id+'\')" title="+1 hora · 5 Floins">'
+    +'<span class="pop-tray-chip pop-tray-chip-gold"><img src="/icons/floin.png" class="pop-extend-ico" alt="🪙" onerror="this.replaceWith(\'🪙\')"></span>'
+    +'<div class="pop-tray-text"><span class="pop-tray-lbl">+1 hora</span><span class="pop-tray-sub"><img src="/icons/floin.png" style="width:10px;height:10px;vertical-align:middle;margin-right:2px" onerror="this.replaceWith(\'🪙\')">5 Floins</span></div>'
     +'</button>'
     +'</div>'
-    +'<div class="pop-group pop-group-solo">'
-    +'<button class="pop-btn pop-report-btn" onclick="openReport(\''+pin.id+'\')" title="Reportar">'
-    +'<span class="pop-btn-ico">🚩</span>'
-    +'<span class="pop-btn-lbl">Report</span>'
+    +'<div class="pop-tray-utils">'
+    +'<button class="pop-tray-btn pop-tray-util pop-gmaps" onclick="openMaps('+pin.lat+','+pin.lng+')" title="Ver en Maps">'
+    +'<span class="pop-tray-util-ico"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5 2V6l5-2 6 2 5-2v16l-5 2-6-2z"/><path d="M9 4v16M15 6v16"/></svg></span>'
+    +'<span class="pop-tray-util-lbl">Llegar</span>'
+    +'</button>'
+    +'<button class="pop-tray-btn pop-tray-util pop-share" onclick="shareFlare(\''+pin.id+'\')" title="Compartir">'
+    +'<span class="pop-tray-util-ico"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.4"/><circle cx="17" cy="6" r="2.4"/><circle cx="17" cy="18" r="2.4"/><path d="M8.1 10.9l6.8-3.7M8.1 13.1l6.8 3.7"/></svg></span>'
+    +'<span class="pop-tray-util-lbl">Compartir</span>'
+    +'</button>'
+    +'<button class="pop-tray-btn pop-tray-report pop-report-btn" onclick="openReport(\''+pin.id+'\')" title="Reportar">'
+    +'<span class="pop-tray-util-ico"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></span>'
+    +'<span class="pop-tray-util-lbl">Reportar</span>'
     +'</button>'
     +'</div>'
     +'</div>'

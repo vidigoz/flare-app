@@ -33,6 +33,10 @@
       <span class="hdr-filter-lbl">Filtros</span>
       <span class="hdr-filter-badge" id="hdr-filter-badge" style="display:none"></span>
     </button>
+    <button class="hdr-floins-pill" id="hdr-floins-pill" onclick="showFloinsPanel()">
+      <img src="/icons/floin.png" class="hdr-floins-ico" alt="🪙" onerror="this.replaceWith('🪙')">
+      <span id="hdr-floins-val">0</span>
+    </button>
   </div>
   <div class="hdr-r">
     <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
@@ -105,16 +109,20 @@
       <div class="ph-ttl" id="ph-ttl">Flares en <span>Vista</span></div>
       <div class="ph-sub" id="ph-sub">0 flares en el área visible</div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <button class="ph-gear" id="ph-gear" title="Perfil">👤</button>
-      <button class="ph-x" id="panel-close">✕</button>
+    <div class="ph-nav">
+      <button class="ph-nav-btn active" id="pnav-flares" title="Flares en vista" onclick="goFlares()">🔍</button>
+      <button class="ph-nav-btn" id="pnav-profile" title="Mi perfil" onclick="goProfile()">👤</button>
+      <button class="ph-nav-btn" id="pnav-floins" title="Mis Floins" onclick="showFloinsPanel()">
+        <img src="/icons/floin.png" class="pnav-floins-ico" alt="🪙" onerror="this.replaceWith('🪙')">
+      </button>
+      <button class="ph-nav-btn ph-nav-close" id="panel-close" title="Cerrar">✕</button>
     </div>
   </div>
 
 
   <!-- Vista: Flares -->
   <div id="panel-flares">
-    <div id="panel-profile-card" style="display:none" onclick="document.getElementById('ph-gear').click()">
+    <div id="panel-profile-card" style="display:none" onclick="goProfile()">
       <img id="ppc-avatar" src="" alt="" class="ppc-avatar">
       <div class="ppc-info">
         <div class="ppc-name" id="ppc-name">@usuario</div>
@@ -311,7 +319,7 @@
       <div class="ob-celebrate-icon" id="ob-fire">🔥</div>
       <div class="ob-title">¡Tu primer flare <span>está en vivo!</span></div>
       <div class="ob-desc" id="ob-celebrate-desc">Otros pueden verlo y darle like para mantenerlo vivo más tiempo.<br><br>Valida tu perfil con tu número de telefono para guardar tu progreso y recuperarlo en cualquier dispositivo.</div>
-      <button class="ob-profile-btn" onclick="obCloseCelebrate();openPanel();setTimeout(function(){document.getElementById('ph-gear').click()},100)">Ver mi perfil →</button>
+      <button class="ob-profile-btn" onclick="obCloseCelebrate();openPanel();setTimeout(function(){goProfile()},100)">Ver mi perfil →</button>
     </div>
   </div>
 </div>
