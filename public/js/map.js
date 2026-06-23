@@ -18,6 +18,13 @@ function setMyLocation(lat, lng){
 
 function startMyLocation(flyTo){
   if(!navigator.geolocation) return;
+
+  // Si ya tenemos posición tracked, centrar inmediatamente sin esperar GPS
+  if(flyTo && myLocMarker) {
+    var ll = myLocMarker.getLatLng();
+    map.flyTo([ll.lat, ll.lng], 15, {duration:1.2});
+  }
+
   navigator.geolocation.getCurrentPosition(function(pos){
     setMyLocation(pos.coords.latitude, pos.coords.longitude);
     if(flyTo) map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, {duration:1.2});
@@ -96,14 +103,6 @@ function buildClusterGroup(){
   });
 }
 
-document.getElementById('leg-hdr').addEventListener('click', function(){
-  document.getElementById('legend').classList.toggle('collapsed');
-});
-['leg-nuevo','leg-maduro','leg-expirando','leg-all'].forEach(function(id){
-  var el = document.getElementById(id);
-  if(!el||!el.dataset.filter) return;
-  el.addEventListener('click', function(e){ e.stopPropagation(); vigFilter=el.dataset.filter; applyVigFilter(); });
-});
 document.querySelectorAll('#pvig .pvig-opt').forEach(function(btn){
   btn.addEventListener('click', function(){ vigFilter=btn.dataset.vf; applyVigFilter(); });
 });
