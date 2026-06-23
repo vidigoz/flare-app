@@ -1,6 +1,7 @@
 -- ================================================
 --  FLARE APP — Schema completo (Neon/PostgreSQL)
 --  Última actualización: 2026-06-22
+--  Migraciones: 001–006
 -- ================================================
 
 -- ── FLARES ──────────────────────────────────────
@@ -27,8 +28,8 @@ CREATE TABLE IF NOT EXISTS flares (
   tier           INTEGER DEFAULT 1,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at     TIMESTAMPTZ NOT NULL,
-  views          INTEGER DEFAULT 0,        -- contador de aperturas del popup
-  flare_type     TEXT DEFAULT 'flama'      -- duración: chispa (1hr) | flama (3hrs)
+  views          INTEGER DEFAULT 0,        -- contador de aperturas del popup (migración 004)
+  flare_type     TEXT DEFAULT 'flama'      -- duración: chispa|flama|fogata|hoguera (migración 005)
 );
 
 CREATE INDEX IF NOT EXISTS flares_geo      ON flares (lat, lng);
@@ -53,7 +54,9 @@ CREATE TABLE IF NOT EXISTS users (
   username_changed_at  TIMESTAMPTZ,
   onboarding_complete  BOOLEAN DEFAULT FALSE,
   last_seen_at         TIMESTAMPTZ DEFAULT NOW(),
-  created_at           TIMESTAMPTZ DEFAULT NOW()
+  created_at           TIMESTAMPTZ DEFAULT NOW(),
+  floins               INTEGER DEFAULT 0,         -- balance rápido (migración 006)
+  first_flare_rewarded BOOLEAN DEFAULT FALSE       -- bono único de primer flare (migración 006)
 );
 
 CREATE INDEX IF NOT EXISTS users_phone    ON users (phone);
@@ -103,6 +106,21 @@ CREATE TABLE IF NOT EXISTS support_tickets (
   status      TEXT NOT NULL DEFAULT 'pendiente',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ── FLOINS TRANSACTIONS (ledger de economía) ────
+CREATE TABLE IF NOT EXISTS floins_transactions (
+  id          SERIAL PRIMARY KEY,
+  user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
+  device_id   TEXT,
+  amount      INTEGER NOT NULL,
+  reason      TEXT NOT NULL,
+  flare_id    TEXT REFERENCES flares(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_floins_user    ON floins_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_floins_device  ON floins_transactions(device_id);
+CREATE INDEX IF NOT EXISTS idx_floins_created ON floins_transactions(created_at);
 
 -- ── FUNCIÓN DE LIMPIEZA ──────────────────────────
 CREATE OR REPLACE FUNCTION delete_expired_flares()

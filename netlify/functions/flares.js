@@ -7,6 +7,7 @@ import { rateLimit } from "./_utils/rateLimit.js";
 import { ensureAdminSettingsTable, getAdminSetting } from "./_utils/settings.js";
 import { containsProfanity } from "./_utils/profanityList.js";
 import { deleteR2ObjectByUrl, isR2PublicUrl } from "./_utils/r2.js";
+import { getFloinsBalance, addFloinsTransaction } from "./_utils/floins.js";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -307,10 +308,24 @@ export const handler = async (event) => {
 
       const isDevFlare = d.cat === "dev";
 
-      // Duración según flare_type elegido por el usuario (chispa=60min, flama=180min)
-      const DURATIONS = { chispa: 60, flama: 180 };
+      // Duración según flare_type elegido por el usuario
+      const DURATIONS   = { chispa: 60, flama: 180, fogata: 360, hoguera: 720 };
+      const FLOINS_COST = { chispa: 0,  flama: 0,   fogata: 5,   hoguera: 10  };
       let durationType = (d.flare_type && DURATIONS[d.flare_type]) ? d.flare_type : "flama";
       let durMin = DURATIONS[durationType];
+
+      // Validar balance de Floins para fogata/hoguera
+      const floinsCost = FLOINS_COST[durationType] || 0;
+      if (floinsCost > 0) {
+        const floinsBalance = await getFloinsBalance(sql, { userId: d.users_id || null, deviceId: d.device_id || null });
+        if (floinsBalance < floinsCost) {
+          return {
+            statusCode: 402,
+            headers: { ...cors(), "Content-Type": "application/json" },
+            body: JSON.stringify({ error: "INSUFFICIENT_FLOINS", required: floinsCost, balance: floinsBalance }),
+          };
+        }
+      }
 
       // Modo DEV: permite duración libre con contraseña admin
       if (isDevFlare) {
@@ -393,10 +408,55 @@ export const handler = async (event) => {
 
       await incrementDailyCount(sql, uid, localDate);
 
+      // ── Floins: descontar costo de fogata/hoguera ──────────────
+      let floinsEarned = 0;
+      let floinsReason = null;
+      let floinsBalance = 0;
+
+      if (!isDevFlare && floinsCost > 0 && usersId) {
+        try {
+          await addFloinsTransaction(sql, {
+            userId: usersId,
+            amount: -floinsCost,
+            reason: durationType === "fogata" ? "extend_6h" : "extend_12h",
+            flareId: id,
+          });
+        } catch (fe) {
+          console.error("floins deduct error:", fe.message);
+        }
+      }
+
+      // ── Floins: bono de primer flare (+10, única vez) ──────────
+      if (!isDevFlare && usersId) {
+        try {
+          const [userRow] = await sql`SELECT first_flare_rewarded, floins FROM users WHERE id = ${usersId} LIMIT 1`;
+          if (userRow && !userRow.first_flare_rewarded) {
+            await addFloinsTransaction(sql, { userId: usersId, amount: 10, reason: "first_flare", flareId: id });
+            await sql`UPDATE users SET first_flare_rewarded = TRUE WHERE id = ${usersId}`;
+            floinsEarned = 10;
+            floinsReason = "first_flare";
+            floinsBalance = (userRow.floins || 0) + 10 - floinsCost;
+          } else if (userRow) {
+            // ── Floins: bono de publicar (+2) ────────────────────
+            await addFloinsTransaction(sql, { userId: usersId, amount: 2, reason: "publish", flareId: id });
+            floinsEarned = 2;
+            floinsReason = "publish";
+            floinsBalance = (userRow.floins || 0) + 2 - floinsCost;
+          }
+        } catch (fe) {
+          console.error("floins earn error:", fe.message);
+        }
+      }
+
       return {
         statusCode: 201,
         headers: { ...cors(), "Content-Type": "application/json" },
-        body: JSON.stringify({ ...row, users_id: usersId, existing_profile: existingProfile }),
+        body: JSON.stringify({
+          ...row,
+          users_id: usersId,
+          existing_profile: existingProfile,
+          ...(floinsEarned > 0 ? { floins_earned: floinsEarned, floins_reason: floinsReason, floins_balance: floinsBalance } : {}),
+        }),
       };
     }
 

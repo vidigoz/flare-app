@@ -5,6 +5,7 @@
 
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
+import { addFloinsTransaction } from "./_utils/floins.js";
 
 function getDb() {
   return neon(process.env.NETLIFY_DATABASE_URL);
@@ -101,7 +102,24 @@ export const handler = async (event) => {
         `;
       }
 
-      return ok({ verified: true, user });
+      // ── Floins: bono de registro telefónico (+25, única vez) ──
+      let floinsBonus = 0;
+      try {
+        const [alreadyRewarded] = await sql`
+          SELECT id FROM floins_transactions
+          WHERE user_id = ${usersId}
+            AND reason = 'register_phone'
+          LIMIT 1
+        `;
+        if (!alreadyRewarded) {
+          await addFloinsTransaction(sql, { userId: usersId, amount: 25, reason: "register_phone" });
+          floinsBonus = 25;
+        }
+      } catch (fe) {
+        console.error("floins register_phone error:", fe.message);
+      }
+
+      return ok({ verified: true, user, ...(floinsBonus > 0 ? { floins_bonus: floinsBonus } : {}) });
     }
 
     // ── CASO 2: Recovery — buscar por phone ──────────────────

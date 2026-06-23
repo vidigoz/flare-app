@@ -58,9 +58,11 @@
   <div class="fdr-section">
     <div class="fdr-lbl">Duración</div>
     <div class="fdr-row">
-      <div class="hdr-chip hdr-ftype on" id="hf-type-all" data-ft="all">Todos</div>
-      <div class="hdr-chip hdr-ftype" id="hf-type-flama" data-ft="flama">🔥 Flama</div>
-      <div class="hdr-chip hdr-ftype" id="hf-type-chispa" data-ft="chispa">⚡ Chispa</div>
+      <div class="hdr-chip hdr-ftype on" id="hf-type-all"     data-ft="all">Todos</div>
+      <div class="hdr-chip hdr-ftype"    id="hf-type-chispa"  data-ft="chispa">⚡ Chispa</div>
+      <div class="hdr-chip hdr-ftype"    id="hf-type-flama"   data-ft="flama">🔥 Flama</div>
+      <div class="hdr-chip hdr-ftype"    id="hf-type-fogata"  data-ft="fogata">🪵 Fogata</div>
+      <div class="hdr-chip hdr-ftype"    id="hf-type-hoguera" data-ft="hoguera">🏕️ Hoguera</div>
     </div>
   </div>
   <button class="fdr-reset-btn" onclick="resetFilters()">↺ Reiniciar filtros</button>
@@ -140,9 +142,11 @@
     <div class="pvig" id="pvig-ftype">
       <div class="pvig-lbl">Duración:</div>
       <div class="pvig-opts">
-        <div class="pvig-opt on" id="pftype-all"    data-ft="all">Todos</div>
-        <div class="pvig-opt"   id="pftype-flama"   data-ft="flama">🔥 Flama</div>
+        <div class="pvig-opt on" id="pftype-all"     data-ft="all">Todos</div>
         <div class="pvig-opt"   id="pftype-chispa"  data-ft="chispa">⚡ Chispa</div>
+        <div class="pvig-opt"   id="pftype-flama"   data-ft="flama">🔥 Flama</div>
+        <div class="pvig-opt"   id="pftype-fogata"  data-ft="fogata">🪵 Fogata</div>
+        <div class="pvig-opt"   id="pftype-hoguera" data-ft="hoguera">🏕️ Hoguera</div>
       </div>
     </div>
     <div class="pvig" id="pcat-hdr">
@@ -230,15 +234,25 @@
       <div class="fg">
         <label>Duración</label>
         <div class="ftype-grid" id="ftype-grid">
+          <div class="ftype-btn" id="ftype-chispa" data-type="chispa">
+            <span class="ftype-ico">⚡</span>
+            <span class="ftype-name">Chispa</span>
+            <span class="ftype-dur">1 hora</span>
+          </div>
           <div class="ftype-btn" id="ftype-flama" data-type="flama">
             <span class="ftype-ico">🔥</span>
             <span class="ftype-name">Flama</span>
             <span class="ftype-dur">3 horas</span>
           </div>
-          <div class="ftype-btn" id="ftype-chispa" data-type="chispa">
-            <span class="ftype-ico">⚡</span>
-            <span class="ftype-name">Chispa</span>
-            <span class="ftype-dur">1 hora</span>
+          <div class="ftype-btn" id="ftype-fogata" data-type="fogata">
+            <span class="ftype-ico">🪵</span>
+            <span class="ftype-name">Fogata</span>
+            <span class="ftype-dur">6 horas</span>
+          </div>
+          <div class="ftype-btn" id="ftype-hoguera" data-type="hoguera">
+            <span class="ftype-ico">🏕️</span>
+            <span class="ftype-name">Hoguera</span>
+            <span class="ftype-dur">12 horas</span>
           </div>
         </div>
         <div class="ftype-hint" id="ftype-hint"></div>

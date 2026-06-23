@@ -116,6 +116,16 @@
   to = "/.netlify/functions/run-migrations"
   status = 200
 
+[[redirects]]
+  from = "/api/extend-flare"
+  to = "/.netlify/functions/extend-flare"
+  status = 200
+
+[[redirects]]
+  from = "/api/floins-balance"
+  to = "/.netlify/functions/floins-balance"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

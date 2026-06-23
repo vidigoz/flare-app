@@ -8,8 +8,10 @@ var mediaPreviewObjectUrl = null;
 var selFlareType = 'flama';
 
 var FLARE_TYPES = {
-  flama:  { label: 'Flama',  icon: '🔥', dur: '3 horas', min: 180, hint: 'Ideal para tu rato de ventas de hoy. "Servicio de comida de 1 a 4", "puesto de tamales toda la mañana", "estoy en la sobrerueda este rato". Lo más común — un bloque de actividad.' },
-  chispa: { label: 'Chispa', icon: '⚡', dur: '1 hora',  min: 60,  hint: 'Ideal para algo que se acaba pronto. "Queda poca birria", "última hora de happy hour", "remato lo que queda antes de cerrar". Lo verdaderamente urgente.' },
+  chispa:  { label: 'Chispa',  icon: '⚡',  dur: '1 hora',   min: 60,  floins: 0,  hint: 'Ideal para algo que se acaba pronto. "Queda poca birria", "última hora de happy hour", "remato lo que queda antes de cerrar". Lo verdaderamente urgente.' },
+  flama:   { label: 'Flama',   icon: '🔥',  dur: '3 horas',  min: 180, floins: 0,  hint: 'Ideal para tu rato de ventas de hoy. "Servicio de comida de 1 a 4", "puesto de tamales toda la mañana", "estoy en la sobrerueda este rato". Lo más común — un bloque de actividad.' },
+  fogata:  { label: 'Fogata',  icon: '🪵',  dur: '6 horas',  min: 360, floins: 5,  hint: 'Ideal para todo tu turno sin republicar. Swap meet, medio día de ventas, evento de mañana completa.' },
+  hoguera: { label: 'Hoguera', icon: '🏕️', dur: '12 horas', min: 720, floins: 10, hint: 'Presencia de día completo. Abierto todo el día, un evento que dura toda la jornada.' },
 };
 
 function obSkipBtnSetVisible(visible){
@@ -267,12 +269,33 @@ function getPublishButtonText(){
   return ft.icon + ' Publicar Flare (' + ft.dur + ')';
 }
 
+function getFloinsBalance(){
+  return (IDENTITY && typeof IDENTITY.floins === 'number') ? IDENTITY.floins : 0;
+}
+
 function buildFlareTypeSelector(){
+  var balance = getFloinsBalance();
   Object.keys(FLARE_TYPES).forEach(function(type){
     var btn = document.getElementById('ftype-' + type);
     if(!btn) return;
+    var ft = FLARE_TYPES[type];
+    var canAfford = ft.floins === 0 || balance >= ft.floins;
     btn.classList.toggle('sel', type === selFlareType);
+    btn.classList.toggle('ftype-disabled', !canAfford);
+
+    // Etiqueta de costo
+    var durEl = btn.querySelector('.ftype-dur');
+    if(durEl){
+      if(ft.floins > 0){
+        var floinIcon = '<img src="/icons/floin.png" class="ftype-floin-ico" onerror="this.replaceWith(\'🪙\')">';
+        durEl.innerHTML = ft.dur + ' &middot; ' + ft.floins + ' ' + floinIcon + (canAfford ? '' : ' <span class="ftype-short">+' + (ft.floins - balance) + ' faltan</span>');
+      } else {
+        durEl.textContent = ft.dur + ' · gratis';
+      }
+    }
+
     btn.onclick = function(){
+      if(!canAfford){ notif('Necesitas ' + ft.floins + ' Floins para ' + ft.label + ' — te faltan ' + (ft.floins - balance), 'err'); return; }
       selFlareType = type;
       buildFlareTypeSelector();
       var bsub = document.getElementById('bsub');
@@ -281,6 +304,21 @@ function buildFlareTypeSelector(){
   });
   var hint = document.getElementById('ftype-hint');
   if(hint) hint.textContent = FLARE_TYPES[selFlareType].hint;
+}
+
+function showFloinsToast(amount, reason){
+  var labels = {
+    first_flare: '🔥 ¡Primer flare!',
+    publish: 'publicaste un flare',
+    register_phone: '📱 teléfono verificado',
+  };
+  var label = labels[reason] || '';
+  var toast = document.createElement('div');
+  toast.className = 'floins-toast';
+  toast.innerHTML = '+' + amount + ' <img src="/icons/floin.png" onerror="this.replaceWith(\'🪙\')" style="width:14px;height:14px;vertical-align:middle"> Floins' + (label ? ' · ' + label : '');
+  document.body.appendChild(toast);
+  requestAnimationFrame(function(){ toast.classList.add('floins-toast-in'); });
+  setTimeout(function(){ toast.classList.add('floins-toast-out'); setTimeout(function(){ toast.remove(); }, 500); }, 2500);
 }
 
 function buildEG(){
@@ -444,10 +482,15 @@ document.getElementById('bsub').addEventListener('click', function(){
       // Guardar users_id en IDENTITY
       if (row.users_id && IDENTITY) {
         IDENTITY.uid = row.users_id;
-        // Si el device_id ya tenía un perfil, restaurar username y avatar del existente
         if (row.existing_profile) {
           IDENTITY.username = row.existing_profile.username;
           IDENTITY.avatar_url = row.existing_profile.avatar_url || IDENTITY.avatar_url;
+        }
+        // Actualizar balance de Floins en IDENTITY
+        if (typeof row.floins_balance === 'number') {
+          IDENTITY.floins = row.floins_balance;
+        } else if (row.floins_earned) {
+          IDENTITY.floins = (IDENTITY.floins || 0) + row.floins_earned;
         }
         saveIdentity(IDENTITY);
       }
@@ -459,7 +502,12 @@ document.getElementById('bsub').addEventListener('click', function(){
       pins[pin.id] = pin;
       closeModal();
       map.flyTo([pin.lat, pin.lng], 15, {duration:1});
-      notif(pin.emoji+' "'+pin.title+'" lanzado por '+(isDev ? devDur+' min' : '1 hora')+'!');
+      var ft = FLARE_TYPES[selFlareType] || FLARE_TYPES.flama;
+      notif(pin.emoji+' "'+pin.title+'" lanzado por '+(isDev ? devDur+' min' : ft.dur)+'!');
+      // Toast de Floins ganados
+      if (row.floins_earned > 0) {
+        setTimeout(function(){ showFloinsToast(row.floins_earned, row.floins_reason); }, 600);
+      }
       applyVigFilter();
       var mine = JSON.parse(localStorage.getItem('flare_mine') || '[]');
       mine.push(row.id);
@@ -472,7 +520,8 @@ document.getElementById('bsub').addEventListener('click', function(){
     .catch(function(e) {
       btn.disabled = false;
       btn.textContent = getPublishButtonText();
-      if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
+      if(e.status === 402) notif('No tienes suficientes Floins para esta duración 🪙','err');
+      else if(e.status === 429 && e.message === 'daily_limit') { closeModal(); openDailyLimitModal(); }
       else if(e.status === 429 && e.message && e.message.includes('OpenAI')) notif(e.message, 'err');
       else if(e.status === 429) notif('Límite alcanzado. Intenta en unos minutos.','err');
       else if(e.status === 401) notif('Contraseña admin incorrecta.','err');

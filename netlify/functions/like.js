@@ -4,6 +4,7 @@
 import { neon } from "@neondatabase/serverless";
 import { rateLimit } from "./_utils/rateLimit.js";
 import { ensureAdminSettingsTable, getAdminSetting } from "./_utils/settings.js";
+import { addFloinsTransaction } from "./_utils/floins.js";
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
@@ -58,6 +59,74 @@ export const handler = async (event) => {
         `;
       } catch (e) {
         console.error("user_likes insert error:", e.message);
+      }
+
+      // ── Floins: bono por dar likes (+1 cada 10 likes, máx 2/día) ──
+      try {
+        const [todayCount] = await sql`
+          SELECT COUNT(*)::int AS cnt
+          FROM user_likes
+          WHERE user_id = ${uid}
+            AND liked_at >= CURRENT_DATE
+        `;
+        const likesHoy = todayCount?.cnt || 0;
+        if (likesHoy > 0 && likesHoy % 10 === 0) {
+          const [alreadyEarned] = await sql`
+            SELECT COUNT(*)::int AS cnt
+            FROM floins_transactions
+            WHERE user_id = ${uid}
+              AND reason = 'likes_given'
+              AND created_at >= CURRENT_DATE
+          `;
+          if ((alreadyEarned?.cnt || 0) < 2) {
+            await addFloinsTransaction(sql, { userId: uid, amount: 1, reason: "likes_given", flareId: id });
+          }
+        }
+      } catch (fe) {
+        console.error("floins likes_given error:", fe.message);
+      }
+    }
+
+    // ── Floins: bono al dueño por recibir múltiplo de 5 likes (+3) ──
+    if (row.likes > 0 && row.likes % 5 === 0) {
+      try {
+        const [flare] = await sql`SELECT owner_uid FROM flares WHERE id = ${id} LIMIT 1`;
+        const ownerUid = flare?.owner_uid;
+        if (ownerUid) {
+          const [alreadyRewarded] = await sql`
+            SELECT id FROM floins_transactions
+            WHERE reason = 'likes_received_5'
+              AND flare_id = ${id}
+              AND amount = 3
+              AND user_id = ${ownerUid}
+              AND created_at >= NOW() - INTERVAL '1 minute' * 2
+            LIMIT 1
+          `;
+          // Verificar por likes exactos para no repetir el mismo milestone
+          const milestone = row.likes;
+          const [milestoneExists] = await sql`
+            SELECT id FROM floins_transactions
+            WHERE reason = 'likes_received_5'
+              AND flare_id = ${id}
+              AND user_id = ${ownerUid}
+              AND amount * ${milestone / 5} > 0
+            LIMIT 1
+          `;
+          // Simplificado: verificar si ya existe exactamente este número de registros
+          const [countRewards] = await sql`
+            SELECT COUNT(*)::int AS cnt
+            FROM floins_transactions
+            WHERE reason = 'likes_received_5'
+              AND flare_id = ${id}
+              AND user_id = ${ownerUid}
+          `;
+          const expectedRewards = Math.floor(row.likes / 5);
+          if ((countRewards?.cnt || 0) < expectedRewards) {
+            await addFloinsTransaction(sql, { userId: ownerUid, amount: 3, reason: "likes_received_5", flareId: id });
+          }
+        }
+      } catch (fe) {
+        console.error("floins likes_received_5 error:", fe.message);
       }
     }
 

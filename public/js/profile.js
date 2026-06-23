@@ -79,6 +79,30 @@ function renderProfile() {
   var hoy = new Date().toDateString();
   var flaresHoy = (identity.fecha_hoy === hoy) ? (identity.flares_hoy || 0) : 0;
   var flaresRestantes = Math.max(0, 10 - flaresHoy);
+  var floinsBalance = identity.floins || 0;
+
+  // Cargar balance real desde servidor si hay uid
+  if (identity.uid) {
+    fetch('/api/floins-balance?uid=' + encodeURIComponent(identity.uid))
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if(!data) return;
+        if(IDENTITY) { IDENTITY.floins = data.balance; saveIdentity(IDENTITY); }
+        var balEl = document.getElementById('floins-balance-val');
+        if(balEl) balEl.textContent = data.balance;
+        var histEl = document.getElementById('floins-history');
+        if(histEl && data.recent && data.recent.length){
+          histEl.innerHTML = data.recent.map(function(t){
+            return '<div class="floins-tx">'
+              + '<span class="floins-tx-lbl">' + esc(t.label) + '</span>'
+              + '<span class="floins-tx-amt' + (t.amount > 0 ? ' pos' : ' neg') + '">'
+              + (t.amount > 0 ? '+' : '') + t.amount + ' 🪙</span>'
+              + '</div>';
+          }).join('');
+        }
+      })
+      .catch(function(){});
+  }
 
   box.innerHTML =
     '<div class="profile-main">' +
@@ -109,6 +133,14 @@ function renderProfile() {
           '<div class="profile-stat-lbl">Restantes hoy</div>' +
         '</div>'
       : '') +
+      '<div class="profile-stat">' +
+        '<div class="profile-stat-val" id="floins-balance-val">' + floinsBalance + '</div>' +
+        '<div class="profile-stat-lbl"><img src="/icons/floin.png" onerror="this.replaceWith(\'🪙\')" style="width:11px;height:11px;vertical-align:middle"> Floins</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="floins-history-wrap" id="floins-history-wrap">' +
+      '<div class="floins-history-title">Últimos Floins</div>' +
+      '<div id="floins-history"><div class="floins-tx-empty">Cargando...</div></div>' +
     '</div>' +
     (getTier() < 3 ?
       '<div class="profile-recover">' +
@@ -932,6 +964,12 @@ function doConfirmCode() {
         // Migrar avatar de Tier 2 a R2 si es URL local y no tiene ya uno en R2
         if (!res.user.avatar_url && IDENTITY.avatar_url) {
           migrateAvatarToR2(IDENTITY.avatar_url);
+        }
+        // Toast de bono de registro
+        if (res.floins_bonus > 0) {
+          IDENTITY.floins = (IDENTITY.floins || 0) + res.floins_bonus;
+          saveIdentity(IDENTITY);
+          setTimeout(function(){ if(typeof showFloinsToast === 'function') showFloinsToast(res.floins_bonus, 'register_phone'); }, 1000);
         }
       }
       _fbConfirmationResult = null;
