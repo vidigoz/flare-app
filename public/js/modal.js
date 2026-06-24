@@ -413,11 +413,12 @@ document.getElementById('bsub').addEventListener('click', function(){
   btn.disabled = true;
   btn.textContent = imageFile ? '🛡️ Verificando foto...' : '⏳ Publicando...';
 
-  // Crear identidad si es el primer flare (Tier 1 → Tier 2)
-  var isFirstFlare = !IDENTITY;
+  // Crear identidad si aún no existe (llegó directo sin haber dado like)
   if (!IDENTITY) {
     IDENTITY = createIdentity();
   }
+  // is_first_flare = no tiene uid en DB todavía (puede ser Tier 1 puro o llegó por like)
+  var isFirstFlare = !IDENTITY.uid;
 
   var payload = {
     lat: pending.lat,

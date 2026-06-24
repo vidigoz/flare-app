@@ -140,7 +140,8 @@ function repostFlare(id) {
 
 function postLike(id) {
   var uid = IDENTITY && IDENTITY.uid ? '&uid=' + encodeURIComponent(IDENTITY.uid) : '';
-  return apiFetch('/api/like?id=' + encodeURIComponent(id) + uid, { method: 'PATCH' });
+  var did = '&device_id=' + encodeURIComponent(getDeviceFingerprint());
+  return apiFetch('/api/like?id=' + encodeURIComponent(id) + uid + did, { method: 'PATCH' });
 }
 
 function startPoll() {

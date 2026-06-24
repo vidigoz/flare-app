@@ -38,14 +38,17 @@ function openMaps(lat, lng) {
 }
 
 function doLike(id){
-  if (getTier() === 1) {
-    notif('Publica tu primer flare para dar likes 🔥', 'err');
-    return;
-  }
   var pin = pins[id];
   if(!pin) return;
   if(pin.liked){ notif('Ya le diste ❤️ a este flare 😉','err'); return; }
-  if(pin._liking) return; // evitar doble tap mientras espera respuesta
+  if(pin._liking) return;
+
+  // Tier 1 → crear identidad al dar el primer like
+  var isFirstLike = (getTier() === 1);
+  if (isFirstLike) {
+    IDENTITY = createIdentity();
+    saveIdentity(IDENTITY);
+  }
 
   pin._liking = true;
   var likeBtn = document.querySelector('.pop-tray-boost.pop-like');
@@ -77,7 +80,15 @@ function doLike(id){
       if(IDENTITY) { IDENTITY.floins = (IDENTITY.floins || 0) + data.floins_earned; saveIdentity(IDENTITY); }
       setTimeout(function(){ if(typeof showFloinsToast === 'function') showFloinsToast(data.floins_earned, data.floins_reason); }, 300);
     }
+    if(isFirstLike) {
+      setTimeout(function(){ if(typeof obCelebrateLike === 'function') obCelebrateLike(); }, 600);
+    }
   }).catch(function(e) {
+    if(isFirstLike) {
+      // Revertir identidad si el like falló
+      IDENTITY = null;
+      localStorage.removeItem('flare_identity');
+    }
     pin._liking = false;
     if(likeBtn) likeBtn.disabled = false;
     if(e.status === 429) {
