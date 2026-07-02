@@ -48,6 +48,8 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 .hdr-floins-pill{display:flex;align-items:center;gap:5px;background:rgba(15,20,32,.85);border:1.5px solid rgba(245,196,0,.4);border-radius:20px;padding:6px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px);transition:all .15s;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#f5c400}
 .hdr-floins-pill:active{transform:scale(.95);background:rgba(245,196,0,.1)}
 .hdr-floins-ico{width:14px;height:14px;object-fit:contain;display:block;flex-shrink:0}
+.hdr-help-btn{display:flex;align-items:center;justify-content:center;background:rgba(15,20,32,.85);border:1.5px solid var(--border);border-radius:20px;width:32px;height:32px;cursor:pointer;font-size:15px;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(8px);transition:all .15s;flex-shrink:0}
+.hdr-help-btn:active{transform:scale(.95);background:rgba(0,245,160,.1);border-color:var(--neon)}
 .spill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
@@ -195,6 +197,8 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;padding:8px 12px;display
 #panel-manual .m-sec-title .hl3{color:var(--amber)}
 #panel-manual .m-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
 #panel-manual .m-card-icon{font-size:24px;margin-bottom:8px;display:block}
+#panel-manual .m-floin-ico{width:14px;height:14px;object-fit:contain;vertical-align:middle;display:inline-block;flex-shrink:0}
+#panel-manual .m-floin-ico--lg{width:24px;height:24px}
 #panel-manual .m-card-title{font-size:13px;font-weight:700;margin-bottom:5px}
 #panel-manual .m-card-desc{font-size:11px;color:#9aa3b8;line-height:1.6;font-family:'Space Mono',monospace}
 #panel-manual .m-step{display:grid;grid-template-columns:38px 1fr;gap:12px;margin-bottom:16px}

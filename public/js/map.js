@@ -185,6 +185,9 @@ function openFilterDrawer(){
   fdr.classList.add('on');
   overlay.classList.add('on');
   btn.classList.add('active');
+  var obWrap = document.getElementById('ob-wrap');
+  if(obWrap && obWrap.style.display !== 'none') obWrap.dataset.hiddenByFdr = '1';
+  if(obWrap) obWrap.style.display = 'none';
   // bloquear zoom del navegador mientras el drawer está abierto
   document.querySelector('meta[name=viewport]').setAttribute('content',
     'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
@@ -204,6 +207,11 @@ function closeFilterDrawer(){
   fdr.classList.remove('on');
   overlay.classList.remove('on');
   btn.classList.remove('active');
+  var obWrap = document.getElementById('ob-wrap');
+  if(obWrap && obWrap.dataset.hiddenByFdr) {
+    obWrap.style.display = 'block';
+    delete obWrap.dataset.hiddenByFdr;
+  }
   // restaurar viewport normal
   document.querySelector('meta[name=viewport]').setAttribute('content',
     'width=device-width, initial-scale=1.0, viewport-fit=cover');
@@ -475,8 +483,20 @@ loadLeaflet(function(){
 
     startPoll();
 
+    var obPendingDeepLink = false;
     if(!localStorage.getItem('flare_onboarding_complete') && !localStorage.getItem('flare_identity')){
-      setTimeout(obStart, 800);
+      if(hasDeepLink){
+        obPendingDeepLink = true;
+      } else {
+        setTimeout(obStart, 800);
+      }
     }
+
+    map.on('popupclose', function(){
+      if(obPendingDeepLink && !localStorage.getItem('flare_onboarding_complete')){
+        obPendingDeepLink = false;
+        setTimeout(obStart, 300);
+      }
+    });
   });
 });

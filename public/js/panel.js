@@ -52,7 +52,8 @@ function closePanel(){
   document.getElementById('pov').classList.remove('on');
   document.getElementById('pbtn').style.display = 'flex';
   document.getElementById('fab-wrap').style.display = 'flex';
-  if(!localStorage.getItem('flare_onboarding_complete') && !localStorage.getItem('flare_identity')){
+  var hasOpenPopup = map && Object.values(pins).some(function(p){ return p.marker && p.marker.isPopupOpen(); });
+  if(!localStorage.getItem('flare_onboarding_complete') && !localStorage.getItem('flare_identity') && !hasOpenPopup){
     document.getElementById('ob-wrap').style.display = 'block';
     document.getElementById('ob-tip-fab').style.display = 'flex';
     document.getElementById('ob-tip-filters').style.display = 'block';
@@ -316,12 +317,15 @@ function renderMyFlares() {
 function loadManual() {
   document.getElementById('panel-manual').innerHTML = `
 <h1>Manual de <span>Flare</span></h1>
-<div class="m-sub">Guía completa · Versión 1.0 · El mapa que respira</div>
+<div class="m-sub">Guía completa · Versión 1.5 · El mapa que respira</div>
 <nav class="m-nav">
   <a href="#m-overview" class="active">¿Qué es?</a>
   <a href="#m-crear">Crear</a>
+  <a href="#m-duraciones">Duración</a>
   <a href="#m-categorias">Categorías</a>
   <a href="#m-vigencia">Vigencia</a>
+  <a href="#m-floins">Floins</a>
+  <a href="#m-tiers">Niveles</a>
   <a href="#m-panel">Panel</a>
   <a href="#m-tips">Tips</a>
 </nav>
@@ -329,58 +333,137 @@ function loadManual() {
 
 <div class="m-section" id="m-overview">
   <div class="m-sec-hdr"><div class="m-sec-num">01</div><div class="m-sec-title">¿Qué es <span class="hl">Flare</span>?</div></div>
-  <div class="m-card"><span class="m-card-icon">📍</span><div class="m-card-title">Mapa en Vivo</div><div class="m-card-desc">Coloca marcadores geolocalizados en cualquier parte del mapa con un solo toque.</div></div>
-  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Eventos Efímeros</div><div class="m-card-desc">Cada flare dura 1 hora y desaparece solo. El mapa siempre está fresco y relevante.</div></div>
+  <div class="m-card"><span class="m-card-icon">📍</span><div class="m-card-title">Mapa en Vivo</div><div class="m-card-desc">Coloca marcadores geolocalizados en cualquier parte del mapa con un solo toque. Lo que ves es lo que pasa ahora mismo en tu zona.</div></div>
+  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Eventos Efímeros</div><div class="m-card-desc">Los flares duran entre 1 y 12 horas y desaparecen solos. El mapa siempre está fresco y relevante.</div></div>
   <div class="m-card"><span class="m-card-icon">❤️</span><div class="m-card-title">Likes = Tiempo</div><div class="m-card-desc">Cada like suma +5 minutos de vida al flare. Sin límite — si la comunidad lo mantiene vivo, sigue en el mapa.</div></div>
+  <div class="m-card"><span class="m-card-icon"><img src="/icons/floin.png" class="m-floin-ico m-floin-ico--lg" onerror="this.replaceWith('🪙')"></span><div class="m-card-title">Floins</div><div class="m-card-desc">La moneda de Flare. Gánalos publicando y dando likes. Úsalos para publicar flares de mayor duración.</div></div>
   <div class="m-card"><span class="m-card-icon">🔗</span><div class="m-card-title">Links y Teléfonos</div><div class="m-card-desc">Los números y URLs en el texto se convierten automáticamente en hipervínculos para llamar o visitar.</div></div>
 </div>
 
 <div class="m-section" id="m-crear">
   <div class="m-sec-hdr"><div class="m-sec-num">02</div><div class="m-sec-title">Cómo <span class="hl">Crear</span> un Flare</div></div>
-  <div class="m-step"><div class="m-step-num">1</div><div class="m-step-body"><div class="m-step-title">Presiona "＋ Crear Flare"</div><div class="m-step-desc">Aparece un menú con dos opciones: usar tu ubicación actual o elegir en el mapa.</div></div></div>
-  <div class="m-step"><div class="m-step-num">2</div><div class="m-step-body"><div class="m-step-title">📍 Mi ubicación — o — 🗺️ Elegir en mapa</div><div class="m-step-desc">GPS automático o toca el punto exacto en el mapa con el crosshair rosa.</div><div class="m-tip">💡 GPS es la opción más rápida cuando estás en el lugar</div></div></div>
-  <div class="m-step"><div class="m-step-num">3</div><div class="m-step-body"><div class="m-step-title">Elige categoría e ícono</div><div class="m-step-desc">5 categorías disponibles, cada una con 10 emojis específicos.</div></div></div>
-  <div class="m-step"><div class="m-step-num">4</div><div class="m-step-body"><div class="m-step-title">Escribe título y descripción</div><div class="m-step-desc">Título obligatorio (máx. 60 caracteres). En la descripción puedes poner tu número de teléfono o un link y se vuelve clicable automáticamente.</div><div class="m-tip">📞 Escribe tu número para que te contacten directo</div></div></div>
-  <div class="m-step"><div class="m-step-num">5</div><div class="m-step-body"><div class="m-step-title">⚡ Publicar Flare</div><div class="m-step-desc">El flare aparece en el mapa con 1 hora de vigencia. El mapa hace zoom automático a tu flare.</div></div></div>
+  <div class="m-step"><div class="m-step-num">1</div><div class="m-step-body"><div class="m-step-title">Presiona "＋ Crear Flare"</div><div class="m-step-desc">El botón flotante en la parte inferior de la pantalla. Aparece un menú con dos opciones de ubicación.</div></div></div>
+  <div class="m-step"><div class="m-step-num">2</div><div class="m-step-body"><div class="m-step-title">📍 Mi ubicación — o — 🗺️ Elegir en mapa</div><div class="m-step-desc">GPS automático, o toca el punto exacto en el mapa con el crosshair.</div><div class="m-tip">💡 GPS es la opción más rápida cuando estás en el lugar</div></div></div>
+  <div class="m-step"><div class="m-step-num">3</div><div class="m-step-body"><div class="m-step-title">Elige categoría e ícono</div><div class="m-step-desc">2 categorías activas: Antojos y Ventas. Cada una tiene 10 emojis específicos para elegir.</div></div></div>
+  <div class="m-step"><div class="m-step-num">4</div><div class="m-step-body"><div class="m-step-title">Escribe título y descripción</div><div class="m-step-desc">Título obligatorio (máx. 60 caracteres). En la descripción puedes poner número de teléfono o link — se vuelve clicable automáticamente.</div><div class="m-tip">📞 Escribe tu número para que te contacten directo</div></div></div>
+  <div class="m-step"><div class="m-step-num">5</div><div class="m-step-body"><div class="m-step-title">📸 Foto opcional</div><div class="m-step-desc">Agrega una imagen JPG, PNG o WebP. Se comprime automáticamente. Ideal para mostrar el producto o lugar.</div></div></div>
+  <div class="m-step"><div class="m-step-num">6</div><div class="m-step-body"><div class="m-step-title">Elige la duración</div><div class="m-step-desc">Chispa (1h), Flama (3h), Fogata (6h) o Hoguera (12h). Las duraciones largas requieren Floins.</div></div></div>
+  <div class="m-step"><div class="m-step-num">7</div><div class="m-step-body"><div class="m-step-title">⚡ Publicar Flare</div><div class="m-step-desc">El flare aparece en el mapa al instante. El mapa hace zoom automático a tu flare.</div></div></div>
+  <div class="m-callout hot"><div class="m-callout-icon">📊</div><div class="m-callout-body"><strong>Límite diario</strong><br>Puedes publicar hasta <strong>10 flares por día</strong>. Los usuarios verificados con número no tienen límite diario.</div></div>
+</div>
+
+<div class="m-section" id="m-duraciones">
+  <div class="m-sec-hdr"><div class="m-sec-num">03</div><div class="m-sec-title">Tipos de <span class="hl2">Duración</span></div></div>
+  <div class="m-vig-row" style="background:rgba(0,245,160,.04)">
+    <div style="font-size:20px;width:32px;text-align:center;flex-shrink:0">⚡</div>
+    <div class="m-vig-info"><div class="m-vig-label" style="color:var(--neon)">Chispa</div><div class="m-vig-desc">Lo verdaderamente urgente. "Queda poca birria", "última hora de happy hour".</div></div>
+    <div class="m-vig-time" style="color:var(--neon)">1h · gratis</div>
+  </div>
+  <div class="m-vig-row" style="background:rgba(255,149,0,.04)">
+    <div style="font-size:20px;width:32px;text-align:center;flex-shrink:0">🔥</div>
+    <div class="m-vig-info"><div class="m-vig-label" style="color:#ff9500">Flama</div><div class="m-vig-desc">Un bloque de actividad. "Servicio de comida de 1 a 4", "puesto de tamales toda la mañana".</div></div>
+    <div class="m-vig-time" style="color:#ff9500">3h · gratis</div>
+  </div>
+  <div class="m-vig-row" style="background:rgba(245,196,0,.04)">
+    <div style="font-size:20px;width:32px;text-align:center;flex-shrink:0">🪵</div>
+    <div class="m-vig-info"><div class="m-vig-label" style="color:#f5c400">Fogata</div><div class="m-vig-desc">Tu turno completo sin republicar. Swap meet, medio día de ventas, evento de mañana completa.</div></div>
+    <div class="m-vig-time" style="color:#f5c400">6h · 5 <img src="/icons/floin.png" class="m-floin-ico" onerror="this.replaceWith('🪙')"></div>
+  </div>
+  <div class="m-vig-row" style="background:rgba(255,64,96,.04)">
+    <div style="font-size:20px;width:32px;text-align:center;flex-shrink:0">🏕️</div>
+    <div class="m-vig-info"><div class="m-vig-label" style="color:#ff4060">Hoguera</div><div class="m-vig-desc">Presencia de día completo. Abierto todo el día, evento que dura toda la jornada.</div></div>
+    <div class="m-vig-time" style="color:#ff4060">12h · 10 <img src="/icons/floin.png" class="m-floin-ico" onerror="this.replaceWith('🪙')"></div>
+  </div>
+  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">💡</div><div class="m-callout-body"><strong>Chispa y Flama son gratis</strong><br>Fogata y Hoguera requieren Floins — la moneda que ganas usando Flare. Sin costo real, solo actividad.</div></div>
 </div>
 
 <div class="m-section" id="m-categorias">
-  <div class="m-sec-hdr"><div class="m-sec-num">03</div><div class="m-sec-title"><span class="hl">Categorías</span></div></div>
-  <div class="m-cat" style="border-color:rgba(255,149,0,.3)"><div class="m-cat-icon">🍽️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff9500">Antojos</div><div class="m-cat-desc">Tacos, food trucks, restaurantes, pop-ups</div><div class="m-cat-emojis">🍕🌮🍔🍜🥗🍺☕🍦🥩🍣</div></div></div>
-  <div class="m-cat" style="border-color:rgba(0,194,255,.3)"><div class="m-cat-icon">🏷️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#00c2ff">Ventas</div><div class="m-cat-desc">Garage sales, liquidaciones, ropa de paca</div><div class="m-cat-emojis">🏷️💸🛒🎁💰🛍️🤑💎🔖📦</div></div></div>
-  <div class="m-cat" style="border-color:rgba(160,0,245,.3)"><div class="m-cat-icon">🎉</div><div class="m-cat-info"><div class="m-cat-name" style="color:#a000f5">Evento</div><div class="m-cat-desc">Conciertos, torneos, festivales, carreras</div><div class="m-cat-emojis">🎉🎵🎸🎭🎪🏆🎤🎬🎊🕺</div></div></div>
-  <div class="m-cat" style="border-color:rgba(255,64,96,.3)"><div class="m-cat-icon">⚡</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff4060">Suceso</div><div class="m-cat-desc">Accidentes, retenes, bloqueos, alertas</div><div class="m-cat-emojis">⚡🚨🚧💥🔥🚑⚠️🌊🌪️🆘</div></div></div>
-  <div class="m-cat" style="border-color:rgba(0,245,160,.3)"><div class="m-cat-icon">ℹ️</div><div class="m-cat-info"><div class="m-cat-name" style="color:var(--neon)">Información</div><div class="m-cat-desc">Avisos, cortes de agua/luz, ferias de empleo</div><div class="m-cat-emojis">ℹ️📍💡📢🗺️🔍📌📣🌐✅</div></div></div>
+  <div class="m-sec-hdr"><div class="m-sec-num">04</div><div class="m-sec-title"><span class="hl">Categorías</span></div></div>
+  <div class="m-cat" style="border-color:rgba(255,149,0,.3)"><div class="m-cat-icon">🍽️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff9500">Antojos</div><div class="m-cat-desc">Tacos, food trucks, restaurantes, pop-ups, puestos de comida</div><div class="m-cat-emojis">🍕🌮🍔🍜🥗🍺☕🍦🥩🍣</div></div></div>
+  <div class="m-cat" style="border-color:rgba(0,194,255,.3)"><div class="m-cat-icon">🏷️</div><div class="m-cat-info"><div class="m-cat-name" style="color:#00c2ff">Ventas</div><div class="m-cat-desc">Garage sales, liquidaciones, ropa de paca, rematerías, bazares</div><div class="m-cat-emojis">🏷️💸🛒🎁💰🛍️🤑💎🔖📦</div></div></div>
+  <div class="m-cat" style="border-color:rgba(160,0,245,.2);opacity:.55"><div class="m-cat-icon">🎉</div><div class="m-cat-info"><div class="m-cat-name" style="color:#a000f5">Evento</div><div class="m-cat-desc">Conciertos, torneos, festivales, carreras — <em>próximamente</em></div></div></div>
+  <div class="m-cat" style="border-color:rgba(255,64,96,.2);opacity:.55"><div class="m-cat-icon">⚡</div><div class="m-cat-info"><div class="m-cat-name" style="color:#ff4060">Suceso</div><div class="m-cat-desc">Accidentes, retenes, bloqueos, alertas — <em>próximamente</em></div></div></div>
+  <div class="m-cat" style="border-color:rgba(0,245,160,.2);opacity:.55"><div class="m-cat-icon">ℹ️</div><div class="m-cat-info"><div class="m-cat-name" style="color:var(--neon)">Información</div><div class="m-cat-desc">Avisos, cortes de agua/luz, ferias de empleo — <em>próximamente</em></div></div></div>
 </div>
 
 <div class="m-section" id="m-vigencia">
-  <div class="m-sec-hdr"><div class="m-sec-num">04</div><div class="m-sec-title">Sistema de <span class="hl3">Vigencia</span></div></div>
-  <div class="m-vig-row" style="background:rgba(0,245,160,.04)"><div class="m-vig-dot" style="background:var(--neon);box-shadow:0 0 6px var(--neon)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--neon)">Nuevo</div><div class="m-vig-desc">Flare recién publicado. Brilla en verde.</div></div><div class="m-vig-time" style="color:var(--neon)">&gt; 30 min</div></div>
+  <div class="m-sec-hdr"><div class="m-sec-num">05</div><div class="m-sec-title">Estados de <span class="hl3">Vigencia</span></div></div>
+  <div class="m-vig-row" style="background:rgba(0,245,160,.04)"><div class="m-vig-dot" style="background:var(--neon);box-shadow:0 0 6px var(--neon)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--neon)">Nuevo</div><div class="m-vig-desc">Flare fresco. Marcador verde brillante.</div></div><div class="m-vig-time" style="color:var(--neon)">&gt; 30 min</div></div>
   <div class="m-vig-row" style="background:rgba(255,179,0,.04)"><div class="m-vig-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--amber)">Maduro</div><div class="m-vig-desc">Flare en su fase media.</div></div><div class="m-vig-time" style="color:var(--amber)">10–30 min</div></div>
   <div class="m-vig-row" style="background:rgba(255,64,96,.04)"><div class="m-vig-dot" style="background:var(--danger);box-shadow:0 0 6px var(--danger)"></div><div class="m-vig-info"><div class="m-vig-label" style="color:var(--danger)">Expirando</div><div class="m-vig-desc">Últimos minutos. Marcador rojo.</div></div><div class="m-vig-time" style="color:var(--danger)">&lt; 10 min</div></div>
-  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">❤️</div><div class="m-callout-body"><strong>Likes extienden la vida</strong><br>Cada ❤️ suma <strong style="color:var(--neon)">+5 minutos</strong>. Sin límite de tiempo — si la comunidad lo mantiene vivo, sigue en el mapa. Solo un like por flare.</div></div>
+  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">❤️</div><div class="m-callout-body"><strong>Likes extienden la vida</strong><br>Cada ❤️ suma <strong style="color:var(--neon)">+5 minutos</strong> al flare. Sin límite de tiempo — si la comunidad lo mantiene vivo, sigue en el mapa. Solo un like por flare por persona.</div></div>
+  <div class="m-callout" style="margin-top:8px"><div class="m-callout-icon">⏱️</div><div class="m-callout-body"><strong>Extender tu propio flare</strong><br>Desde el popup de tu flare puedes pagar <strong style="color:#f5c400">5 Floins</strong> para añadirle <strong>+1 hora</strong> directamente.</div></div>
+</div>
+
+<div class="m-section" id="m-floins">
+  <div class="m-sec-hdr"><div class="m-sec-num">06</div><div class="m-sec-title"><span class="hl2">Floins</span> <img src="/icons/floin.png" class="m-floin-ico m-floin-ico--lg" onerror="this.replaceWith('🪙')"></div></div>
+  <div class="m-card"><span class="m-card-icon"><img src="/icons/floin.png" class="m-floin-ico m-floin-ico--lg" onerror="this.replaceWith('🪙')"></span><div class="m-card-title">¿Qué son los Floins?</div><div class="m-card-desc">La moneda interna de Flare. Se ganan siendo activo en la comunidad y se usan para publicar flares de mayor duración.</div></div>
+  <div style="margin-top:12px;margin-bottom:6px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim)">Cómo ganarlos</div>
+  <div class="m-sk">
+    <div class="m-sk-row"><div class="m-sk-key">🔥 Primer flare</div><div class="m-sk-desc"><strong style="color:#f5c400">+10 Floins</strong> — una sola vez</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">📍 Publicar flare</div><div class="m-sk-desc"><strong style="color:#f5c400">+2 Floins</strong> por publicación</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">❤️ Dar like</div><div class="m-sk-desc"><strong style="color:#f5c400">+1 Floin</strong> por like dado</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">🏆 Tu flare recibe 5 likes</div><div class="m-sk-desc"><strong style="color:#f5c400">+3 Floins</strong> por cada 5 likes</div></div>
+  </div>
+  <div style="margin-top:12px;margin-bottom:6px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim)">Cómo gastarlos</div>
+  <div class="m-sk">
+    <div class="m-sk-row"><div class="m-sk-key">🪵 Fogata (6h)</div><div class="m-sk-desc"><strong style="color:#ff4060">−5 Floins</strong></div></div>
+    <div class="m-sk-row"><div class="m-sk-key">🏕️ Hoguera (12h)</div><div class="m-sk-desc"><strong style="color:#ff4060">−10 Floins</strong></div></div>
+    <div class="m-sk-row"><div class="m-sk-key">⏱️ Extender +1h</div><div class="m-sk-desc"><strong style="color:#ff4060">−5 Floins</strong></div></div>
+  </div>
+  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">📊</div><div class="m-callout-body"><strong>Tu saldo siempre visible</strong><br>El número de Floins aparece en la barra superior. Tócalo para ver tu historial completo de transacciones.</div></div>
+</div>
+
+<div class="m-section" id="m-tiers">
+  <div class="m-sec-hdr"><div class="m-sec-num">07</div><div class="m-sec-title">Niveles de <span class="hl">Usuario</span></div></div>
+  <div class="m-vig-row" style="background:rgba(255,255,255,.03);margin-bottom:8px;border-radius:10px;padding:12px">
+    <div style="font-size:22px;width:32px;text-align:center;flex-shrink:0">👻</div>
+    <div class="m-vig-info">
+      <div class="m-vig-label" style="color:var(--dim)">Visitante</div>
+      <div class="m-vig-desc">Puedes ver todos los flares del mapa y compartirlos. Para publicar o dar like necesitas crear tu perfil.</div>
+    </div>
+  </div>
+  <div class="m-vig-row" style="background:rgba(0,245,160,.04);margin-bottom:8px;border-radius:10px;padding:12px">
+    <div style="font-size:22px;width:32px;text-align:center;flex-shrink:0">⚡</div>
+    <div class="m-vig-info">
+      <div class="m-vig-label" style="color:var(--neon)">Usuario</div>
+      <div class="m-vig-desc">Al publicar tu primer flare o dar tu primer like se crea tu perfil automáticamente. Puedes publicar, dar likes y acumular Floins. Límite de 10 flares por día.</div>
+    </div>
+  </div>
+  <div class="m-vig-row" style="background:rgba(245,196,0,.04);border-radius:10px;padding:12px">
+    <div style="font-size:22px;width:32px;text-align:center;flex-shrink:0">✅</div>
+    <div class="m-vig-info">
+      <div class="m-vig-label" style="color:#f5c400">Verificado</div>
+      <div class="m-vig-desc">Validas tu perfil con tu número de celular. Obtienes un nombre personalizado, sin límite diario de flares y tu perfil se sincroniza entre dispositivos.</div>
+    </div>
+  </div>
+  <div class="m-callout" style="margin-top:10px"><div class="m-callout-icon">📱</div><div class="m-callout-body"><strong>Verificar es gratis</strong><br>Ve a tu perfil (icono 👤 en el panel) y toca "Verificar con número". Solo se usa para identificar tu cuenta — sin spam.</div></div>
 </div>
 
 <div class="m-section" id="m-panel">
-  <div class="m-sec-hdr"><div class="m-sec-num">05</div><div class="m-sec-title">El <span class="hl">Panel</span></div></div>
-  <div class="m-card"><span class="m-card-icon">🔍</span><div class="m-card-title">Buscar lugar en el mapa</div><div class="m-card-desc">Escribe cualquier ciudad o dirección. El mapa vuela automáticamente a ese punto.</div></div>
-  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Filtro de Vigencia</div><div class="m-card-desc">Filtra por Todos · Nuevo · Maduro · Expirando. También aplica a los marcadores del mapa.</div></div>
-  <div class="m-card"><span class="m-card-icon">🏷️</span><div class="m-card-title">Chips de Categoría</div><div class="m-card-desc">Filtra por categoría. Combina con filtro de vigencia para búsquedas precisas.</div></div>
-  <div class="m-callout hot"><div class="m-callout-icon">💡</div><div class="m-callout-body"><strong>Solo muestra flares del área visible</strong><br>Mueve o haz zoom en el mapa y el panel se actualiza automáticamente.</div></div>
+  <div class="m-sec-hdr"><div class="m-sec-num">08</div><div class="m-sec-title">El <span class="hl">Panel</span> Lateral</div></div>
+  <div class="m-card"><span class="m-card-icon">🔍</span><div class="m-card-title">Flares en Vista</div><div class="m-card-desc">Lista todos los flares activos en el área visible del mapa. Mueve o haz zoom y la lista se actualiza automáticamente.</div></div>
+  <div class="m-card"><span class="m-card-icon">🎛️</span><div class="m-card-title">Filtros</div><div class="m-card-desc">Filtra por vigencia (Todos · Nuevo · Maduro · Expirando) y por categoría. Los filtros también aplican a los marcadores del mapa.</div></div>
+  <div class="m-card"><span class="m-card-icon">👤</span><div class="m-card-title">Mi Perfil</div><div class="m-card-desc">Ve tu nombre, avatar, nivel y balance de Floins. Desde aquí puedes verificar tu cuenta con tu número.</div></div>
+  <div class="m-card"><span class="m-card-icon"><img src="/icons/floin.png" class="m-floin-ico m-floin-ico--lg" onerror="this.replaceWith('🪙')"></span><div class="m-card-title">Mis Floins</div><div class="m-card-desc">Historial completo de Floins ganados y gastados, con el motivo de cada transacción.</div></div>
+  <div class="m-card"><span class="m-card-icon">❓</span><div class="m-card-title">Tutorial</div><div class="m-card-desc">Este manual. También accesible desde el botón ❓ junto al contador de Floins en la barra superior.</div></div>
 </div>
 
 <div class="m-section" id="m-tips">
-  <div class="m-sec-hdr"><div class="m-sec-num">06</div><div class="m-sec-title">Tips y <span class="hl2">Trucos</span></div></div>
-  <div class="m-card"><span class="m-card-icon">🎯</span><div class="m-card-title">Títulos específicos ganan más likes</div><div class="m-card-desc">"Tacos de carne asada con tortilla hecha a mano" > "Hay tacos aquí"</div></div>
-  <div class="m-card"><span class="m-card-icon">🚧</span><div class="m-card-title">Retenes de alcoholímetro</div><div class="m-card-desc">Usa emoji 🚧 + categoría Suceso. La comunidad lo agradece y le da likes para mantenerlo vigente.</div></div>
+  <div class="m-sec-hdr"><div class="m-sec-num">09</div><div class="m-sec-title">Tips y <span class="hl2">Trucos</span></div></div>
+  <div class="m-card"><span class="m-card-icon">🎯</span><div class="m-card-title">Títulos específicos ganan más likes</div><div class="m-card-desc">"Tacos de carne asada con tortilla hecha a mano — $25" funciona mejor que "Hay tacos aquí"</div></div>
+  <div class="m-card"><span class="m-card-icon">📸</span><div class="m-card-title">Una foto vale más que mil palabras</div><div class="m-card-desc">Los flares con foto reciben más atención. Muestra el producto, el lugar o lo que estás vendiendo.</div></div>
+  <div class="m-card"><span class="m-card-icon">🔗</span><div class="m-card-title">Comparte tus flares</div><div class="m-card-desc">Toca el ícono de compartir en el popup de cualquier flare para enviar el link directo por WhatsApp, redes sociales o donde quieras.</div></div>
   <div class="m-card"><span class="m-card-icon">📞</span><div class="m-card-title">Incluye tu número si vendes</div><div class="m-card-desc">Escribe tu número en la descripción. Se convierte en link para llamar con un toque desde el celular.</div></div>
-  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Dale vida a los mejores flares</div><div class="m-card-desc">Si ves un flare útil expirando, dale ❤️ para extenderle 5 minutos más.</div></div>
+  <div class="m-card"><span class="m-card-icon">⏱️</span><div class="m-card-title">Dale vida a los mejores flares</div><div class="m-card-desc">Si ves un flare útil expirando, dale ❤️ para extenderle +5 minutos. Además ganas 1 Floin por cada like.</div></div>
+  <div class="m-card"><span class="m-card-icon"><img src="/icons/floin.png" class="m-floin-ico m-floin-ico--lg" onerror="this.replaceWith('🪙')"></span><div class="m-card-title">Acumula Floins desde el inicio</div><div class="m-card-desc">Tu primer flare te da 10 Floins — suficiente para una Fogata (6h). Empieza con Chispa o Flama y ahorra para duraciones largas.</div></div>
   <div style="margin-top:16px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Gestos</div>
   <div class="m-sk">
     <div class="m-sk-row"><div class="m-sk-key">Toque en marcador</div><div class="m-sk-desc">Abre popup del flare</div></div>
     <div class="m-sk-row"><div class="m-sk-key">Toque emoji en panel</div><div class="m-sk-desc">Vuela al flare en el mapa</div></div>
     <div class="m-sk-row"><div class="m-sk-key">Toque fila en panel</div><div class="m-sk-desc">Expande / colapsa detalle</div></div>
     <div class="m-sk-row"><div class="m-sk-key">Scroll / pinch mapa</div><div class="m-sk-desc">Zoom · Panel se actualiza</div></div>
+    <div class="m-sk-row"><div class="m-sk-key">Toque fuera del popup</div><div class="m-sk-desc">Cierra el popup del flare</div></div>
   </div>
 </div>
 

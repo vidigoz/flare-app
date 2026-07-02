@@ -37,6 +37,7 @@
       <img src="/icons/floin.png" class="hdr-floins-ico" alt="🪙" onerror="this.replaceWith('🪙')">
       <span id="hdr-floins-val">0</span>
     </button>
+    <button class="hdr-help-btn" id="hdr-help-btn" title="Tutorial" onclick="openPanel();openTutorial()">❓</button>
   </div>
   <div class="hdr-r">
     <div id="sync"><div class="sync-dot"></div><span id="sync-txt">sincronizado</span></div>
@@ -115,6 +116,7 @@
       <button class="ph-nav-btn" id="pnav-floins" title="Mis Floins" onclick="showFloinsPanel()">
         <img src="/icons/floin.png" class="pnav-floins-ico" alt="🪙" onerror="this.replaceWith('🪙')">
       </button>
+      <button class="ph-nav-btn" id="pnav-tutorial" title="Tutorial" onclick="openPanel();openTutorial()">❓</button>
       <button class="ph-nav-btn ph-nav-close" id="panel-close" title="Cerrar">✕</button>
     </div>
   </div>
@@ -301,7 +303,7 @@
   <div class="ob-tip" id="ob-tip-fab">
     <div class="ob-tip-upper">
       <img src="/icons/mascota2.svg" alt="" class="ob-tip-mascota">
-      <div class="ob-tip-txt">¡Hola! Coloca Pins en el mapa, llamados flares, con informacion para que otros la vean!</div>
+      <div class="ob-tip-txt">Coloca Pins en el mapa, llamados flares, con informacion para que otros la vean!</div>
     </div>
     <div class="ob-tip-arrow ob-tip-arrow-down"></div>
   </div>
@@ -309,7 +311,7 @@
   <div class="ob-tip" id="ob-tip-filters">
     <div class="ob-tip-arrow ob-tip-arrow-up"></div>
     <div class="ob-tip-arrow ob-tip-arrow-right-side"></div>
-    <div class="ob-tip-txt">Usa los filtros o modo lista para encontrar lo que sucede en tu localidad, da like ❤️ o pon tu primer flare 📍 para ser parte de la comunidad.</div>
+    <div class="ob-tip-txt">Hola! Usa los filtros o panel lateral para encontrar lo que sucede en tu localidad ❤️</div>
   </div>
 
   <!-- Celebración al publicar primer flare -->
